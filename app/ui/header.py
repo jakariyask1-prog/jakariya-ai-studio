@@ -14,6 +14,8 @@ from app.api.model_catalog import get_provider_options, get_model_options
 class Header(QWidget):
     export_requested = Signal(str)
     settings_requested = Signal()
+    upgrade_requested = Signal()
+    auth_requested = Signal()
 
     def __init__(self):
         super().__init__()
@@ -36,6 +38,12 @@ class Header(QWidget):
         from PySide6.QtWidgets import QSizePolicy
         self.chat_title.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
         self.chat_title.setMinimumWidth(0)
+
+        # Plan Status & Upgrade Badge Button
+        self.plan_badge_btn = QToolButton()
+        self.plan_badge_btn.setFixedHeight(34)
+        self.plan_badge_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.plan_badge_btn.clicked.connect(self.upgrade_requested.emit)
 
         # Provider Selector (Pill Dropdown)
         self.provider_selector = QComboBox()
@@ -65,6 +73,7 @@ class Header(QWidget):
 
         # Assemble Header Layout
         layout.addWidget(self.chat_title, 1)
+        layout.addWidget(self.plan_badge_btn, 0)
         layout.addWidget(self.provider_selector, 0)
         layout.addWidget(self.model_selector, 0)
         layout.addWidget(self.export_button, 0)
@@ -129,7 +138,71 @@ class Header(QWidget):
             }}
         """
         self.settings_button.setStyleSheet(icon_btn_style)
+        self.refresh_plan_badge()
         self._update_elided_title()
+
+    def refresh_plan_badge(self) -> None:
+        """Update badge text and visual appearance based on 3-day trial or Pro status."""
+        try:
+            from app.licensing.license_manager import LicenseManager
+            status = LicenseManager.instance().get_plan_status()
+            tier = status.get("tier", "free")
+            badge = status.get("badge", "Free Plan")
+
+            if tier == "premium":
+                self.plan_badge_btn.setText(badge)
+                self.plan_badge_btn.setToolTip("👑 Pro Membership Active — ক্লিক করে লাইসেন্স ও সুবিধা দেখুন")
+                self.plan_badge_btn.setStyleSheet("""
+                    QToolButton {
+                        background-color: #FEF3C7;
+                        color: #92400E;
+                        border: 1px solid #F59E0B;
+                        border-radius: 10px;
+                        padding: 4px 12px;
+                        font-weight: 700;
+                        font-size: 10pt;
+                    }
+                    QToolButton:hover {
+                        background-color: #FDE68A;
+                    }
+                """)
+            elif tier == "trial":
+                self.plan_badge_btn.setText(badge)
+                self.plan_badge_btn.setToolTip(f"⚡ {status.get('label', '')} — ৩ দিনের জন্য সকল সুবিধা সক্রিয়! আপগ্রেড করতে ক্লিক করুন")
+                self.plan_badge_btn.setStyleSheet("""
+                    QToolButton {
+                        background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #4F46E5, stop:1 #7C3AED);
+                        color: #FFFFFF;
+                        border: 1px solid #6366F1;
+                        border-radius: 10px;
+                        padding: 4px 12px;
+                        font-weight: 700;
+                        font-size: 10pt;
+                    }
+                    QToolButton:hover {
+                        background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #4338CA, stop:1 #6D28D9);
+                    }
+                """)
+            else:
+                self.plan_badge_btn.setText("🆓 Free [⚡ Pro]")
+                self.plan_badge_btn.setToolTip("ফ্রি প্ল্যান সক্রিয় — ৩ দিনের ট্রায়াল শেষ হয়েছে। Pro-তে আপগ্রেড করতে ক্লিক করুন")
+                self.plan_badge_btn.setStyleSheet("""
+                    QToolButton {
+                        background-color: #F1F5F9;
+                        color: #334155;
+                        border: 1px solid #CBD5E1;
+                        border-radius: 10px;
+                        padding: 4px 12px;
+                        font-weight: 600;
+                        font-size: 10pt;
+                    }
+                    QToolButton:hover {
+                        background-color: #E2E8F0;
+                        color: #0F172A;
+                    }
+                """)
+        except Exception:
+            self.plan_badge_btn.setText("⚡ Plan")
 
     def resizeEvent(self, event) -> None:
         super().resizeEvent(event)

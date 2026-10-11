@@ -237,6 +237,8 @@ class MainWindow(QMainWindow):
         self.input_bar.attachment_remove_requested.connect(self.remove_pending_attachment)
         self.header.export_requested.connect(self.export_active_chat)
         self.header.settings_requested.connect(self.open_settings_window)
+        self.header.upgrade_requested.connect(self.open_upgrade_window)
+        self.header.auth_requested.connect(self.open_auth_window)
         self.chat_area.response_export_requested.connect(self.export_response)
         self.header.set_export_formats(self.export_manager.available_formats())
 
@@ -333,6 +335,10 @@ class MainWindow(QMainWindow):
         self._sync_theme_from_config()
         self.update_status_bar("Ready")
 
+        # Prompt for login or 3-day free trial on first launch if not logged in
+        from PySide6.QtCore import QTimer
+        QTimer.singleShot(700, self._check_first_launch_auth)
+
     def apply_theme(self, theme_name: str) -> None:
         """Propagate active theme changes to all central application widgets."""
         from app.ui.styles import get_global_app_style
@@ -396,6 +402,12 @@ class MainWindow(QMainWindow):
         self.input_bar.disable()
 
         if self.input_bar.is_agent_mode_active():
+            from app.licensing.license_manager import LicenseManager
+            if not LicenseManager.instance().is_feature_allowed("unlimited_agent"):
+                self.input_bar.enable()
+                self.open_upgrade_window("Autonomous ReAct Agent সুবিধাটি Pro এবং ৩ দিনের ফ্রি ট্রায়ালের অন্তর্ভুক্ত।")
+                return
+
             from app.providers.models.chat_request import MessageContent
             history_msgs = [MessageContent(role=m["role"], content=m["content"]) for m in history]
             self.statusBar().showMessage("Autonomous ReAct Agent executing task...")
@@ -500,6 +512,17 @@ class MainWindow(QMainWindow):
 
     def export_active_chat(self, format_id: str):
         """Prompt for a destination and export the active conversation."""
+        from app.licensing.license_manager import LicenseManager
+        pro_exports = {
+            "pdf": "styled_pdf_export",
+            "docx": "docx_export",
+            "xlsx": "excel_export",
+        }
+        req_feature = pro_exports.get(format_id)
+        if req_feature and not LicenseManager.instance().is_feature_allowed(req_feature):
+            self.open_upgrade_window(f"{format_id.upper()} এক্সপোর্ট সুবিধাটি Pro এবং ৩ দিনের ফ্রি ট্রায়ালের অন্তর্ভুক্ত।")
+            return
+
         try:
             export_format = next(
                 item for item in self.export_manager.available_formats()
@@ -536,6 +559,17 @@ class MainWindow(QMainWindow):
         )
 
     def export_response(self, format_id: str, content: str):
+        from app.licensing.license_manager import LicenseManager
+        pro_exports = {
+            "pdf": "styled_pdf_export",
+            "docx": "docx_export",
+            "xlsx": "excel_export",
+        }
+        req_feature = pro_exports.get(format_id)
+        if req_feature and not LicenseManager.instance().is_feature_allowed(req_feature):
+            self.open_upgrade_window(f"{format_id.upper()} এক্সপোর্ট সুবিধাটি Pro এবং ৩ দিনের ফ্রি ট্রায়ালের অন্তর্ভুক্ত।")
+            return
+
         export_format = next((item for item in self.export_manager.available_formats() if item.format_id == format_id), None)
         if export_format is None:
             return
@@ -671,6 +705,35 @@ class MainWindow(QMainWindow):
             schema.advanced.log_level,
             schema.general.notifications_enabled,
         )
+
+    def _check_first_launch_auth(self) -> None:
+        """Prompt user for login or 3-day free trial on startup if not already logged in."""
+        try:
+            from app.auth.auth_service import AuthService
+            if not AuthService.instance().is_logged_in:
+                self.open_auth_window()
+        except Exception as exc:
+            logger.debug("[MainWindow] First launch auth prompt skipped: %s", exc)
+
+    def open_auth_window(self) -> None:
+        """Open the Login and 3-Day Free Trial signup dialog."""
+        from app.auth.ui.auth_dialog import AuthDialog
+        theme = getattr(self, "_current_theme", "light")
+        dialog = AuthDialog(self, theme=theme)
+        dialog.authenticated.connect(lambda _: self.header.refresh_plan_badge())
+        dialog.exec()
+        self.header.refresh_plan_badge()
+
+    def open_upgrade_window(self, reason: str = "") -> None:
+        """Open the Pro upgrade dialog and license key activation."""
+        if reason:
+            self._app_status_bar.show_warning(reason)
+        from app.licensing.ui.upgrade_dialog import UpgradeDialog
+        theme = getattr(self, "_current_theme", "light")
+        dialog = UpgradeDialog(self, theme=theme)
+        dialog.license_activated.connect(self.header.refresh_plan_badge)
+        dialog.exec()
+        self.header.refresh_plan_badge()
 
     def _sync_voice_settings_from_config(self) -> None:
         """Sync active VoiceService and VoiceController settings from saved ConfigurationService schema."""
@@ -1092,6 +1155,13 @@ class MainWindow(QMainWindow):
             self.input_bar.set_live_mode(False)
             self._app_status_bar.show_info("Live Conversation stopped")
         else:
+            from app.licensing.license_manager import LicenseManager
+            active_tts = getattr(self.voice_controller.settings, "tts_provider_id", "")
+            if active_tts in ("cartesia_tts", "elevenlabs_tts", "fish_audio_tts"):
+                if not LicenseManager.instance().is_feature_allowed("cartesia_voice"):
+                    self.open_upgrade_window("Cartesia / ElevenLabs লাইভ ভয়েস সুবিধাটি Pro এবং ৩ দিনের ফ্রি ট্রায়ালের অন্তর্ভুক্ত।")
+                    return
+
             conversation = self.chat_manager.get_active_chat()
             self._live_history_conversation_id = conversation.id
             if self.voice_controller.state in (VoiceState.ERROR, VoiceState.INTERRUPTED):

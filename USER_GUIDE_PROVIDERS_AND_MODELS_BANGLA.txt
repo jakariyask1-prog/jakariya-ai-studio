@@ -2,6 +2,143 @@
           JAKARIYA AI STUDIO - COMPLETE USER GUIDE (BANGLA & ENGLISH)
           জাকারিয়া এআই স্টুডিও - সম্পূর্ণ ইউজার গাইড (বাংলা ও ইংরেজি)
 ================================================================================
+================================================================================
+                    JAKARIYA AI STUDIO - COMPLETE USER GUIDE
+================================================================================
+Project: Jakariya AI Studio v2.0.0 (Unified Desktop AI Ecosystem)
+Creator: Md. Jakariya Sheikh
+Architecture: Multi-Provider + Autonomous ReAct Agent + Live Voice + Exporter
+Release Date: August 2026 / October 2026 Release
+
+================================================================================
+1. PROJECT OVERVIEW & INTRODUCTION
+================================================================================
+Jakariya AI Studio is a high-performance unified desktop AI workstation that connects 
+top-tier AI providers, an autonomous ReAct multi-step agent with sandboxed tool execution, 
+continuous live voice conversation with active barge-in support, real-time web search, 
+interactive document preview cards, and a multi-format document exporter into a single 
+modern native application.
+
+================================================================================
+2. SUPPORTED AI PROVIDERS & BEST USE CASES
+================================================================================
+
+[1] GITHUB MODELS (Azure AI Inference)
+--------------------------------------------------------------------------------
+* Provider ID: github_models
+* Models:
+  - github/gpt-4o (OpenAI GPT-4o) [128k context, Multimodal Vision, Code, Deep Logic]
+  - github/gpt-4o-mini (OpenAI GPT-4o Mini) [128k context, Ultra Fast Response]
+  - github/phi-4 (Microsoft Phi-4) [16k context, Reasoning & Math Specialization]
+  - github/meta-llama-3.3-70b-instruct (Meta Llama 3.3 70B) [128k context, General Chat]
+* Best Use Cases: General conversational AI, advanced coding, algorithmic math, vision.
+
+[2] GROQ ULTRA-FAST ENGINE
+--------------------------------------------------------------------------------
+* Provider ID: groq
+* Models:
+  - groq/llama-3.3-70b-versatile (Llama 3.3 70B Versatile) [128k context]
+* Performance: 300+ tokens per second.
+* Best Use Cases: Real-time hands-free voice conversations, instant code generation.
+
+[3] GOOGLE AI STUDIO (Gemini)
+--------------------------------------------------------------------------------
+* Provider ID: google_ai_studio
+* Models:
+  - google/gemini-2.0-flash (Gemini 2.0 Flash) [1M context, High Reasoning, Multimodal]
+  - google/gemini-1.5-pro (Gemini 1.5 Pro) [2M massive context, Deep Document Analytics]
+  - google/gemini-1.5-flash (Gemini 1.5 Flash) [Fast response, Lightweight Multimodal]
+* Best Use Cases: Massive document summaries, image analysis, long-form research.
+
+[4] OPENROUTER MULTI-MODEL GATEWAY
+--------------------------------------------------------------------------------
+* Provider ID: openrouter
+* Models:
+  - deepseek/deepseek-r1 (DeepSeek R1) [Chain-of-Thought Reasoning Engine]
+  - deepseek/deepseek-chat (DeepSeek V3) [Advanced Coding & General Intelligence]
+  - anthropic/claude-3.5-sonnet (Claude 3.5 Sonnet) [Nuanced Prose, Architecture]
+  - openai/gpt-4o (GPT-4o) [128k context, Multimodal]
+  - qwen/qwen-2.5-72b-instruct (Qwen 2.5 72B) [Multilingual & Math]
+* Best Use Cases: Mathematical proofs, complex programming architectures, creative writing.
+
+[5] ANTHROPIC DIRECT (Claude)
+--------------------------------------------------------------------------------
+* Provider ID: anthropic
+* Models:
+  - claude-3-5-sonnet-20241022 (Claude 3.5 Sonnet)
+  - claude-3-opus-20240229 (Claude 3 Opus)
+  - claude-3-haiku-20240307 (Claude 3 Haiku)
+* Best Use Cases: High-precision software engineering and human-like natural dialogue.
+
+[6] CEREBRAS WAFER-SCALE INFERENCE
+--------------------------------------------------------------------------------
+* Provider ID: cerebras
+* Models:
+  - cerebras/llama-3.3-70b (Cerebras Llama 3.3)
+* Best Use Cases: Ultra low-latency token streaming powered by Wafer-Scale Engines.
+
+[7] MISTRAL AI
+--------------------------------------------------------------------------------
+* Provider ID: mistral
+* Models:
+  - mistral/mistral-large-latest (Mistral Large) [128k context]
+  - mistral/codestral-latest (Codestral) [32k context, Dedicated Coding Model]
+* Best Use Cases: Multilingual business communications and clean code refactoring.
+
+[8] OLLAMA (Local Offline AI)
+--------------------------------------------------------------------------------
+* Provider ID: ollama
+* Models: Local models installed on your PC (e.g., llama3, mistral, qwen, deepseek)
+* Best Use Cases: 100% private, offline AI execution with zero data leaving your machine.
+
+================================================================================
+3. ADVANCED ARCHITECTURAL FEATURES & CAPABILITIES
+================================================================================
+
+[A] AUTONOMOUS RE-ACT AGENT & TOOL EXECUTION
+--------------------------------------------------------------------------------
+* Execute multi-step complex instructions with autonomous decision-making.
+* 12 sandboxed tools: web search, document export, code outline, file I/O, terminal, etc.
+* Multi-Color Document Themes: vibrant, colorful, emerald, sunset, cyber, executive.
+
+[B] CONTINUOUS LIVE VOICE WITH BARGE-IN (⚡ Live Mode)
+--------------------------------------------------------------------------------
+* Hands-free voice dialogues with active interrupt support (Barge-In).
+* Speak freely at any time to pause or interrupt the AI.
+* Multi-engine support: Cartesia Sonic Voice, ElevenLabs, Fish Audio, Edge Neural TTS.
+
+[C] REAL-TIME WEB SEARCH
+--------------------------------------------------------------------------------
+* Ground your questions with live internet searches via Tavily API and DuckDuckGo.
+* Generates source-referenced answers for breaking news, stock prices, and weather.
+
+[D] 8-FORMAT CONVERSATION & DOCUMENT EXPORTER
+--------------------------------------------------------------------------------
+* Supported Formats: PDF, Word (DOCX), Excel (XLSX), HTML, Markdown, Plain Text, CSV, JSON.
+* Retains custom tables, styled typography, code highlighting, and Unicode/Bangla glyphs.
+
+[E] 3-DAY PRO TRIAL & FREEMIUM ACCESS
+--------------------------------------------------------------------------------
+* 72-hour all-facility Pro trial upon sign-up.
+* Automatic fallback to free tier after trial ends.
+* Lifetime & subscription Pro activation with license keys.
+
+================================================================================
+4. GETTING STARTED & CONFIGURATION
+================================================================================
+1. Launching the App:
+   - Double-click "Jakariya AI Studio" from your Desktop or Start Menu.
+2. Sign Up & Login:
+   - Create an account with your Email & Password to activate your 3-Day Free Trial.
+3. Setting API Keys:
+   - Open Settings (Gear Icon ⚙️), navigate to "AI Providers", enter your keys, and click Save.
+
+================================================================================
+Created by Md. Jakariya Sheikh | All Rights Reserved
+================================================================================
+
+
+
 Project / প্রজেক্ট: Jakariya AI Studio v2.0.0 (Desktop AI Ecosystem)
 Creator / নির্মাতা: Md. Jakariya Sheikh
 Architecture / আর্কিটেকচার: Multi-Provider + Autonomous ReAct Agent + Live Voice + Exporter

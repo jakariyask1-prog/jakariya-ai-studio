@@ -173,6 +173,12 @@ hiddenimports = [
     'app.settings.ui.settings_window',
     'app.settings.ui.providers_page',
 
+    # Auth & Licensing
+    'app.auth.auth_service',
+    'app.auth.ui.auth_dialog',
+    'app.licensing.license_manager',
+    'app.licensing.ui.upgrade_dialog',
+
     # Provider implementations
     'app.providers.base.base_provider',
     'app.providers.base.provider_capabilities',

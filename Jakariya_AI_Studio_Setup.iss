@@ -7,7 +7,7 @@
 #define MyAppName "Jakariya AI Studio"
 #define MyAppVersion "2.0.0"
 #define MyAppPublisher "Md. Jakariya Sheikh"
-#define MyAppURL "https://github.com/"
+#define MyAppURL "https://github.com/jakariya-ai-studio"
 #define MyAppExeName "Jakariya AI Studio.exe"
 
 [Setup]

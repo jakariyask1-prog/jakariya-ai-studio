@@ -1,6 +1,7 @@
 """Comprehensive Unit Tests for User Authentication and 3-Day Trial / Freemium System."""
 
 import json
+import secrets
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 import pytest
@@ -55,16 +56,17 @@ def test_user_signup_and_login_flow(isolated_auth_and_license):
     assert "৬ অক্ষর" in err
 
     # Successful signup
-    ok, msg = auth_svc.signup("jakariya@studio.ai", "Password@123", name="Jakariya")
+    unique_email = f"jakariya_{secrets.token_hex(4)}@studio.ai"
+    ok, msg = auth_svc.signup(unique_email, "Password@123", name="Jakariya")
     assert ok is True
     assert "সফল" in msg
     assert auth_svc.is_logged_in is True
-    assert auth_svc.current_user.email == "jakariya@studio.ai"
+    assert auth_svc.current_user.email == unique_email
     assert auth_svc.current_user.name == "Jakariya"
     assert auth_svc.current_user.trial_start_date != ""
 
     # Duplicate signup prevented
-    ok, err = auth_svc.signup("jakariya@studio.ai", "OtherPassword")
+    ok, err = auth_svc.signup(unique_email, "OtherPassword")
     assert ok is False
     assert "ইতোমধ্যে" in err
 
@@ -74,34 +76,37 @@ def test_user_signup_and_login_flow(isolated_auth_and_license):
     assert auth_svc.current_user is None
 
     # Failed login with wrong password
-    ok, err = auth_svc.login("jakariya@studio.ai", "WrongPass123")
+    ok, err = auth_svc.login(unique_email, "WrongPass123")
     assert ok is False
     assert "ভুল পাসওয়ার্ড" in err
 
     # Successful login
-    ok, msg = auth_svc.login("jakariya@studio.ai", "Password@123")
+    ok, msg = auth_svc.login(unique_email, "Password@123")
     assert ok is True
     assert auth_svc.is_logged_in is True
-    assert auth_svc.current_user.email == "jakariya@studio.ai"
+    assert auth_svc.current_user.email == unique_email
 
 
 def test_session_restoration(isolated_auth_and_license, tmp_path: Path):
     auth_svc, _ = isolated_auth_and_license
-    auth_svc.signup("persisted@example.com", "MySecretPassword", name="Persisted User")
+    unique_email = f"persisted_{secrets.token_hex(4)}@example.com"
+    auth_svc.signup(unique_email, "MySecretPassword", name="Persisted User")
     assert auth_svc.is_logged_in is True
 
     # Create a fresh AuthService instance pointing to the same file
     fresh_svc = AuthService(data_path=auth_svc._data_path)
     assert fresh_svc.is_logged_in is True
-    assert fresh_svc.current_user.email == "persisted@example.com"
+    assert fresh_svc.current_user.email == unique_email
     assert fresh_svc.current_user.name == "Persisted User"
 
 
 def test_three_day_free_trial_all_facilities_unlocked(isolated_auth_and_license):
+    import secrets
     auth_svc, lic_mgr = isolated_auth_and_license
 
     # Signup starts a 3-day trial
-    auth_svc.signup("trial_user@example.com", "SecretTrial123")
+    unique_email = f"trial_{secrets.token_hex(4)}@example.com"
+    auth_svc.signup(unique_email, "SecretTrial123")
 
     status = lic_mgr.get_plan_status()
     assert status["tier"] == "trial"
@@ -118,9 +123,11 @@ def test_three_day_free_trial_all_facilities_unlocked(isolated_auth_and_license)
 
 
 def test_trial_expiry_falls_back_to_free_version(isolated_auth_and_license):
+    import secrets
     auth_svc, lic_mgr = isolated_auth_and_license
 
-    auth_svc.signup("expired_user@example.com", "ExpiredPass123")
+    unique_email = f"expired_{secrets.token_hex(4)}@example.com"
+    auth_svc.signup(unique_email, "ExpiredPass123")
 
     # Fast forward trial start date to 4 days ago (beyond 72 hours)
     four_days_ago = datetime.now(timezone.utc) - timedelta(days=4)
@@ -152,9 +159,11 @@ def test_trial_expiry_falls_back_to_free_version(isolated_auth_and_license):
 
 
 def test_license_key_activation_unlocks_pro_permanently(isolated_auth_and_license):
+    import secrets
     auth_svc, lic_mgr = isolated_auth_and_license
 
-    auth_svc.signup("pro_candidate@example.com", "ProCandidatePass123")
+    unique_email = f"candidate_{secrets.token_hex(4)}@example.com"
+    auth_svc.signup(unique_email, "ProCandidatePass123")
 
     # Expire trial first
     four_days_ago = datetime.now(timezone.utc) - timedelta(days=4)
@@ -184,9 +193,11 @@ def test_license_key_activation_unlocks_pro_permanently(isolated_auth_and_licens
 
 
 def test_lifetime_license_key_activation(isolated_auth_and_license):
+    import secrets
     auth_svc, lic_mgr = isolated_auth_and_license
 
-    auth_svc.signup("lifetime_user@example.com", "Lifetime123456")
+    unique_email = f"lifetime_{secrets.token_hex(4)}@example.com"
+    auth_svc.signup(unique_email, "Lifetime123456")
 
     # Activate lifetime key
     ok, msg = lic_mgr.activate_license_key("JAK-VIP-LIFETIME-PREMIUM-KEY")
@@ -199,3 +210,28 @@ def test_lifetime_license_key_activation(isolated_auth_and_license):
     assert status["badge"] == "👑 Pro Member"
     assert lic_mgr.is_feature_allowed("cartesia_voice") is True
     assert lic_mgr.is_feature_allowed("styled_pdf_export") is True
+
+
+def test_firebase_cloud_auth_live(isolated_auth_and_license):
+    import secrets
+    auth_svc, _ = isolated_auth_and_license
+
+    unique_email = f"jakariya_user_{secrets.token_hex(4)}@testdomain.com"
+    pwd = "TestSecretPassword123!"
+
+    ok, msg = auth_svc.signup(unique_email, pwd, name="Cloud Jakariya")
+    assert ok is True
+    assert "সফল" in msg
+    assert auth_svc.is_logged_in is True
+    assert auth_svc.current_user.email == unique_email
+    assert auth_svc.current_user.firebase_uid != ""
+
+    # Logout and test cloud login with the same credentials
+    auth_svc.logout()
+    assert auth_svc.is_logged_in is False
+
+    ok, msg = auth_svc.login(unique_email, pwd)
+    assert ok is True
+    assert auth_svc.is_logged_in is True
+    assert auth_svc.current_user.email == unique_email
+    assert auth_svc.current_user.firebase_uid != ""

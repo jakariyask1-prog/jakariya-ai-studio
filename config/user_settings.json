@@ -1,0 +1,189 @@
+{
+    "schema_version": "1.0.0",
+    "app_version": "1.0.0",
+    "general": {
+        "language": "en",
+        "auto_startup": false,
+        "notifications_enabled": true,
+        "user_age": 0
+    },
+    "appearance": {
+        "theme": "light",
+        "font_family": "Segoe UI",
+        "font_scale": 1.0,
+        "message_density": "comfortable"
+    },
+    "providers": {
+        "google_ai_studio": {
+            "name": "Google AI Studio (Gemini)",
+            "enabled": true,
+            "api_key": "",
+            "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
+            "status": "not_configured",
+            "priority": 1
+        },
+        "openrouter": {
+            "name": "OpenRouter (Unified Multi-Model Gateway)",
+            "enabled": true,
+            "api_key": "",
+            "base_url": "https://openrouter.ai/api/v1",
+            "status": "not_configured",
+            "priority": 2
+        },
+        "groq": {
+            "name": "Groq (Ultra High-Speed Llama & Mixtral)",
+            "enabled": false,
+            "api_key": "",
+            "base_url": "https://api.groq.com/openai/v1",
+            "status": "not_configured",
+            "priority": 1
+        },
+        "cerebras": {
+            "name": "Cerebras (Wafer-Scale AI Engine)",
+            "enabled": false,
+            "api_key": "",
+            "base_url": "https://api.cerebras.ai/v1",
+            "status": "not_configured",
+            "priority": 1
+        },
+        "anthropic": {
+            "name": "Anthropic (Claude)",
+            "enabled": false,
+            "api_key": "",
+            "base_url": "https://api.anthropic.com/v1",
+            "status": "not_configured",
+            "priority": 1
+        },
+        "ollama": {
+            "name": "Ollama (Local Models)",
+            "enabled": false,
+            "api_key": "",
+            "base_url": "http://localhost:11434/v1",
+            "status": "not_configured",
+            "priority": 1
+        },
+        "plugsky": {
+            "name": "Plugsky AI",
+            "enabled": false,
+            "api_key": "",
+            "base_url": "https://api.plugsky.com/v1",
+            "status": "not_configured",
+            "priority": 1
+        },
+        "tavily": {
+            "name": "Tavily (Real-Time Web Search)",
+            "enabled": true,
+            "api_key": "",
+            "base_url": "https://api.tavily.com",
+            "status": "not_configured",
+            "priority": 1
+        },
+        "brave_search": {
+            "name": "Brave Search API (Real-Time Web Search)",
+            "enabled": true,
+            "api_key": "",
+            "base_url": "https://api.search.brave.com/res/v1",
+            "status": "not_configured",
+            "priority": 1
+        },
+        "stability_ai": {
+            "name": "Stability AI (Image Generation)",
+            "enabled": false,
+            "api_key": "",
+            "base_url": "https://api.stability.ai/v1",
+            "status": "not_configured",
+            "priority": 1
+        },
+        "cartesia": {
+            "name": "Cartesia AI (Sonic Ultra-Fast Voice)",
+            "enabled": true,
+            "api_key": "__keyring__",
+            "base_url": "https://api.cartesia.ai",
+            "status": "active",
+            "priority": 1
+        },
+        "fish_audio": {
+            "name": "Fish Audio (Expressive Neural Voice)",
+            "enabled": false,
+            "api_key": "",
+            "base_url": "https://api.fish.audio/v1",
+            "status": "not_configured",
+            "priority": 1
+        },
+        "mistral": {
+            "name": "Mistral AI (Codestral & Mistral Large)",
+            "enabled": false,
+            "api_key": "",
+            "base_url": "https://api.mistral.ai/v1",
+            "status": "not_configured",
+            "priority": 1
+        },
+        "elevenlabs": {
+            "name": "ElevenLabs (Voice Cloning & TTS)",
+            "enabled": false,
+            "api_key": "",
+            "base_url": "https://api.elevenlabs.io/v1",
+            "status": "not_configured",
+            "priority": 1
+        },
+        "llamaparse": {
+            "name": "LlamaParse (Advanced PDF & Doc Parser)",
+            "enabled": false,
+            "api_key": "",
+            "base_url": "https://api.cloud.llamaindex.ai/api/v1",
+            "status": "not_configured",
+            "priority": 1
+        },
+        "huggingface": {
+            "name": "Hugging Face (Inference & Hub Models)",
+            "enabled": false,
+            "api_key": "",
+            "base_url": "https://api-inference.huggingface.co",
+            "status": "not_configured",
+            "priority": 1
+        }
+    },
+    "models": {
+        "chat_model": "google/gemini-3.6-flash",
+        "coding_model": "plugsky-lite",
+        "reasoning_model": "openai/gpt-4o-mini",
+        "vision_model": "google/gemini-3.6-flash",
+        "voice_model": "cartesia",
+        "image_model": "google/gemini-3.5-flash",
+        "fallback_model": "google/gemini-3.6-flash"
+    },
+    "voice": {
+        "stt_provider_id": "google_stt",
+        "tts_provider_id": "cartesia",
+        "voice_id": "2c8d7dfb-ca84-4888-9600-8d8c54022dba",
+        "auto_send": true,
+        "voice_response": true,
+        "silence_timeout_ms": 550,
+        "vad_threshold": 0.012,
+        "language": "bn"
+    },
+    "chat": {
+        "system_persona": "default",
+        "custom_system_prompt": "",
+        "attach_user_profile": true,
+        "max_history_turns": 20,
+        "temperature": 0.7,
+        "max_tokens": 2048
+    },
+    "export": {
+        "default_format": "docx",
+        "include_timestamps": true,
+        "include_attachments": true,
+        "paper_size": "A4 (Standard ISO)"
+    },
+    "advanced": {
+        "log_level": "INFO",
+        "auto_sweep_orphans": true,
+        "cache_limit_mb": 500
+    },
+    "about": {
+        "app_name": "Jakariya AI Studio",
+        "version": "1.0.0",
+        "creator": "Md. Jakariya Sheikh"
+    }
+}

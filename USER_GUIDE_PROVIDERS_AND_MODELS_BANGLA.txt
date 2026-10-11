@@ -1,0 +1,199 @@
+================================================================================
+          JAKARIYA AI STUDIO - COMPLETE USER GUIDE (BANGLA & ENGLISH)
+          জাকারিয়া এআই স্টুডিও - সম্পূর্ণ ইউজার গাইড (বাংলা ও ইংরেজি)
+================================================================================
+Project / প্রজেক্ট: Jakariya AI Studio v2.0.0 (Desktop AI Ecosystem)
+Creator / নির্মাতা: Md. Jakariya Sheikh
+Architecture / আর্কিটেকচার: Multi-Provider + Autonomous ReAct Agent + Live Voice + Exporter
+Updated / আপডেট: August 2026 / আগস্ট ২০২৬
+
+================================================================================
+1. PROJECT OVERVIEW & INTRODUCTION / প্রজেক্ট পরিচিতি ও সারসংক্ষেপ
+================================================================================
+[ENGLISH]
+Jakariya AI Studio is a unified desktop AI workstation that connects 9 top-tier 
+AI providers, an autonomous ReAct multi-step agent with tool execution, continuous 
+live voice conversation with active barge-in support, real-time web search, interactive 
+smart document preview cards, and 6-format document exporting into a single cohesive app.
+
+[বাংলা]
+জাকারিয়া এআই স্টুডিও হলো একটি শক্তিশালী অল-ইন-ওয়ান ডেস্কটপ এআই ওয়ার্কস্টেশন। 
+এখানে বিশ্বের সেরা ৯টি এআই প্রোভাইডার, স্বায়ত্তশাসিত রিঅ্যাক্ট এআই এজেন্ট (টুল এক্সিকিউশনসহ), 
+লাইভ ভয়েস কনভার্সেশন (বার্জ-ইন সুবিধাসহ), রিয়েল-টাইম ওয়েব সার্চ, স্মার্ট ডকুমেন্ট প্রিভিউ 
+কার্ড এবং ৬টি ফরম্যাটে এক্সপোর্ট সিস্টেম একসাথে যুক্ত করা হয়েছে।
+
+================================================================================
+2. 9 AI PROVIDERS & BEST USE CASES / ৯টি এআই প্রোভাইডার ও তাদের সেরা ব্যবহার
+================================================================================
+
+[1] GITHUB MODELS (Azure AI Inference)
+--------------------------------------------------------------------------------
+* Provider ID: github_models
+* Models / মডেল:
+  - github/gpt-4o (OpenAI GPT-4o) [128k context, Vision, Code, Deep Logic]
+  - github/gpt-4o-mini (OpenAI GPT-4o Mini) [128k context, Ultra Fast]
+  - github/phi-4 (Microsoft Phi-4) [16k context, Reasoning & Math]
+  - github/meta-llama-3.3-70b-instruct (Meta Llama 3.3 70B) [128k context, General]
+* Best Use Cases (EN): General chat, complex programming, math, and vision analysis.
+* সেরা ব্যবহার (BN): সাধারণ চ্যাট, জটিল কোডিং সমস্যা সমাধান, গণিত এবং ছবি বিশ্লেষণ।
+
+[2] GROQ ULTRA-FAST ENGINE
+--------------------------------------------------------------------------------
+* Provider ID: groq
+* Models / মডেল:
+  - groq/llama-3.3-70b-versatile (Llama 3.3 70B Versatile) [128k context]
+* Performance: 300+ tokens per second / প্রতি সেকেন্ডে ৩০০+ টোকেন স্পিড
+* Best Use Cases (EN): Real-time live voice dialogues, instant code generation.
+* সেরা ব্যবহার (BN): রিয়েল-টাইম লাইভ ভয়েস চ্যাট এবং চোখের পলকে কোড ও উত্তর তৈরি।
+
+[3] GOOGLE AI STUDIO (Gemini)
+--------------------------------------------------------------------------------
+* Provider ID: google_ai_studio
+* Models / মডেল:
+  - google/gemini-3.6-flash (Gemini 3.6 Flash) [1M context, High Reasoning, Vision]
+  - google/gemini-3.5-flash (Gemini 3.5 Flash) [1M context, Vision, Fast Response]
+  - google/gemini-2.0-flash (Gemini 2.0 Flash) [1M context, Vision, Web Grounding]
+  - google/gemini-1.5-pro (Gemini 1.5 Pro) [2M massive context, Deep Analytics]
+* Best Use Cases (EN): Massive document analysis, high-speed multimodal vision, deep research.
+* সেরা ব্যবহার (BN): বই বা বিশাল পিডিএফ সামারি, ছবি বিশ্লেষণ এবং আধুনিক ওয়েব রিসার্চ।
+
+[4] OPENROUTER MULTI-MODEL GATEWAY
+--------------------------------------------------------------------------------
+* Provider ID: openrouter
+* Models / মডেল:
+  - deepseek/deepseek-r1 (DeepSeek R1) [Chain-of-Thought Reasoning]
+  - deepseek/deepseek-chat (DeepSeek V3) [Advanced Coding & General AI]
+  - anthropic/claude-3.5-sonnet (Claude 3.5 Sonnet) [Nuanced Writing]
+  - openai/gpt-4o (GPT-4o) [128k context, Vision]
+  - qwen/qwen-2.5-72b-instruct (Qwen 2.5 72B) [Multilingual & Math]
+* Best Use Cases (EN): Deep mathematical proofs, algorithm design, creative writing.
+* সেরা ব্যবহার (BN): জটিল গাণিতিক প্রমাণ, অ্যালগরিদম ডিজাইন এবং চমৎকার প্রবন্ধ রচনা।
+
+[5] ANTHROPIC DIRECT (Claude)
+--------------------------------------------------------------------------------
+* Provider ID: anthropic
+* Models / মডেল:
+  - claude-3-5-sonnet-20241022 (Claude 3.5 Sonnet)
+  - claude-3-opus-20240229 (Claude 3 Opus)
+  - claude-3-haiku-20240307 (Claude 3 Haiku)
+* Best Use Cases (EN): High-precision software architecture, human-like dialogue.
+* সেরা ব্যবহার (BN): নিখুঁত সফটওয়্যার আর্কিটেকচার এবং সাবলীল প্রাকৃতিক কথোপকথন।
+
+[6] CEREBRAS WAFER-SCALE INFERENCE
+--------------------------------------------------------------------------------
+* Provider ID: cerebras
+* Models / মডেল:
+  - cerebras/llama-3.3-70b (Cerebras Llama 3.3)
+* Best Use Cases (EN): Extreme speed inference powered by Wafer-Scale Engine.
+* সেরা ব্যবহার (BN): ওয়্যাফার-স্কেল হার্ডওয়্যারে বিদ্যুৎগতির এআই প্রসেসিং।
+
+[7] MISTRAL AI
+--------------------------------------------------------------------------------
+* Provider ID: mistral
+* Models / মডেল:
+  - mistral/mistral-large-latest (Mistral Large) [128k context]
+  - mistral/codestral-latest (Codestral) [32k context, Dedicated Coding]
+* Best Use Cases (EN): Multilingual business communications, professional code refactor.
+* সেরা ব্যবহার (BN): বহুভাষিক অফিশিয়াল চিঠি, ইমেইল এবং উন্নত কোড রিফ্যাক্টরিং।
+
+[8] KIMI / MOONSHOT AI
+--------------------------------------------------------------------------------
+* Provider ID: kimi
+* Models / মডেল:
+  - kimi/moonshot-v1-8k (Moonshot V1)
+* Best Use Cases (EN): Long-context cross-lingual chat, Chinese/English translation.
+* সেরা ব্যবহার (BN): দীর্ঘ প্রসঙ্গের বহুভাষিক কথোপকথন ও নিখুঁত অনুবাদ।
+
+[9] OLLAMA (Local Offline AI)
+--------------------------------------------------------------------------------
+* Provider ID: ollama
+* Models / মডেল: Local models installed on your PC (e.g., llama3, mistral, qwen, deepseek)
+* Best Use Cases (EN): 100% private, offline AI execution without sending data to cloud.
+* সেরা ব্যবহার (BN): সম্পূর্ণ প্রাইভেট এবং ইন্টারনেট ছাড়া অফলাইন এআই এক্সিকিউশন।
+
+================================================================================
+3. ADVANCED FEATURES & USAGE / উন্নত ফিচারসমূহ ও ব্যবহারের নিয়ম
+================================================================================
+
+[A] AUTONOMOUS RE-ACT AGENT & TOOL EXECUTION
+--------------------------------------------------------------------------------
+* English:
+  - Enter any complex multi-step request (e.g., "Search the web for the latest tech news 
+    and export a 2-page executive summary to Word docx and PDF with colorful theme").
+  - The AI Agent creates an actionable execution plan, calls tools (web_search, 
+    export_document, python_interpreter, file_io), verifies results, and shows the full 
+    output both in chat and saved to disk.
+  - Multi-Color Document Themes: vibrant, colorful, emerald, sunset, cyber, executive.
+* বাংলা:
+  - যেকোনো জটিল বহু-ধাপ বিশিষ্ট নির্দেশ দিলে (যেমন: "আজকের তাজা প্রযুক্তি খবর সার্চ 
+    করে একটি সুন্দর রঙিন ওয়ার্ড ও পিডিএফ রিপোর্ট তৈরি করো") এআই এজেন্ট স্বয়ংক্রিয়ভাবে 
+    টুল ব্যবহার করে সম্পূর্ণ কাজ সম্পন্ন করবে এবং লোকাল ডিস্কে সেভ করবে।
+  - রঙিন থিমসমূহ: vibrant, colorful, emerald, sunset, cyber, executive.
+
+[B] CONTINUOUS LIVE VOICE WITH BARGE-IN (⚡ Live Mode)
+--------------------------------------------------------------------------------
+* English:
+  - Click the "⚡ Live" button to start continuous, hands-free voice dialogue.
+  - Barge-In Feature: You can speak and interrupt the AI assistant while it is speaking! 
+    The app dynamically manages microphone gain (`0.15` attenuation during playback) 
+    to eliminate speaker echo while detecting user speech.
+  - Full native support for Bangla (বাংলা) and English.
+* বাংলা:
+  - "⚡ Live" বাটনে ক্লিক করে হাত ছাড়া সার্বক্ষণিক লাইভ ভয়েস চ্যাট করুন।
+  - বার্জ-ইন (Barge-In) সুবিধা: এআই কথা বলা অবস্থাতেও আপনি কথা বলে তাকে থামাতে পারবেন।
+  - বাংলা ও ইংরেজি উভয় ভাষায় সাবলীল ভয়েস ইনপুট ও আউটপুট সমর্থন করে।
+
+[C] REAL-TIME SUB-SECOND WEB SEARCH
+--------------------------------------------------------------------------------
+* English:
+  - Real-time questions (current news, weather, stock prices, live scores) automatically 
+    trigger live web search via Tavily API, Brave Search API, or DuckDuckGo.
+* বাংলা:
+  - সাম্প্রতিক খবর, আজকের আবহাওয়া বা স্টক প্রাইস সম্পর্কে প্রশ্ন করলে স্বয়ংক্রিয়ভাবে 
+    ইন্টারনেট সার্চ করে নির্ভরযোগ্য সোর্স লিঙ্কসহ সঠিক তথ্য দেবে।
+
+[D] 6-FORMAT CONVERSATION & DOCUMENT EXPORTER
+--------------------------------------------------------------------------------
+* Formats Supported / সমর্থিত ফরম্যাট:
+  1. PDF Document (.pdf) - Multi-colored headings, styled tables, callouts
+  2. Microsoft Word (.docx) - Custom typography, XML shaded table cells
+  3. Microsoft Excel (.xlsx) - Styled spreadsheet with header fills and borders
+  4. Web Page (.html) - Responsive CSS variables and dark/light palettes
+  5. Markdown (.md) - Clean GitHub flavored formatting
+  6. Plain Text (.txt) - Universal plain text
+* Features / বৈশিষ্ট্য:
+  - Retains rich styling, tables, code highlighting, and Unicode/Bangla text.
+  - One-click copy and download buttons on every code block.
+
+[E] AUTOMATIC FAILOVER & ZERO-CRASH ENGINE
+--------------------------------------------------------------------------------
+* English:
+  - If a selected provider runs out of rate limits (HTTP 429) or faces network issues, 
+    the engine seamlessly catches the exception and routes the request to an 
+    active backup provider without interrupting your chat session.
+* বাংলা:
+  - কোনো প্রোভাইডারে সার্ভার সমস্যা বা রেট লিমিট শেষ হলে অ্যাপ না আটকে স্বয়ংক্রিয়ভাবে 
+    ব্যাকগ্রাউন্ডে সচল ব্যাকআপ প্রোভাইডারে স্যুইচ করে উত্তর প্রদান করবে।
+
+================================================================================
+4. QUICK START & CONFIGURATION / দ্রুত চালু ও কনফিগারেশন গাইড
+================================================================================
+
+1. Launching the App / অ্যাপ চালু করা:
+   - Run from installed Windows Shortcut: Double-click "Jakariya AI Studio"
+   - Or run from source terminal / সোর্স কোড থেকে:
+     & .\.venv\Scripts\python.exe main.py
+
+2. Configuring API Keys / এপিআই কি (API Key) সেটআপ:
+   - Open Settings UI inside the app (Gear Icon ⚙️ at header or status bar).
+   - Go to "AI Providers" tab and paste your API keys.
+   - Click "Save" — keys are securely loaded into the runtime configuration.
+
+3. Testing Live Connections / সংযোগ পরীক্ষা:
+   - Inside the Settings "AI Providers" page, click "Test Connection" on any provider 
+     to verify instant live connectivity.
+
+================================================================================
+Thank you for using Jakariya AI Studio! / জাকারিয়া এআই স্টুডিও ব্যবহারের জন্য ধন্যবাদ!
+Created by Md. Jakariya Sheikh / নির্মাতা: মোঃ জাকারিয়া শেখ
+================================================================================

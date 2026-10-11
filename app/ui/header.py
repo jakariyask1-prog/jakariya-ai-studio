@@ -1,0 +1,190 @@
+from PySide6.QtWidgets import (
+    QWidget,
+    QLabel,
+    QComboBox,
+    QHBoxLayout,
+    QMenu,
+    QToolButton,
+)
+from PySide6.QtCore import Signal, Qt
+
+from app.api.model_catalog import get_provider_options, get_model_options
+
+
+class Header(QWidget):
+    export_requested = Signal(str)
+    settings_requested = Signal()
+
+    def __init__(self):
+        super().__init__()
+
+        self.setFixedHeight(54)
+        self.setStyleSheet("""
+            Header {
+                background-color: #FFFFFF;
+                border-bottom: 1px solid #E2E8F0;
+            }
+        """)
+
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(18, 8, 18, 8)
+        layout.setSpacing(8)
+
+        self._raw_title = "New Chat"
+        self.chat_title = QLabel("New Chat")
+        self.chat_title.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        from PySide6.QtWidgets import QSizePolicy
+        self.chat_title.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
+        self.chat_title.setMinimumWidth(0)
+
+        # Provider Selector (Pill Dropdown)
+        self.provider_selector = QComboBox()
+        self.provider_selector.setFixedHeight(34)
+        self.provider_selector.setToolTip("Select AI Provider")
+
+        # Model Selector (Pill Dropdown)
+        self.model_selector = QComboBox()
+        self.model_selector.setFixedHeight(34)
+        self.model_selector.setToolTip("Select AI Model")
+
+        # Sleek Export ToolButton
+        self.export_button = QToolButton()
+        self.export_button.setText("📥 Export")
+        self.export_button.setFixedHeight(34)
+        self.export_button.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+        self.export_button.setToolTip("Export this conversation")
+        self.export_menu = QMenu(self.export_button)
+        self.export_button.setMenu(self.export_menu)
+
+        # Sleek Settings Icon ToolButton
+        self.settings_button = QToolButton()
+        self.settings_button.setText("⚙️")
+        self.settings_button.setFixedSize(34, 34)
+        self.settings_button.setToolTip("Open Application Settings & Personalization")
+        self.settings_button.clicked.connect(self.settings_requested.emit)
+
+        # Assemble Header Layout
+        layout.addWidget(self.chat_title, 1)
+        layout.addWidget(self.provider_selector, 0)
+        layout.addWidget(self.model_selector, 0)
+        layout.addWidget(self.export_button, 0)
+        layout.addWidget(self.settings_button, 0)
+
+        # Dynamic Provider & Model loading
+        self.provider_selector.currentIndexChanged.connect(self._on_provider_changed)
+        self.refresh_providers_and_models()
+
+        self._theme = "light"
+        self.apply_theme("light")
+
+    def apply_theme(self, theme_name: str) -> None:
+        """Update header background and dropdown QSS styles according to theme."""
+        self._theme = theme_name
+        from app.ui.styles import get_theme_palette, get_pill_combobox_style
+        p = get_theme_palette(theme_name)
+
+        self.setStyleSheet(f"""
+            Header {{
+                background-color: {p['bg_header']};
+                border-bottom: 1px solid {p['border_header']};
+            }}
+        """)
+        self.chat_title.setStyleSheet(f"font-size: 15px; font-weight: 700; color: {p['text_header_title']};")
+
+        combo_qss = get_pill_combobox_style(theme_name)
+        self.provider_selector.setStyleSheet(combo_qss)
+        self.model_selector.setStyleSheet(combo_qss)
+
+        tool_btn_style = f"""
+            QToolButton {{
+                background-color: {p['btn_secondary_bg']};
+                color: {p['btn_secondary_text']};
+                border: 1px solid {p['btn_secondary_border']};
+                border-radius: 10px;
+                padding: 4px 12px;
+                font-weight: 600;
+                font-size: 10pt;
+            }}
+            QToolButton:hover {{
+                background-color: {p['btn_secondary_hover']};
+                border-color: {p['border_capsule_focus']};
+            }}
+            QToolButton::menu-indicator {{
+                image: none;
+            }}
+        """
+        self.export_button.setStyleSheet(tool_btn_style)
+
+        icon_btn_style = f"""
+            QToolButton {{
+                background-color: {p['btn_secondary_bg']};
+                color: {p['btn_secondary_text']};
+                border: 1px solid {p['btn_secondary_border']};
+                border-radius: 10px;
+                font-size: 12pt;
+            }}
+            QToolButton:hover {{
+                background-color: {p['btn_secondary_hover']};
+                border-color: {p['border_capsule_focus']};
+            }}
+        """
+        self.settings_button.setStyleSheet(icon_btn_style)
+        self._update_elided_title()
+
+    def resizeEvent(self, event) -> None:
+        super().resizeEvent(event)
+        self._update_elided_title()
+
+    def _update_elided_title(self) -> None:
+        """Elide title text cleanly if header space is constrained."""
+        avail_width = self.chat_title.width()
+        if avail_width <= 10:
+            avail_width = 250
+        from PySide6.QtGui import QFontMetrics
+        metrics = QFontMetrics(self.chat_title.font())
+        elided = metrics.elidedText(self._raw_title, Qt.TextElideMode.ElideRight, avail_width)
+        self.chat_title.setText(elided)
+
+    def refresh_providers_and_models(self) -> None:
+        """Populate provider selector and trigger model list refresh."""
+        self.provider_selector.blockSignals(True)
+        self.provider_selector.clear()
+        providers = get_provider_options()
+        for display_name, p_id in providers:
+            self.provider_selector.addItem(display_name, p_id)
+        self.provider_selector.blockSignals(False)
+        self._on_provider_changed()
+
+    def _on_provider_changed(self) -> None:
+        """Refresh model dropdown whenever the active provider is changed."""
+        p_id = str(self.provider_selector.currentData() or "")
+        self.model_selector.clear()
+        models = get_model_options(p_id if p_id else None)
+        for display_name, model_id in models:
+            self.model_selector.addItem(display_name, model_id)
+
+    def set_chat_title(self, title: str) -> None:
+        """Show the active conversation title in the application header."""
+        self._raw_title = title
+        self.chat_title.setToolTip(title)
+        self._update_elided_title()
+
+    def selected_model(self) -> str:
+        """Return the API identifier for the model currently shown to the user."""
+        return str(self.model_selector.currentData() or "")
+
+    def selected_provider(self) -> str:
+        """Return the identifier for the provider currently selected by the user."""
+        return str(self.provider_selector.currentData() or "")
+
+    def set_export_formats(self, formats) -> None:
+        """Populate the menu from exporter-provided metadata."""
+        self.export_menu.clear()
+        for export_format in formats:
+            action = self.export_menu.addAction(export_format.display_name)
+            action.setData(export_format.format_id)
+            action.triggered.connect(
+                lambda _checked=False, format_id=export_format.format_id: self.export_requested.emit(format_id)
+            )
+        self.export_button.setEnabled(bool(formats))
+

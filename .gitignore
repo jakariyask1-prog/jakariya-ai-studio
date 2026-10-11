@@ -1,0 +1,35 @@
+# Secret API keys
+.env
+
+# Python virtual environments
+.venv/
+.venv-1/
+
+# Python cache and test cache
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Build / packaged application output
+build/
+dist/
+
+# Runtime-generated user data
+uploads/
+exports/
+logs/
+chats/
+
+# Temporary test output
+test_output.html
+
+# Large binary files / FFmpeg packages
+ffmpeg.zip
+ffmpeg/
+assets/bin/
+*.zip
+
+# Local IDE and agent directories
+.gemini/
+.agents/
+scratch/

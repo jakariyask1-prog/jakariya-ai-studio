@@ -132,6 +132,7 @@ class ChatArea(QWidget):
         self._stream_message_id: Optional[int] = None
         self._agent_steps: list[str] = []
         self._agent_file_paths: list[str] = []
+        self._agent_live_files: dict[str, dict] = {}
 
         # ---- theme state -------------------------------------------
         self.theme: str = "light"
@@ -285,16 +286,27 @@ class ChatArea(QWidget):
         if doc and doc.is_document:
             smart_card_html = self._build_smart_document_card_html(doc, message_id, theme=active_theme)
 
-        return f"""
-        <div style="margin-top:14px; margin-bottom:18px; width:100%;">
-            {smart_card_html}
-            <div style="width:100%; display:block; font-size:11.5pt; line-height:1.6; color:{p['assistant_text']};">{body_html}</div>
-            <div style="margin-top:8px; font-size:9.5pt; color:{p['status_text']};">
+        if doc and doc.is_document:
+            footer_html = f"""
+            <div style="margin-top:6px; font-size:9pt; color:{p['status_text']};">
+                <a href="messagecopy:{message_id}" style="color:{p['status_text']}; text-decoration:none; font-weight:600;">📋 Copy Response</a>
+            </div>
+            """
+        else:
+            footer_html = f"""
+            <div style="margin-top:6px; font-size:9pt; color:{p['status_text']};">
                 <a href="messagecopy:{message_id}" style="color:{p['status_text']}; text-decoration:none; font-weight:600; margin-right:12px;">📋 Copy</a>
                 <a href="responseexport:{message_id}:pdf" style="color:{p['status_text']}; text-decoration:none; margin-right:10px;">📄 PDF</a>
                 <a href="responseexport:{message_id}:docx" style="color:{p['status_text']}; text-decoration:none; margin-right:10px;">📝 DOCX</a>
                 <a href="responseexport:{message_id}:md" style="color:{p['status_text']}; text-decoration:none;">⬇ MD</a>
             </div>
+            """
+
+        return f"""
+        <div style="margin-top:14px; margin-bottom:18px; width:100%;">
+            {smart_card_html}
+            <div style="width:100%; display:block; font-size:11.5pt; line-height:1.6; color:{p['assistant_text']};">{body_html}</div>
+            {footer_html}
         </div>
         """
 
@@ -358,11 +370,19 @@ class ChatArea(QWidget):
                 found.append(resolved_path)
         return found
 
-    @staticmethod
-    def _build_file_cards_html(file_paths: list[str]) -> str:
+    def _build_file_cards_html(self, file_paths: list[str], theme: str | None = None) -> str:
         """Build Claude-style green file download card HTML for each detected file path."""
         if not file_paths:
             return ""
+        active_theme = theme or getattr(self, "theme", "light")
+        is_dark = str(active_theme).lower() in ("dark", "oled", "neon")
+        card_bg = "#064E3B" if is_dark else "#F0FDF4"
+        card_border = "#059669" if is_dark else "#22C55E"
+        title_color = "#A7F3D0" if is_dark else "#15803D"
+        tag_color = "#6EE7B7" if is_dark else "#166534"
+        btn_save_bg = "#059669" if is_dark else "#16A34A"
+        btn_open_bg = "#047857" if is_dark else "#059669"
+
         cards = []
         for file_path in file_paths:
             file_name = Path(file_path).name
@@ -372,17 +392,17 @@ class ChatArea(QWidget):
             safe_path = quote(str(file_path))
             cards.append(
                 f'<table width="100%" cellspacing="0" cellpadding="0" style="margin-top:10px; margin-bottom:6px;">'
-                f'<tr><td style="background-color:#F0FDF4; border:1px solid #22C55E; border-radius:10px; padding:10px 14px;">'
+                f'<tr><td style="background-color:{card_bg}; border:1px solid {card_border}; border-radius:10px; padding:10px 14px;">'
                 f'<table width="100%" cellspacing="0" cellpadding="0"><tr>'
                 f'<td align="left"><span style="font-size:15pt;">{icon}</span> '
-                f'<b style="color:#15803D; font-size:10.5pt; margin-left:6px;">{html_lib.escape(file_name)}</b>'
-                f'<span style="color:#166534; font-size:8.5pt; margin-left:8px;">(Ready-made Document)</span></td>'
+                f'<b style="color:{title_color}; font-size:10.5pt; margin-left:6px;">{html_lib.escape(file_name)}</b>'
+                f'<span style="color:{tag_color}; font-size:8.5pt; margin-left:8px;">(Ready-made Document)</span></td>'
                 f'<td align="right">'
                 f'<a href="savefile:{safe_path}" '
-                f'style="background-color:#16A34A; color:#FFFFFF; padding:6px 14px; border-radius:6px; '
+                f'style="background-color:{btn_save_bg}; color:#FFFFFF; padding:6px 14px; border-radius:6px; '
                 f'text-decoration:none; font-weight:700; font-size:9.5pt; margin-right:6px;">💾 Save As...</a>'
                 f'<a href="openfile:{safe_path}" '
-                f'style="background-color:#059669; color:#FFFFFF; padding:6px 12px; border-radius:6px; '
+                f'style="background-color:{btn_open_bg}; color:#FFFFFF; padding:6px 12px; border-radius:6px; '
                 f'text-decoration:none; font-weight:600; font-size:9pt;">📂 Open</a>'
                 f'</td>'
                 f'</tr></table></td></tr></table>'
@@ -393,7 +413,7 @@ class ChatArea(QWidget):
     def _render_generated_file_cards(cls, message: str) -> str:
         """Detect file paths and append file card HTML AFTER the message text (deprecated: use _extract + _build separately after render_markdown)."""
         paths = cls._extract_file_paths(message)
-        cards_html = cls._build_file_cards_html(paths)
+        cards_html = cls._build_file_cards_html(cls, paths)
         return (message + cards_html) if cards_html else message
 
     @staticmethod
@@ -466,7 +486,7 @@ class ChatArea(QWidget):
             display_message = display_message.replace(CREATOR_PHOTO_MARKER, "").strip()
 
         rendered_html, code_map, self._next_code_id = render_markdown(
-            display_message, self._next_code_id
+            display_message, self._next_code_id, theme=getattr(self, "theme", "light")
         )
         self._code_blocks.update(code_map)
 
@@ -565,6 +585,7 @@ class ChatArea(QWidget):
             rendered_html, code_map, self._next_code_id = render_markdown(
                 raw_for_render,
                 self._next_code_id,
+                theme=getattr(self, "theme", "light"),
             )
             self._code_blocks.update(code_map)
 
@@ -622,6 +643,7 @@ class ChatArea(QWidget):
         self._next_message_id += 1
         self._stream_message_id = message_id
         self._agent_steps.clear()
+        self._agent_live_files.clear()
         self._stream_raw_text = ""
 
         cursor = self.chat_box.textCursor()
@@ -659,6 +681,16 @@ class ChatArea(QWidget):
         if not message.strip():
             return
 
+        active_theme = getattr(self, "theme", "light")
+        is_dark = str(active_theme).lower() in ("dark", "oled", "neon")
+        card_bg = "#1E293B" if is_dark else "#F8FAFC"
+        title_color = "#F8FAFC" if is_dark else "#0F172A"
+        step_color = "#E2E8F0" if is_dark else "#334155"
+        thought_color = "#818CF8" if is_dark else "#4F46E5"
+        tool_badge_bg = "#312E81" if is_dark else "#EEF2FF"
+        tool_badge_fg = "#C7D2FE" if is_dark else "#3730A3"
+        tool_badge_border = "#4338CA" if is_dark else "#C7D2FE"
+
         safe_msg = html_lib.escape(message.strip())
         if "Error" in safe_msg or "Exception" in safe_msg or "declined" in safe_msg or "failed" in safe_msg.lower():
             clean_err = safe_msg.replace("Observation: Error -", "").replace("Observation:", "").strip()
@@ -669,15 +701,60 @@ class ChatArea(QWidget):
             )
         elif is_tool or tool_name:
             badge_name = html_lib.escape(tool_name if tool_name else "tool")
+            display_msg = safe_msg
+
+            # Format Antigravity diff statistics (+added / -removed) and folders
+            import re
+            diff_match = re.search(r"\(\+([0-9]+)(?:\s*/\s*-([0-9]+))?\s*lines", safe_msg)
+            folder_match = re.search(r"in &#x27;([^&#]+)&#x27;|in '([^']+)'", safe_msg)
+            file_match = re.search(r"[`'\"]([a-zA-Z0-9_.\-/\\]+\.[a-zA-Z0-9]+)[`'\"]", safe_msg)
+
+            diff_badges = ""
+            if diff_match:
+                added = diff_match.group(1)
+                removed = diff_match.group(2)
+                if added and added != "0":
+                    diff_badges += f'<span style="background-color:#DCFCE7; color:#15803D; border:1px solid #86EFAC; border-radius:4px; padding:1px 6px; font-weight:700; font-size:8.5pt;">+{added}</span> '
+                if removed and removed != "0":
+                    diff_badges += f'<span style="background-color:#FEE2E2; color:#DC2626; border:1px solid #FCA5A5; border-radius:4px; padding:1px 6px; font-weight:700; font-size:8.5pt;">-{removed}</span> '
+
+            folder_badge = ""
+            if folder_match:
+                fldr = folder_match.group(1) or folder_match.group(2)
+                folder_badge = f'<span style="background-color:#F1F5F9; color:#475569; border:1px solid #CBD5E1; border-radius:4px; padding:1px 6px; font-weight:500; font-size:8.5pt;">📁 {fldr}</span> '
+
+            # Register live file for real-time Antigravity live file changes card
+            if file_match and (diff_match or tool_name in ("edit_file", "write_file")):
+                raw_fn = file_match.group(1).replace("\\", "/")
+                fn = Path(raw_fn).name
+                fld = folder_match.group(1) or folder_match.group(2) if folder_match else (Path(raw_fn).parent.name or "workspace")
+                add_lines = int(diff_match.group(1)) if (diff_match and diff_match.group(1)) else 0
+                rem_lines = int(diff_match.group(2)) if (diff_match and diff_match.group(2)) else 0
+                act_name = "created" if ("created" in safe_msg.lower() or tool_name == "write_file") else "modified"
+                self._agent_live_files[fn] = {
+                    "file_name": fn,
+                    "folder": fld,
+                    "lines_added": add_lines,
+                    "lines_removed": rem_lines,
+                    "action": act_name,
+                }
+
+            extra_badges = f"{folder_badge}{diff_badges}".strip()
+            if tool_name == "review_diffs":
+                extra_badges += ' <a href="reviewchanges:latest" style="background-color:#10A37F; color:#FFFFFF; border-radius:4px; padding:2px 8px; text-decoration:none; font-weight:700; font-size:8.5pt; margin-left:6px;">👁️ Review Changes</a>'
+            elif tool_name in ("view_file", "read_file"):
+                extra_badges += ' <span style="color:#10A37F; font-size:8.5pt; font-weight:600; margin-left:4px;">(Read Only)</span>'
+
+            extra_badges_str = f" {extra_badges.strip()}" if extra_badges.strip() else ""
             step_item = (
-                f'• <span style="background-color:#E0E7FF; color:#3730A3; border:1px solid #C7D2FE; '
-                f'border-radius:6px; padding:2px 6px; font-weight:700; font-size:8.5pt;">🛠 Tool: {badge_name}</span> '
-                f'<span style="color:#1E293B;">{safe_msg}</span>'
+                f'• <span style="background-color:{tool_badge_bg}; color:{tool_badge_fg}; border:1px solid {tool_badge_border}; '
+                f'border-radius:6px; padding:2px 6px; font-weight:700; font-size:8.5pt;">🛠 Tool: {badge_name}</span>'
+                f'{extra_badges_str} <span style="color:{step_color};">{display_msg}</span>'
             )
         elif "Thought:" in safe_msg:
-            step_item = f'• <span style="color:#4F46E5; font-weight:600;">🧠 {safe_msg}</span>'
+            step_item = f'• <span style="color:{thought_color}; font-weight:600;">🧠 {safe_msg}</span>'
         else:
-            step_item = f'• <span style="color:#334155;">{safe_msg}</span>'
+            step_item = f'• <span style="color:{step_color};">{safe_msg}</span>'
 
         self._agent_steps.append(step_item)
 
@@ -689,19 +766,52 @@ class ChatArea(QWidget):
             cursor.setBlockFormat(QTextBlockFormat())
 
             steps_html = "<br>".join(self._agent_steps)  # Show ALL steps live
+
+            # Build Live Files Modified panel (Antigravity Live Tracker)
+            live_files_html = ""
+            if self._agent_live_files:
+                file_items = []
+                for fn, info in self._agent_live_files.items():
+                    fld_name = info["folder"]
+                    add_n = info["lines_added"]
+                    rem_n = info["lines_removed"]
+                    diff_str = ""
+                    if add_n:
+                        diff_str += f'<span style="background-color:#DCFCE7; color:#15803D; border:1px solid #86EFAC; border-radius:4px; padding:1px 5px; font-weight:700; font-size:8pt;">+{add_n}</span> '
+                    if rem_n:
+                        diff_str += f'<span style="background-color:#FEE2E2; color:#DC2626; border:1px solid #FCA5A5; border-radius:4px; padding:1px 5px; font-weight:700; font-size:8pt;">-{rem_n}</span> '
+                    act_badge = f'<span style="background-color:{"#312E81" if is_dark else "#EEF2FF"}; color:{"#C7D2FE" if is_dark else "#4F46E5"}; border-radius:4px; padding:1px 5px; font-weight:600; font-size:8pt;">{info["action"].capitalize()}</span>'
+                    file_items.append(
+                        f'<div style="margin:2px 4px 2px 0; display:inline-block; '
+                        f'background:{"#0F172A" if is_dark else "#FFFFFF"}; border:1px solid {"#334155" if is_dark else "#CBD5E1"}; '
+                        f'border-radius:6px; padding:3px 8px; font-size:8.5pt;">'
+                        f'📄 <b>{html_lib.escape(fn)}</b> <span style="color:#64748B;">({html_lib.escape(fld_name)})</span> {diff_str}{act_badge}'
+                        f'</div>'
+                    )
+                live_files_joined = "".join(file_items)
+                live_files_html = f"""
+                <div style="background-color:{"#0F172A" if is_dark else "#F1F5F9"}; border:1px solid {"#334155" if is_dark else "#CBD5E1"}; border-radius:8px; padding:8px 10px; margin-top:6px; margin-bottom:10px;">
+                    <div style="font-weight:700; color:{"#818CF8" if is_dark else "#4F46E5"}; font-size:9.5pt; margin-bottom:4px;">
+                        📝 Live Files Modified ({len(self._agent_live_files)}) (Antigravity Tracker):
+                    </div>
+                    <div>{live_files_joined}</div>
+                </div>
+                """
+
             updated_card = f"""
             <table width="100%" cellspacing="0" cellpadding="0" style="margin-top:8px;"><tr>
                 <td width="100%">
                     <table width="100%" cellspacing="0" cellpadding="12" style="
-                        background-color: #F8FAFC;
+                        background-color: {card_bg};
                         border: 1px solid #6366F1;
                         border-radius: 14px;">
                         <tr><td width="100%">
                             <div style="margin-bottom:8px;">
-                                <span style="background-color:#EEF2FF; color:#4F46E5; border:1px solid #C7D2FE; border-radius:6px; padding:3px 10px; font-weight:700; font-size:10pt;">ReAct Agent</span>
-                                <b style="color:#0F172A; font-size:11pt; margin-left:6px;">Executing Task...</b>
+                                <span style="background-color:{tool_badge_bg}; color:{tool_badge_fg}; border:1px solid {tool_badge_border}; border-radius:6px; padding:3px 10px; font-weight:700; font-size:10pt;">ReAct Agent</span>
+                                <b style="color:{title_color}; font-size:11pt; margin-left:6px;">Executing Task...</b>
                             </div>
-                            <div style="font-size:9.5pt; color:#334155; line-height:1.4;">
+                            {live_files_html}
+                            <div style="font-size:9.5pt; color:{step_color}; line-height:1.4;">
                                 {steps_html}
                             </div>
                         </td></tr>
@@ -719,18 +829,29 @@ class ChatArea(QWidget):
         """Replace working agent bubble with final answer response while preserving step-by-step log and tool errors."""
 
         raw_output = final_message or ""
+        active_theme = getattr(self, "theme", "light")
+        is_dark = str(active_theme).lower() in ("dark", "oled", "neon")
+
+        timeline_bg = "#1E293B" if is_dark else "#F1F5F9"
+        timeline_border = "#334155" if is_dark else "#CBD5E1"
+        timeline_header = "#94A3B8" if is_dark else "#475569"
+        timeline_text = "#E2E8F0" if is_dark else "#334155"
+
+        err_bg = "#450A0A" if is_dark else "#FEF2F2"
+        err_title = "#F87171" if is_dark else "#DC2626"
+        err_text = "#FCA5A5" if is_dark else "#991B1B"
 
         # --- 1. Build the persistent step execution log ---
         steps_summary_html = ""
         if self._agent_steps:
             steps_joined = "<br>".join(self._agent_steps)
             steps_summary_html = (
-                '<div style="background-color:#F1F5F9; border:1px solid #CBD5E1; '
-                'border-radius:8px; padding:10px; margin-bottom:12px; font-size:9.5pt;">'
-                f'<div style="font-weight:700; color:#475569; margin-bottom:6px;">'
+                f'<div style="background-color:{timeline_bg}; border:1px solid {timeline_border}; '
+                f'border-radius:8px; padding:10px; margin-bottom:12px; font-size:9.5pt;">'
+                f'<div style="font-weight:700; color:{timeline_header}; margin-bottom:6px;">'
                 f'⚡ Agent Execution Timeline ({len(self._agent_steps)} steps):</div>'
-                f'<div style="color:#334155; line-height:1.5;">{steps_joined}</div>'
-                '</div>'
+                f'<div style="color:{timeline_text}; line-height:1.5;">{steps_joined}</div>'
+                f'</div>'
             )
         self._agent_steps.clear()
 
@@ -744,11 +865,11 @@ class ChatArea(QWidget):
                     break
             clean_reason = html_lib.escape(err_line.replace("Observation: Error -", "").replace("Observation: Exception running tool", "").strip())
             error_callout_html = (
-                '<div style="background-color:#FEF2F2; border:1.5px solid #EF4444; border-radius:10px; '
-                'padding:12px 14px; margin-top:10px; margin-bottom:10px;">'
-                '<b style="color:#DC2626; font-size:10.5pt;">❌ Failed</b><br>'
-                f'<span style="color:#991B1B; font-size:10pt; font-weight:600;">Reason: {clean_reason}</span>'
-                '</div>'
+                f'<div style="background-color:{err_bg}; border:1.5px solid #EF4444; border-radius:10px; '
+                f'padding:12px 14px; margin-top:10px; margin-bottom:10px;">'
+                f'<b style="color:{err_title}; font-size:10.5pt;">❌ Failed</b><br>'
+                f'<span style="color:{err_text}; font-size:10pt; font-weight:600;">Reason: {clean_reason}</span>'
+                f'</div>'
             )
 
         # --- 3. Extract clean final answer from raw ReAct output ---
@@ -778,7 +899,9 @@ class ChatArea(QWidget):
             id=message_id, role="assistant", content=clean_text
         )
 
-        rendered_md, code_map, self._next_code_id = render_markdown(clean_text, self._next_code_id)
+        rendered_md, code_map, self._next_code_id = render_markdown(
+            clean_text, self._next_code_id, theme=active_theme
+        )
         self._code_blocks.update(code_map)
 
         file_cards_html = self._build_file_cards_html(self._agent_file_paths)
@@ -834,6 +957,26 @@ class ChatArea(QWidget):
         if url_str.startswith("promptcard:"):
             prompt_text = unquote(url_str.split(":", 1)[1])
             self.prompt_selected.emit(prompt_text)
+            return
+
+        if url_str.startswith("reviewchanges:"):
+            try:
+                from app.agent.diff_tracker import DiffTracker
+                from app.ui.code_changes_review_dialog import CodeChangesReviewDialog
+                param = url_str.split(":", 1)[1] if ":" in url_str else "latest"
+                parts = param.split(":", 1)
+                session_id = parts[0] if parts[0] else "latest"
+                initial_file = parts[1] if len(parts) > 1 else ""
+                changes = DiffTracker.instance().get_changes(session_id)
+                dialog = CodeChangesReviewDialog(
+                    changes=changes,
+                    parent=self.window(),
+                    theme=getattr(self, "theme", "light"),
+                    initial_file=initial_file,
+                )
+                dialog.exec()
+            except Exception as exc:
+                print(f"[ChatArea] Code changes review error: {exc}")
             return
 
         if url_str.startswith("openfile:"):

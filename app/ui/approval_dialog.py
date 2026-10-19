@@ -64,7 +64,7 @@ class ToolApprovalDialog(QDialog):
         # Checkbox for task-wide auto approval
         self.remember_for_task = QCheckBox("⚡ Auto-approve all subsequent actions for this task (No more popups)")
         self.remember_for_task.setToolTip("Once enabled, the AI Agent will execute all subsequent actions in this task autonomously without prompting.")
-        self.remember_for_task.setStyleSheet("color: #475569; font-size: 12px; font-weight: 500;")
+        self.remember_for_task.setStyleSheet(f"color: {p['input_text']}; font-size: 12px; font-weight: 500;")
 
         self._allow_all = False
 
@@ -75,16 +75,20 @@ class ToolApprovalDialog(QDialog):
         self.deny_button = QPushButton("Deny Action")
         self.deny_button.setFixedHeight(38)
         self.deny_button.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.deny_button.setStyleSheet("""
-            QPushButton {
-                background-color: #F1F5F9;
-                color: #475569;
-                border: 1px solid #CBD5E1;
+        self.deny_button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {p['btn_secondary_bg']};
+                color: {p['btn_secondary_text']};
+                border: 1px solid {p['btn_secondary_border']};
                 font-weight: 600;
                 border-radius: 8px;
                 padding: 0 14px;
-            }
-            QPushButton:hover { background-color: #E2E8F0; color: #0F172A; }
+            }}
+            QPushButton:hover {{
+                background-color: {p['btn_secondary_hover']};
+                color: {p['input_text']};
+                border-color: {p['border_capsule_focus']};
+            }}
         """)
         self.deny_button.clicked.connect(self._on_deny)
 

@@ -86,12 +86,24 @@ class ClaudeClient:
     def _provider_manager(self) -> ProviderManager:
         return ProviderManager.instance()
 
-    def needs_web_search(self, prompt: str) -> bool:
+    def needs_web_search(self, prompt: str, is_live: bool = False) -> bool:
+        if is_live:
+            # In live voice mode, only trigger web search on explicit user request.
+            # Casual conversational words ("আজ", "আজকে", "বর্তমান", "লাইভ", "today", "live")
+            # must NEVER trigger a blocking 3-5 second web search during live audio turns!
+            explicit_keywords = [
+                "web search", "google search", "search web", "search online", "search the web",
+                "search the internet", "অনলাইন সার্চ", "ওয়েব সার্চ", "অনুসন্ধান করুন", "ইন্টারনেটে খুঁজুন",
+                "গুগলে সার্চ করো", "ইন্টারনেটে সার্চ করো"
+            ]
+            prompt_lower = prompt.lower()
+            return any(k in prompt_lower for k in explicit_keywords)
+
         if self._PURE_TIME_PATTERN.search(prompt):
             return False
         return bool(self._WEB_PATTERN.search(prompt))
 
-    def _get_dynamic_system_prompt(self) -> str:
+    def _get_dynamic_system_prompt(self, is_live: bool = False) -> str:
         from datetime import datetime, timezone, timedelta
         now_local = datetime.now().astimezone()
         local_str = now_local.strftime("%Y-%m-%d %I:%M:%S %p (%A)")
@@ -130,8 +142,18 @@ class ClaudeClient:
         except Exception:
             pass
 
+        live_voice_directive = ""
+        if is_live:
+            live_voice_directive = (
+                "\n\n# REAL-TIME LIVE VOICE CONVERSATION DIRECTIVE:\n"
+                "- You are speaking with the user in a real-time live voice conversation.\n"
+                "- ADAPTIVE CONVERSATIONAL LENGTH: For simple chit-chat, greetings, or short questions, reply naturally in 1 to 2 spoken sentences. For intellectual, analytical, conceptual, or educational questions, provide a thoughtful, clear, and comprehensive explanation in 2 to 4 spoken sentences so the topic is explained thoroughly and well.\n"
+                "- ZERO MARKDOWN RULE: Never output Markdown formatting, headings (###), bullet points, asterisks (**), or code blocks as your output will be directly read aloud by a Text-to-Speech audio engine. Speak in natural prose.\n"
+                "- Reply in the exact same language spoken by the user (Bengali if spoken in Bengali, English if spoken in English)."
+            )
+
         base_prompt = getattr(self, "system_prompt", SYSTEM_PROMPT + "\n\n" + PROFILE_PROMPT)
-        return base_prompt + temporal_context + user_age_directive
+        return base_prompt + temporal_context + user_age_directive + live_voice_directive
 
     def _search_duckduckgo_fallback(self, query: str, max_results: int = 5) -> str:
         import html
@@ -259,9 +281,10 @@ USER QUESTION:
         max_tokens: int = 2048,
         history: Sequence[dict[str, Any]] | None = None,
         provider_id: str | None = None,
+        is_live: bool = False,
     ) -> str:
         full_text = []
-        for chunk in self.ask_stream(prompt, model=model, max_tokens=max_tokens, history=history, provider_id=provider_id):
+        for chunk in self.ask_stream(prompt, model=model, max_tokens=max_tokens, history=history, provider_id=provider_id, is_live=is_live):
             full_text.append(chunk)
         return "".join(full_text)
 
@@ -272,6 +295,7 @@ USER QUESTION:
         max_tokens: int = 2048,
         history: Sequence[dict[str, Any]] | None = None,
         provider_id: str | None = None,
+        is_live: bool = False,
     ):
         # Support mock client injected via test helper (_client_with)
         if getattr(self, "client", None) is not None:
@@ -279,7 +303,7 @@ USER QUESTION:
             return
 
         final_prompt = prompt
-        if isinstance(prompt, str) and self.needs_web_search(prompt):
+        if isinstance(prompt, str) and self.needs_web_search(prompt, is_live=is_live):
             final_prompt = self._build_web_context(prompt)
 
         raw_history = self._request_messages(history)
@@ -305,7 +329,7 @@ USER QUESTION:
         req = ChatRequest(
             messages=msg_contents,
             model=norm_model,
-            system_prompt=self._get_dynamic_system_prompt(),
+            system_prompt=self._get_dynamic_system_prompt(is_live=is_live),
             max_tokens=max_tokens,
             stream=True,
         )

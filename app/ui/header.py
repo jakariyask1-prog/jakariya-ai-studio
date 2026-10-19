@@ -55,12 +55,12 @@ class Header(QWidget):
         self.model_selector.setFixedHeight(34)
         self.model_selector.setToolTip("Select AI Model")
 
-        # Sleek Export ToolButton
+        # Sleek Export ToolButton (Icon-only matching settings button)
         self.export_button = QToolButton()
-        self.export_button.setText("📥 Export")
-        self.export_button.setFixedHeight(34)
+        self.export_button.setText("📥")
+        self.export_button.setFixedSize(34, 34)
         self.export_button.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
-        self.export_button.setToolTip("Export this conversation")
+        self.export_button.setToolTip("Export this conversation (PDF, Word, Excel, Markdown, Text)")
         self.export_menu = QMenu(self.export_button)
         self.export_button.setMenu(self.export_menu)
 
@@ -110,9 +110,8 @@ class Header(QWidget):
                 color: {p['btn_secondary_text']};
                 border: 1px solid {p['btn_secondary_border']};
                 border-radius: 10px;
-                padding: 4px 12px;
-                font-weight: 600;
-                font-size: 10pt;
+                padding: 0px;
+                font-size: 12pt;
             }}
             QToolButton:hover {{
                 background-color: {p['btn_secondary_hover']};
@@ -150,56 +149,59 @@ class Header(QWidget):
             badge = status.get("badge", "Free Plan")
 
             if tier == "premium":
-                self.plan_badge_btn.setText(badge)
+                self.plan_badge_btn.setText("👑 Pro")
                 self.plan_badge_btn.setToolTip("👑 Pro Membership Active — ক্লিক করে লাইসেন্স ও সুবিধা দেখুন")
                 self.plan_badge_btn.setStyleSheet("""
                     QToolButton {
                         background-color: #FEF3C7;
                         color: #92400E;
                         border: 1px solid #F59E0B;
-                        border-radius: 10px;
-                        padding: 4px 12px;
+                        border-radius: 8px;
+                        padding: 3px 10px;
                         font-weight: 700;
-                        font-size: 10pt;
+                        font-size: 9pt;
                     }
                     QToolButton:hover {
                         background-color: #FDE68A;
                     }
                 """)
             elif tier == "trial":
-                self.plan_badge_btn.setText(badge)
+                self.plan_badge_btn.setText("⚡ Trial")
                 self.plan_badge_btn.setToolTip(f"⚡ {status.get('label', '')} — ৩ দিনের জন্য সকল সুবিধা সক্রিয়! আপগ্রেড করতে ক্লিক করুন")
                 self.plan_badge_btn.setStyleSheet("""
                     QToolButton {
                         background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #4F46E5, stop:1 #7C3AED);
                         color: #FFFFFF;
                         border: 1px solid #6366F1;
-                        border-radius: 10px;
-                        padding: 4px 12px;
+                        border-radius: 8px;
+                        padding: 3px 10px;
                         font-weight: 700;
-                        font-size: 10pt;
+                        font-size: 9pt;
                     }
                     QToolButton:hover {
                         background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #4338CA, stop:1 #6D28D9);
                     }
                 """)
             else:
-                self.plan_badge_btn.setText("🆓 Free [⚡ Pro]")
+                self.plan_badge_btn.setText("⚡ Pro")
                 self.plan_badge_btn.setToolTip("ফ্রি প্ল্যান সক্রিয় — ৩ দিনের ট্রায়াল শেষ হয়েছে। Pro-তে আপগ্রেড করতে ক্লিক করুন")
-                self.plan_badge_btn.setStyleSheet("""
-                    QToolButton {
-                        background-color: #F1F5F9;
-                        color: #334155;
-                        border: 1px solid #CBD5E1;
-                        border-radius: 10px;
-                        padding: 4px 12px;
+                from app.ui.styles import get_theme_palette
+                p = get_theme_palette(getattr(self, "_theme", "light"))
+                self.plan_badge_btn.setStyleSheet(f"""
+                    QToolButton {{
+                        background-color: {p['btn_secondary_bg']};
+                        color: {p['btn_secondary_text']};
+                        border: 1px solid {p['btn_secondary_border']};
+                        border-radius: 8px;
+                        padding: 3px 10px;
                         font-weight: 600;
-                        font-size: 10pt;
-                    }
-                    QToolButton:hover {
-                        background-color: #E2E8F0;
-                        color: #0F172A;
-                    }
+                        font-size: 9pt;
+                    }}
+                    QToolButton:hover {{
+                        background-color: {p['btn_secondary_hover']};
+                        color: {p['input_text']};
+                        border-color: {p['border_capsule_focus']};
+                    }}
                 """)
         except Exception:
             self.plan_badge_btn.setText("⚡ Plan")

@@ -153,7 +153,7 @@
         "fallback_model": "google/gemini-3.6-flash"
     },
     "voice": {
-        "stt_provider_id": "google_stt",
+        "stt_provider_id": "groq_stt",
         "tts_provider_id": "cartesia",
         "voice_id": "2c8d7dfb-ca84-4888-9600-8d8c54022dba",
         "auto_send": true,

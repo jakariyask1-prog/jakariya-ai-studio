@@ -139,7 +139,7 @@ class DocumentPreviewDialog(QDialog):
             }}
         """)
         
-        rendered_html, _, _ = render_markdown(raw_content)
+        rendered_html, _, _ = render_markdown(raw_content, theme=self.theme)
         self.text_browser.setHtml(rendered_html)
         layout.addWidget(self.text_browser, 1)
 

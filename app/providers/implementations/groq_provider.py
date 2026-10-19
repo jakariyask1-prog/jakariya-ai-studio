@@ -30,12 +30,24 @@ class GroqProvider(BaseProvider):
             supports_vision=False,
         )
 
+    MODEL_ALIASES = {
+        "openai/gpt-oss-120b": "llama-3.3-70b-versatile",
+        "openai/gpt-oss-20b": "llama-3.1-8b-instant",
+        "gpt-oss-120b": "llama-3.3-70b-versatile",
+        "gpt-oss-20b": "llama-3.1-8b-instant",
+        "qwen/qwen3.8-27b": "qwen-2.5-coder-32b",
+        "qwen3.8-27b": "qwen-2.5-coder-32b",
+    }
+
     def get_supported_models(self) -> List[ModelInfo]:
         return [
-            ModelInfo("openai/gpt-oss-120b", "GPT OSS 120B (Groq Fast)", self.provider_id, context_window=128000, max_output_tokens=8192),
-            ModelInfo("openai/gpt-oss-20b", "GPT OSS 20B (Groq Lightning)", self.provider_id, context_window=128000, max_output_tokens=8192),
-            ModelInfo("qwen/qwen3.8-27b", "Qwen 3.8 27B", self.provider_id, context_window=32768, max_output_tokens=8192),
-            ModelInfo("llama-3.3-70b-versatile", "Llama 3.3 70B (Versatile)", self.provider_id, context_window=128000, max_output_tokens=8192),
+            ModelInfo("llama-3.3-70b-versatile", "Llama 3.3 70B (Best Groq Coding)", self.provider_id, context_window=128000, max_output_tokens=8192),
+            ModelInfo("qwen-2.5-coder-32b", "Qwen 2.5 Coder 32B (Dedicated Code Model)", self.provider_id, context_window=32768, max_output_tokens=8192),
+            ModelInfo("deepseek-r1-distill-llama-70b", "DeepSeek R1 Distill 70B (Fast Reasoning)", self.provider_id, context_window=128000, max_output_tokens=8192, supports_reasoning=True),
+            ModelInfo("llama-3.1-8b-instant", "Llama 3.1 8B Instant (Ultra-Fast)", self.provider_id, context_window=128000, max_output_tokens=8192),
+            # Compatibility aliases
+            ModelInfo("openai/gpt-oss-120b", "GPT OSS 120B (Auto -> Llama 3.3 70B)", self.provider_id, context_window=128000, max_output_tokens=8192),
+            ModelInfo("qwen/qwen3.8-27b", "Qwen 3.8 27B (Auto -> Qwen 2.5 Coder)", self.provider_id, context_window=32768, max_output_tokens=8192),
         ]
 
     def validate_api_key(self) -> bool:
@@ -58,8 +70,8 @@ class GroqProvider(BaseProvider):
 
     def _format_model_name(self, model: str) -> str:
         if model.startswith("groq/"):
-            return model[len("groq/"):]
-        return model
+            model = model[len("groq/"):]
+        return self.MODEL_ALIASES.get(model, model)
 
     def _format_messages(self, request: ChatRequest) -> list:
         msgs = []

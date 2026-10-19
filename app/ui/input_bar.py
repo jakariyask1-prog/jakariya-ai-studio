@@ -185,13 +185,14 @@ class InputBar(QWidget):
         self.attach_button.setToolTip("Attach files or documents (PDF, DOCX, Images, Text)")
         self.attach_button.clicked.connect(self.attach_requested)
 
-        # 1b. Project Workspace Folder Button (Antigravity Mode)
+        # 1b. Project Workspace Folder Button (Antigravity Mode) - Smart Reveal
         self.folder_button = QToolButton()
         self.folder_button.setText("📁")
         self.folder_button.setFixedSize(34, 34)
         self.folder_button.setCursor(Qt.CursorShape.PointingHandCursor)
         self.folder_button.setToolTip("Select Project Folder / Workspace (Antigravity Mode)")
         self.folder_button.clicked.connect(self.folder_requested)
+        self.folder_button.setVisible(False)  # Clean minimalist default: revealed in Agent Mode
 
         # 2. Main Message QPlainTextEdit Multi-line Text Field
         self.message_input = MessageInputBox(min_height=44, max_height=160)
@@ -199,15 +200,16 @@ class InputBar(QWidget):
         self.message_input.returnPressed.connect(self.send_message)
 
         # 3. Autonomous AI Agent Mode Toggle Pill
-        self.agent_button = QPushButton("✧ Agent Mode")
-        self.agent_button.setFixedHeight(34)
+        self.agent_button = QPushButton("✧ Agent")
+        self.agent_button.setFixedHeight(32)
         self.agent_button.setCheckable(True)
         self.agent_button.setCursor(Qt.CursorShape.PointingHandCursor)
         self.agent_button.setToolTip("Toggle Autonomous AI Agent Mode (multi-step reasoning & tool execution)")
+        self.agent_button.toggled.connect(self._on_agent_mode_toggled)
 
         # 4. Live Conversation Toggle Pill
-        self.live_button = QPushButton("◉ Live Mode")
-        self.live_button.setFixedHeight(34)
+        self.live_button = QPushButton("◉ Live")
+        self.live_button.setFixedHeight(32)
         self.live_button.setCheckable(True)
         self.live_button.setCursor(Qt.CursorShape.PointingHandCursor)
         self.live_button.setToolTip("Start Live Conversation (continuous voice mode)")
@@ -246,29 +248,25 @@ class InputBar(QWidget):
         self._is_compact = False
         self.apply_theme("light")
 
+    def _on_agent_mode_toggled(self, checked: bool) -> None:
+        """Smart reveal/hide project folder button when Agent mode is toggled."""
+        self.folder_button.setVisible(checked or bool(self._active_workspace_path))
+
     def resizeEvent(self, event) -> None:
         super().resizeEvent(event)
         w = self.width()
-        if w < 520:
+        if w < 540:
             self._is_compact = True
             self.agent_button.setText("✧")
-            self.agent_button.setFixedWidth(32)
+            self.agent_button.setFixedWidth(30)
             self.live_button.setText("◉")
-            self.live_button.setFixedWidth(32)
-        elif w < 680:
-            self._is_compact = True
+            self.live_button.setFixedWidth(30)
+        else:
+            self._is_compact = False
             self.agent_button.setText("✧ Agent")
             self.agent_button.setMinimumWidth(0)
             self.agent_button.setMaximumWidth(16777215)
             self.live_button.setText("◉ Live")
-            self.live_button.setMinimumWidth(0)
-            self.live_button.setMaximumWidth(16777215)
-        else:
-            self._is_compact = False
-            self.agent_button.setText("✧ Agent Mode")
-            self.agent_button.setMinimumWidth(0)
-            self.agent_button.setMaximumWidth(16777215)
-            self.live_button.setText("◉ Live Mode")
             self.live_button.setMinimumWidth(0)
             self.live_button.setMaximumWidth(16777215)
 
@@ -368,10 +366,10 @@ class InputBar(QWidget):
                 background-color: {p['btn_secondary_bg']};
                 color: {p['btn_secondary_text']};
                 border: 1px solid {p['btn_secondary_border']};
-                border-radius: 14px;
-                padding: 0px 10px;
+                border-radius: 12px;
+                padding: 0px 8px;
                 font-weight: 600;
-                font-size: 9.5pt;
+                font-size: 9pt;
             }}
             QPushButton:hover {{
                 background-color: {p['btn_secondary_hover']};
@@ -492,7 +490,7 @@ class InputBar(QWidget):
             self.voice_status_label.setStyleSheet("color: #10B981; font-weight: 700; padding: 2px 6px;")
             self.voice_status_label.setVisible(True)
         else:
-            self.live_button.setText("◉ Live Mode")
+            self.live_button.setText("◉ Live" if not self._is_compact else "◉")
             self.live_button.setToolTip("Start Live Conversation (continuous voice mode)")
 
     def _animate_thinking(self):
@@ -581,6 +579,7 @@ class InputBar(QWidget):
         self.workspace_widget.setVisible(True)
         # Automatically enable Agent Mode for project workspace tasks
         self.agent_button.setChecked(True)
+        self.folder_button.setVisible(True)
 
     def clear_workspace_folder(self) -> None:
         """Clear active project workspace folder."""
@@ -591,6 +590,7 @@ class InputBar(QWidget):
             if widget is not None:
                 widget.deleteLater()
         self.workspace_widget.setVisible(False)
+        self.folder_button.setVisible(self.agent_button.isChecked())
 
     def _on_workspace_chip_clicked(self) -> None:
         self.clear_workspace_folder()

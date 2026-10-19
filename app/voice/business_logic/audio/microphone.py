@@ -192,6 +192,7 @@ class MicrophoneManager(QObject):
 
             logging.debug(f"[MicrophoneManager] Creating QAudioSource for device: {target_qt_dev.description()}")
             self._audio_source = QAudioSource(target_qt_dev, qt_format, self)
+            self._audio_source.setBufferSize(3200)  # 100ms low-latency frame buffer at 16kHz 16-bit mono
             self._io_device = self._audio_source.start()
             if self._io_device:
                 self._io_device.readyRead.connect(self._on_ready_read)
@@ -251,9 +252,9 @@ class MicrophoneManager(QObject):
         self.audio_chunk_captured.emit(pcm_bytes)
         self.level_updated.emit(chunk.rms_level)
         
-        # Ignore initial 150ms buffer pop/noise right after mic start
+        # Ignore initial 40ms buffer pop/noise right after mic start
         elapsed = time.time() - self._recording_start_time
-        if elapsed < 0.15:
+        if elapsed < 0.04:
             return chunk.rms_level
 
         # Robust VAD Logic

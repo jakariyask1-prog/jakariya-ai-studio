@@ -34,6 +34,8 @@ class VoiceController(QObject):
 
     state_changed = Signal(VoiceState)
     transcript_ready = Signal(str)
+    response_started = Signal()
+    partial_token = Signal(str)
     response_ready = Signal(str)
     audio_ready = Signal(bytes)
     error_occurred = Signal(str)
@@ -62,6 +64,8 @@ class VoiceController(QObject):
         # Wire pipeline signals
         self._pipeline.state_changed.connect(self._on_pipeline_state_changed)
         self._pipeline.transcript_ready.connect(self.transcript_ready.emit)
+        self._pipeline.response_started.connect(self.response_started.emit)
+        self._pipeline.partial_token.connect(self.partial_token.emit)
         self._pipeline.response_ready.connect(self.response_ready.emit)
         self._pipeline.audio_ready.connect(self.audio_ready.emit)
         self._pipeline.error_occurred.connect(self._on_pipeline_error)
@@ -286,8 +290,8 @@ class VoiceController(QObject):
         # Always reset state to READY and clear stale turn tokens before starting next turn in live session
         self.reset()
 
-        logging.debug("[VoiceController] _maybe_restart_listening: scheduling start_listening in 300ms")
-        QTimer.singleShot(300, self._do_restart_listening)
+        logging.debug("[VoiceController] _maybe_restart_listening: scheduling start_listening in 40ms")
+        QTimer.singleShot(40, self._do_restart_listening)
 
     def _do_restart_listening(self) -> None:
         """Actual deferred restart — clears guard flag then starts listening."""
@@ -324,7 +328,7 @@ class VoiceController(QObject):
             if self.is_live_session_active() and not self._restart_scheduled:
                 self._restart_scheduled = True
                 self.reset()
-                QTimer.singleShot(300, self._do_restart_listening)
+                QTimer.singleShot(40, self._do_restart_listening)
 
 
     def _on_pipeline_state_changed(self, new_state: VoiceState) -> None:

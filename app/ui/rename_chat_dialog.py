@@ -42,7 +42,20 @@ class RenameChatDialog(QDialog):
         self.title_input = QLineEdit(current_title)
         self.title_input.setMaxLength(60)
         self.title_input.setFixedHeight(38)
-        self.title_input.setStyleSheet(INPUT_STYLE)
+        self.title_input.setStyleSheet(f"""
+            QLineEdit {{
+                background-color: {p['btn_secondary_bg']};
+                color: {p['input_text']};
+                border: 1px solid {p['btn_secondary_border']};
+                border-radius: 8px;
+                padding: 6px 12px;
+                font-size: 11pt;
+            }}
+            QLineEdit:focus {{
+                border-color: {p['border_capsule_focus']};
+                background-color: {p['combo_popup_bg']};
+            }}
+        """)
         self.title_input.selectAll()
         layout.addWidget(self.title_input)
 
@@ -57,15 +70,19 @@ class RenameChatDialog(QDialog):
         self.cancel_button = QPushButton("Cancel")
         self.cancel_button.setFixedHeight(36)
         self.cancel_button.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.cancel_button.setStyleSheet("""
-            QPushButton {
-                background-color: #F1F5F9;
-                color: #475569;
-                border: 1px solid #CBD5E1;
+        self.cancel_button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {p['btn_secondary_bg']};
+                color: {p['btn_secondary_text']};
+                border: 1px solid {p['btn_secondary_border']};
                 border-radius: 8px;
                 font-weight: 600;
-            }
-            QPushButton:hover { background-color: #E2E8F0; color: #0F172A; }
+            }}
+            QPushButton:hover {{
+                background-color: {p['btn_secondary_hover']};
+                color: {p['input_text']};
+                border-color: {p['border_capsule_focus']};
+            }}
         """)
         self.cancel_button.clicked.connect(self.reject)
 

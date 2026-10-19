@@ -7,18 +7,13 @@ from pygments.formatters import HtmlFormatter
 
 
 # -------------------------------------------------
-# Pygments CSS (generated once, reused for every message)
+# Pygments CSS (Light and Dark Themes)
 # -------------------------------------------------
-#
-# css_class must match the "css_class" passed to the codehilite
-# extension below (both are "highlight"), otherwise the generated
-# selectors won't match the actual <div class="highlight"> wrapper
-# codehilite produces.
-#
-# "friendly" is a light-background style so it blends with the
-# ChatArea's white theme instead of clashing like a dark theme would.
-_PYGMENTS_FORMATTER = HtmlFormatter(style="friendly", cssclass="highlight")
-_PYGMENTS_CSS = _PYGMENTS_FORMATTER.get_style_defs(".highlight")
+_PYGMENTS_FORMATTER_LIGHT = HtmlFormatter(style="friendly", cssclass="highlight")
+_PYGMENTS_CSS_LIGHT = _PYGMENTS_FORMATTER_LIGHT.get_style_defs(".highlight")
+
+_PYGMENTS_FORMATTER_DARK = HtmlFormatter(style="one-dark", cssclass="highlight")
+_PYGMENTS_CSS_DARK = _PYGMENTS_FORMATTER_DARK.get_style_defs(".highlight")
 
 
 # -------------------------------------------------
@@ -31,44 +26,25 @@ _PYGMENTS_CSS = _PYGMENTS_FORMATTER.get_style_defs(".highlight")
 # recover the original plain-text code, and stash that raw text in a
 # dict keyed by a small integer id. A "Copy" hyperlink referencing that
 # id (href="copy:<id>") is inserted directly above the block.
-#
-# We use a real hyperlink instead of an actual button because QTextEdit
-# / QTextBrowser's rich-text engine cannot host interactive widgets
-# inside flowing HTML content. A QTextBrowser *does* emit an
-# `anchorClicked` signal for `<a href="...">` clicks, which is what
-# ChatArea listens to in order to trigger the actual clipboard copy.
-#
-# IDs must stay unique across the *whole* conversation (not just one
-# message), otherwise two code blocks in different messages could both
-# render as "copy:0" and clicking the older one would copy the newer
-# block's code instead. So `start_id` is passed in by the caller
-# (ChatArea keeps a running counter) and the new counter value is
-# handed back so the caller can persist it for the next call.
 
 _CODE_BLOCK_PATTERN = re.compile(r'(<div class="highlight">)(.*?)(</div>)', re.DOTALL)
 _FENCED_CODE_LANGUAGE_PATTERN = re.compile(r"```(?P<language>[\w+.-]*)[^\n]*\n", re.MULTILINE)
 
-_COPY_BUTTON_STYLE = (
-    "color:#4A90E2; text-decoration:none; font-size:9pt; "
-    "font-family:'Consolas', monospace; background-color:#EEF3FC; "
-    "padding:2px 8px; border:1px solid #D0D7DE; border-radius:4px;"
-)
 
-
-def _inject_copy_buttons(rendered_html: str, start_id: int, languages: list[str]):
+def _inject_copy_buttons(rendered_html: str, start_id: int, languages: list[str], theme: str = "light"):
     """
     Find every codehilite <div class="highlight"> block in
-    `rendered_html`, prepend a "Copy" link to each, and return:
-
-        (new_html, code_map, next_id)
-
-    - new_html:  the HTML with copy-button links inserted
-    - code_map:  {block_id: raw_code_text} for the blocks found here
-    - next_id:   the next free id, to pass into the following call
+    `rendered_html`, prepend a sleek header bar with language and action buttons.
     """
-
     code_map = {}
     counter = [start_id]
+    is_dark = str(theme).lower() in ("dark", "oled", "neon")
+
+    header_bg = "#111827" if is_dark else "#1E293B"
+    header_border = "#1F2937" if is_dark else "#334155"
+    lang_color = "#9CA3AF" if is_dark else "#94A3B8"
+    btn_bg = "#1F2937" if is_dark else "#334155"
+    btn_color = "#E5E7EB" if is_dark else "#CBD5E1"
 
     def _replace(match: re.Match) -> str:
         block_id = counter[0]
@@ -77,28 +53,31 @@ def _inject_copy_buttons(rendered_html: str, start_id: int, languages: list[str]
         full_block = match.group(0)
         inner = match.group(2)
 
-        # Strip Pygments' <span> highlighting tags to recover the
-        # original plain-text code, then unescape HTML entities
-        # (&lt;, &amp;, etc.) back to real characters.
+        # Strip Pygments' <span> highlighting tags to recover the original plain-text code
         raw_code = re.sub(r"<[^>]+>", "", inner)
         raw_code = html_lib.unescape(raw_code)
 
-        # codehilite always leaves a single trailing newline inside
-        # <pre>; drop it so copied code doesn't end with a blank line.
         if raw_code.endswith("\n"):
             raw_code = raw_code[:-1]
 
         language = languages[len(code_map)] if len(code_map) < len(languages) else ""
         code_map[block_id] = CodeBlock(content=raw_code, language=language)
 
-        copy_link = (
-            f'<div style="text-align:right; margin-bottom:2px;">'
-            f'<a href="copy:{block_id}" style="{_COPY_BUTTON_STYLE}">'
-            f"\U0001F4CB Copy</a> &nbsp; "
-            f'<a href="codedownload:{block_id}" style="{_COPY_BUTTON_STYLE}">'
-            f"\U0001F4BE Download</a></div>"
+        lang_label = html_lib.escape((language or "code").upper())
+
+        header_bar = (
+            f'<table width="100%" cellspacing="0" cellpadding="0" style="margin-top:10px; margin-bottom:0px; '
+            f'background-color:{header_bg}; border:1px solid {header_border}; border-bottom:none; '
+            f'border-radius:8px 8px 0 0; padding:5px 12px;">'
+            f'<tr>'
+            f'<td align="left"><span style="color:{lang_color}; font-size:8.5pt; font-family:\'Segoe UI Variable\', sans-serif; font-weight:700; letter-spacing:0.5px;">💻 {lang_label}</span></td>'
+            f'<td align="right">'
+            f'<a href="copy:{block_id}" style="color:{btn_color}; text-decoration:none; font-size:8.5pt; font-family:\'Segoe UI Variable\', sans-serif; background-color:{btn_bg}; padding:3px 10px; border-radius:5px; font-weight:600; margin-right:6px;">📋 Copy</a>'
+            f'<a href="codedownload:{block_id}" style="color:{btn_color}; text-decoration:none; font-size:8.5pt; font-family:\'Segoe UI Variable\', sans-serif; background-color:{btn_bg}; padding:3px 10px; border-radius:5px; font-weight:600;">💾 Download</a>'
+            f'</td>'
+            f'</tr></table>'
         )
-        return copy_link + full_block
+        return header_bar + full_block
 
     new_html = _CODE_BLOCK_PATTERN.sub(_replace, rendered_html)
     return new_html, code_map, counter[0]
@@ -112,29 +91,11 @@ class CodeBlock:
     language: str = ""
 
 
-def render_markdown(text: str, start_id: int = 0):
+def render_markdown(text: str, start_id: int = 0, theme: str = "light"):
     """
-    Convert raw markdown text (from Claude's response) into HTML
-    that visually matches the ChatArea's light theme (white background,
-    black text, Noto Sans Bengali font).
-
-    Fenced code blocks (```python ... ```) are syntax-highlighted using
-    Pygments via the markdown "codehilite" extension, and each gets a
-    clickable "Copy" link above it (Phase 2.4).
-
-    Args:
-        text: raw markdown text to render.
-        start_id: first id to assign to a copy button in this message.
-            Callers should pass back whatever `next_id` the previous
-            call returned, so ids stay unique across the whole chat.
-
-    Returns:
-        (html, code_map, next_id) tuple:
-            html: fully styled HTML, ready for QTextBrowser.insertHtml()
-            code_map: {block_id: raw_code_text} for buttons in this message
-            next_id: pass this in as `start_id` for the next render call
+    Convert raw markdown text into HTML dynamically styled for *theme*
+    (light, dark, oled, neon) with high-contrast typography and syntax highlighting.
     """
-
     html = markdown.markdown(
         text,
         extensions=["fenced_code", "tables", "nl2br", "sane_lists", "codehilite"],
@@ -147,71 +108,127 @@ def render_markdown(text: str, start_id: int = 0):
         },
     )
 
-    # Transform GitHub-style Markdown alerts (> [!NOTE], > [!TIP], > [!WARNING], > [!CAUTION])
+    theme_str = str(theme).lower()
+    is_dark = theme_str in ("dark", "oled", "neon")
+    is_oled = theme_str == "oled"
+    is_neon = theme_str == "neon"
+
+    # Theme-adaptive GitHub-style Markdown alerts
+    if is_dark:
+        note_bg, note_border, note_title, note_fg = "#1E1B4B", "#6366F1", "#818CF8", "#E0E7FF"
+        tip_bg, tip_border, tip_title, tip_fg = "#064E3B", "#10B981", "#34D399", "#D1FAE5"
+        warn_bg, warn_border, warn_title, warn_fg = "#451A03", "#F59E0B", "#FBBF24", "#FEF3C7"
+        alert_bg, alert_border, alert_title, alert_fg = "#450A0A", "#EF4444", "#F87171", "#FEE2E2"
+    else:
+        note_bg, note_border, note_title, note_fg = "#EEF2FF", "#4F46E5", "#4F46E5", "#1E1B4B"
+        tip_bg, tip_border, tip_title, tip_fg = "#ECFDF5", "#10B981", "#059669", "#064E3B"
+        warn_bg, warn_border, warn_title, warn_fg = "#FFFBEB", "#F59E0B", "#D97706", "#78350F"
+        alert_bg, alert_border, alert_title, alert_fg = "#FEF2F2", "#EF4444", "#DC2626", "#7F1D1D"
 
     html = re.sub(
         r'<blockquote>\s*<p>\s*\[!NOTE\]\s*',
-        '<div style="background-color: #EEF2FF; border-left: 4px solid #4F46E5; border-radius: 0 8px 8px 0; padding: 10px 14px; margin: 12px 0; color: #1E1B4B;">'
-        '<b style="color: #4F46E5; font-size: 10pt;">📌 NOTE</b><br>',
+        f'<div style="background-color: {note_bg}; border-left: 4px solid {note_border}; border-radius: 0 8px 8px 0; padding: 10px 14px; margin: 12px 0; color: {note_fg};">'
+        f'<b style="color: {note_title}; font-size: 10pt;">📌 NOTE</b><br>',
         html,
         flags=re.IGNORECASE,
     )
     html = re.sub(
         r'<blockquote>\s*<p>\s*\[!TIP\]\s*',
-        '<div style="background-color: #ECFDF5; border-left: 4px solid #10B981; border-radius: 0 8px 8px 0; padding: 10px 14px; margin: 12px 0; color: #064E3B;">'
-        '<b style="color: #059669; font-size: 10pt;">💡 TIP</b><br>',
+        f'<div style="background-color: {tip_bg}; border-left: 4px solid {tip_border}; border-radius: 0 8px 8px 0; padding: 10px 14px; margin: 12px 0; color: {tip_fg};">'
+        f'<b style="color: {tip_title}; font-size: 10pt;">💡 TIP</b><br>',
         html,
         flags=re.IGNORECASE,
     )
     html = re.sub(
         r'<blockquote>\s*<p>\s*\[!WARNING\]\s*',
-        '<div style="background-color: #FFFBEB; border-left: 4px solid #F59E0B; border-radius: 0 8px 8px 0; padding: 10px 14px; margin: 12px 0; color: #78350F;">'
-        '<b style="color: #D97706; font-size: 10pt;">⚠️ WARNING</b><br>',
+        f'<div style="background-color: {warn_bg}; border-left: 4px solid {warn_border}; border-radius: 0 8px 8px 0; padding: 10px 14px; margin: 12px 0; color: {warn_fg};">'
+        f'<b style="color: {warn_title}; font-size: 10pt;">⚠️ WARNING</b><br>',
         html,
         flags=re.IGNORECASE,
     )
     html = re.sub(
         r'<blockquote>\s*<p>\s*\[!(?:CAUTION|IMPORTANT)\]\s*',
-        '<div style="background-color: #FEF2F2; border-left: 4px solid #EF4444; border-radius: 0 8px 8px 0; padding: 10px 14px; margin: 12px 0; color: #7F1D1D;">'
-        '<b style="color: #DC2626; font-size: 10pt;">🚨 IMPORTANT</b><br>',
+        f'<div style="background-color: {alert_bg}; border-left: 4px solid {alert_border}; border-radius: 0 8px 8px 0; padding: 10px 14px; margin: 12px 0; color: {alert_fg};">'
+        f'<b style="color: {alert_title}; font-size: 10pt;">🚨 IMPORTANT</b><br>',
         html,
         flags=re.IGNORECASE,
     )
 
+    # Theme colors for typography, code, and tables
+    if is_dark:
+        main_text_color = "#FFFFFF" if is_oled else ("#F8FAFC" if is_neon else "#ECECF1")
+        inline_code_bg = "#121212" if is_oled else ("#1E293B" if is_neon else "#2F2F2F")
+        inline_code_fg = "#F472B6" if is_neon else "#A5B4FC"
+        inline_code_border = "#334155" if is_neon else "#3E3E3E"
+        code_block_bg = "#0B0F19" if is_dark else "#0F172A"
+        code_block_border = "#1F2937" if is_dark else "#1E293B"
+        table_th_bg = "#1E293B"
+        table_th_fg = "#F8FAFC"
+        table_th_border = "#334155"
+        table_td_border = "#262626" if is_oled else "#2F2F2F"
+        table_td_color = main_text_color
+        table_tr_even = "#0A0A0A" if is_oled else "#262626"
+        quote_bg = "#141414" if is_oled else "#262626"
+        quote_border = "#F472B6" if is_neon else "#6366F1"
+        link_color = "#F472B6" if is_neon else "#10B981"
+        pygments_css = _PYGMENTS_CSS_DARK
+    else:
+        main_text_color = "#0F172A"
+        inline_code_bg = "#F1F5F9"
+        inline_code_fg = "#4F46E5"
+        inline_code_border = "#E2E8F0"
+        code_block_bg = "#0F172A"
+        code_block_border = "#1E293B"
+        table_th_bg = "#0F172A"
+        table_th_fg = "#FFFFFF"
+        table_th_border = "#334155"
+        table_td_border = "#E2E8F0"
+        table_td_color = "#1E293B"
+        table_tr_even = "#F8FAFC"
+        quote_bg = "#F8FAFC"
+        quote_border = "#4F46E5"
+        link_color = "#10A37F"
+        pygments_css = _PYGMENTS_CSS_LIGHT
+
     styled_html = f"""
-    <div style="font-family: 'Noto Sans Bengali', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 11.5pt; color: #0F172A; line-height: 1.55; width: 100%; box-sizing: border-box;">
+    <div style="font-family: 'Segoe UI Variable', 'Noto Sans Bengali', 'Inter', system-ui, sans-serif; font-size: 11.5pt; color: {main_text_color}; line-height: 1.6; width: 100%; box-sizing: border-box;">
         <style>
             code {{
-                background-color: #F1F5F9;
-                color: #4F46E5;
+                background-color: {inline_code_bg};
+                color: {inline_code_fg};
+                border: 1px solid {inline_code_border};
                 padding: 2px 6px;
                 border-radius: 4px;
-                font-family: 'Consolas', monospace;
-                font-size: 10.5pt;
+                font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+                font-size: 10pt;
             }}
             pre {{
-                background-color: #0F172A;
-                border: 1px solid #1E293B;
+                background-color: {code_block_bg};
+                border: 1px solid {code_block_border};
                 padding: 14px;
                 border-radius: 8px;
                 overflow-x: auto;
                 color: #F8FAFC;
-                font-size: 10.5pt;
+                font-size: 10pt;
+                font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
             }}
             pre code {{
                 background-color: transparent;
+                border: none;
                 color: #F8FAFC;
                 padding: 0;
             }}
             .highlight {{
-                background-color: #0F172A;
-                border: 1px solid #1E293B;
-                border-radius: 8px;
-                padding: 12px;
-                margin: 10px 0;
+                background-color: {code_block_bg};
+                border: 1px solid {code_block_border};
+                border-top: none;
+                border-radius: 0 0 8px 8px;
+                padding: 12px 14px;
+                margin-top: 0px;
+                margin-bottom: 12px;
                 overflow-x: auto;
-                font-family: 'Consolas', monospace;
-                font-size: 10.5pt;
+                font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+                font-size: 10pt;
                 color: #F8FAFC;
             }}
             .highlight pre {{
@@ -220,42 +237,46 @@ def render_markdown(text: str, start_id: int = 0):
                 padding: 0;
                 margin: 0;
             }}
-            {_PYGMENTS_CSS}
+            {pygments_css}
             table {{
                 width: 100%;
                 border-collapse: collapse;
                 margin-top: 14px;
                 margin-bottom: 14px;
-                font-size: 11pt;
-                border: 1px solid #CBD5E1;
+                font-size: 10.5pt;
+                border: 1px solid {table_td_border};
             }}
             th {{
-                background-color: #0F172A;
-                color: #FFFFFF;
+                background-color: {table_th_bg};
+                color: {table_th_fg};
                 font-weight: 700;
-                padding: 9px 12px;
-                border: 1px solid #334155;
+                padding: 8px 12px;
+                border: 1px solid {table_th_border};
                 text-align: left;
             }}
             td {{
-                border: 1px solid #E2E8F0;
+                border: 1px solid {table_td_border};
                 padding: 8px 12px;
-                color: #1E293B;
+                color: {table_td_color};
             }}
             tr:nth-child(even) {{
-                background-color: #F8FAFC;
+                background-color: {table_tr_even};
             }}
             blockquote {{
-                border-left: 4px solid #4F46E5;
-                background-color: #F1F5F9;
+                border-left: 4px solid {quote_border};
+                background-color: {quote_bg};
                 margin: 12px 0;
                 padding: 10px 16px;
                 border-radius: 0 8px 8px 0;
-                color: #1E293B;
+                color: {main_text_color};
             }}
             a {{
-                color: #2563EB;
+                color: {link_color};
                 font-weight: 600;
+                text-decoration: none;
+            }}
+            a:hover {{
+                text-decoration: underline;
             }}
         </style>
         {html}
@@ -263,6 +284,5 @@ def render_markdown(text: str, start_id: int = 0):
     """
 
     languages = [match.group("language") for match in _FENCED_CODE_LANGUAGE_PATTERN.finditer(text)]
-    styled_html, code_map, next_id = _inject_copy_buttons(styled_html, start_id, languages)
+    styled_html, code_map, next_id = _inject_copy_buttons(styled_html, start_id, languages, theme=theme_str)
     return styled_html, code_map, next_id
-

@@ -20,6 +20,8 @@ class PipelineWorker(QObject):
 
     state_changed = Signal(VoiceState)
     transcript_ready = Signal(str)
+    response_started = Signal()
+    partial_token = Signal(str)
     response_ready = Signal(str)
     audio_ready = Signal(bytes)
     error_occurred = Signal(str)
@@ -137,9 +139,14 @@ class PipelineWorker(QObject):
                     return True
                 return False
 
-            for chunk in claude.ask_stream(transcript, model=model, history=history, provider_id=provider_id):
+            is_first_token = True
+            for chunk in claude.ask_stream(transcript, model=model, history=history, provider_id=provider_id, is_live=is_live):
                 if token and token.is_cancelled:
                     return
+                if is_first_token:
+                    self.response_started.emit()
+                    is_first_token = False
+                self.partial_token.emit(chunk)
                 ai_response_chunks.append(chunk)
 
                 if not settings.voice_response:
@@ -228,7 +235,7 @@ class PipelineWorker(QObject):
                 self.turn_completed.emit()
 
     def _transcribe_with_fallback(self, stt_provider, audio_bytes: bytes, language: str) -> str:
-        """Transcribe audio using primary STT provider with automatic fallback to Google STT if primary fails."""
+        """Transcribe audio using primary STT provider with automatic fallbacks (Groq -> Google STT)."""
         if not audio_bytes:
             return ""
 
@@ -239,18 +246,28 @@ class PipelineWorker(QObject):
         except Exception as exc:
             pid = getattr(stt_provider, "provider_id", "primary")
             logging.warning(
-                f"[PipelineWorker] Primary STT provider '{pid}' failed ({exc}). "
-                f"Falling back to Google STT (Free)..."
+                f"[PipelineWorker] Primary STT provider '{pid}' failed ({exc}). Trying fallbacks..."
             )
 
-        # Automatic fallback to free Google STT if primary wasn't already Google STT
+        # Fallback 1: Groq STT (if primary wasn't groq_stt)
+        if getattr(stt_provider, "provider_id", "") != "groq_stt":
+            try:
+                fallback_groq = self._service.get_stt_provider("groq_stt")
+                if fallback_groq and fallback_groq.is_available():
+                    res = fallback_groq.transcribe(audio_bytes, language)
+                    if res:
+                        return res
+            except Exception as exc:
+                logging.warning(f"[PipelineWorker] Fallback Groq STT failed: {exc}")
+
+        # Fallback 2: Free Google STT
         if getattr(stt_provider, "provider_id", "") != "google_stt":
             try:
                 fallback = self._service.get_stt_provider("google_stt")
                 if fallback and fallback.is_available():
                     return fallback.transcribe(audio_bytes, language)
             except Exception as exc:
-                logging.exception(f"[PipelineWorker] Fallback STT (Google STT) also failed: {exc}")
+                logging.exception(f"[PipelineWorker] Fallback Google STT failed: {exc}")
 
         return ""
 
@@ -300,6 +317,8 @@ class ConversationPipeline(QObject):
 
     state_changed = Signal(VoiceState)
     transcript_ready = Signal(str)
+    response_started = Signal()
+    partial_token = Signal(str)
     response_ready = Signal(str)
     audio_ready = Signal(bytes)
     error_occurred = Signal(str)
@@ -318,6 +337,8 @@ class ConversationPipeline(QObject):
         # Relay worker signals
         self._worker.state_changed.connect(self.state_changed.emit)
         self._worker.transcript_ready.connect(self.transcript_ready.emit)
+        self._worker.response_started.connect(self.response_started.emit)
+        self._worker.partial_token.connect(self.partial_token.emit)
         self._worker.response_ready.connect(self.response_ready.emit)
         self._worker.audio_ready.connect(self.audio_ready.emit)
         self._worker.error_occurred.connect(self.error_occurred.emit)

@@ -6,7 +6,8 @@ serialised, compared, and passed freely between all voice layers.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import Any
 
 
 @dataclass
@@ -21,7 +22,7 @@ class VoiceSettings:
 
     # --- Provider selection -------------------------------------------
 
-    stt_provider_id: str = "google_stt"
+    stt_provider_id: str = "groq_stt"
     """Identifier of the active speech-to-text provider.
 
     Must match a ``provider_id`` registered in :class:`STTRegistry`.
@@ -35,6 +36,9 @@ class VoiceSettings:
 
     voice_id: str = "EXAVITQu4vr4xnSDxMaL"
     """Voice identifier string for TTS engines (e.g., ElevenLabs Voice ID)."""
+
+    custom_voices: list[dict[str, Any]] = field(default_factory=list)
+    """User-added custom or cloned voice entries [{\"id\": ..., \"name\": ..., \"provider_id\": ...}]."""
 
     # --- Language / locale -------------------------------------------
 

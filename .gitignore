@@ -30,6 +30,7 @@ assets/bin/
 *.zip
 
 # Local IDE and agent directories
+.vscode/
 .gemini/
 .agents/
 scratch/

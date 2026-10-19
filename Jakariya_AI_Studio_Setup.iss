@@ -49,7 +49,7 @@ RestartApplications=no
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
-Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
 
 [Files]
 ; Main Executable & Bundled Dependencies (Directory mode from main.spec)
@@ -61,12 +61,11 @@ Source: "dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion skipifsou
 ; Environment Configuration Template (Preserved if present on upgrade)
 Source: ".env"; DestDir: "{app}"; Flags: onlyifdoesntexist uninsneveruninstall skipifsourcedoesntexist
 
-; Documentation, User Guides & Sample Outlines
+; Documentation, User Guides & Client Presentation
 Source: "README.md"; DestDir: "{app}\docs"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "USER_GUIDE_PROVIDERS_AND_MODELS_BANGLA.txt"; DestDir: "{app}\docs"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "LICENSE"; DestDir: "{app}\docs"; Flags: ignoreversion skipifsourcedoesntexist
-Source: "software_engineer_resume_outline.md"; DestDir: "{app}\docs"; Flags: ignoreversion skipifsourcedoesntexist
-Source: "red_parrot_description.txt"; DestDir: "{app}\docs"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "Jakariya_AI_Studio_Client_Presentation.docx"; DestDir: "{app}\docs"; Flags: ignoreversion skipifsourcedoesntexist
 
 [Dirs]
 ; Writable User Data Directories created in LocalAppData

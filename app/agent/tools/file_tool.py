@@ -376,8 +376,52 @@ class FileWriteTool(BaseTool):
     def execute(self, file_path: str = "", content: str = "", **kwargs) -> ToolResult:
         try:
             resolved_p = resolve_agent_write_path(file_path)
+
+            existed = resolved_p.exists() and resolved_p.is_file()
+            old_lines = resolved_p.read_text(encoding="utf-8", errors="replace").splitlines(keepends=True) if existed else []
+            new_lines = content.splitlines(keepends=True)
+
+            import difflib
+            if existed:
+                diff = list(difflib.unified_diff(
+                    old_lines,
+                    new_lines,
+                    fromfile=f"a/{resolved_p.name}",
+                    tofile=f"b/{resolved_p.name}",
+                ))
+                lines_added = sum(1 for line in diff if line.startswith("+") and not line.startswith("+++"))
+                lines_removed = sum(1 for line in diff if line.startswith("-") and not line.startswith("---"))
+                diff_text = "".join(diff)
+                if not diff_text:
+                    diff_text = f"--- a/{resolved_p.name}\n+++ b/{resolved_p.name}\n# No changes detected (content is identical)."
+                action = "overwritten"
+            else:
+                diff = list(difflib.unified_diff(
+                    [],
+                    new_lines,
+                    fromfile="/dev/null",
+                    tofile=f"b/{resolved_p.name}",
+                ))
+                lines_added = len(new_lines)
+                lines_removed = 0
+                diff_text = "".join(diff)
+                action = "created"
+
             resolved_p.parent.mkdir(parents=True, exist_ok=True)
             resolved_p.write_text(content, encoding="utf-8")
+
+            # Calculate parent folder relative to workspace
+            workspace = get_active_workspace()
+            try:
+                if workspace and _is_within(resolved_p, Path(workspace)):
+                    rel_p = resolved_p.relative_to(Path(workspace))
+                    folder_str = str(rel_p.parent).replace("\\", "/") if str(rel_p.parent) != "." else "root"
+                else:
+                    folder_str = resolved_p.parent.name
+            except Exception:
+                folder_str = resolved_p.parent.name
+
+            diff_stat = f"+{lines_added} / -{lines_removed}" if existed else f"+{lines_added}"
 
             # If writing to home / Desktop and a distinct Windows Shell Desktop exists,
             # also mirror the file to the real Windows Shell Desktop so the user can immediately see it!
@@ -396,10 +440,25 @@ class FileWriteTool(BaseTool):
                 except Exception:
                     pass
 
+            output_msg = (
+                f"Successfully wrote {resolved_p.name} in '{folder_str}' "
+                f"({diff_stat} lines, {len(content)} chars)."
+            )
+
             return ToolResult(
                 success=True,
-                output=f"Successfully wrote {len(content)} characters to {resolved_p}",
-                data={"saved_path": str(resolved_p.resolve())},
+                output=output_msg,
+                data={
+                    "saved_path": str(resolved_p.resolve()),
+                    "modified_path": str(resolved_p.resolve()),
+                    "file_name": resolved_p.name,
+                    "folder": folder_str,
+                    "lines_added": lines_added,
+                    "lines_removed": lines_removed,
+                    "diff_stat": diff_stat,
+                    "action": action,
+                    "diff_text": diff_text,
+                },
             )
         except Exception as exc:
             return ToolResult(success=False, output="", error=f"Permission or path error writing file: {exc}")

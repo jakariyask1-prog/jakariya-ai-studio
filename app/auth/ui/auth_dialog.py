@@ -168,19 +168,22 @@ class AuthDialog(QDialog):
 
         # 3-Day Trial Announcement Banner
         banner = QFrame()
-        banner.setStyleSheet("""
-            QFrame {
-                background-color: #EEF2FF;
-                border: 1px solid #C7D2FE;
+        banner_bg = "#312E81" if self.is_dark else "#EEF2FF"
+        banner_border = "#4338CA" if self.is_dark else "#C7D2FE"
+        banner_fg = "#C7D2FE" if self.is_dark else "#3730A3"
+        banner.setStyleSheet(f"""
+            QFrame {{
+                background-color: {banner_bg};
+                border: 1px solid {banner_border};
                 border-radius: 8px;
                 padding: 6px 10px;
-            }
+            }}
         """)
         banner_layout = QHBoxLayout(banner)
         banner_layout.setContentsMargins(6, 6, 6, 6)
         banner_text = QLabel("🎁 <b>৩ দিনের ফ্রি ট্রায়াল:</b> সাইন-আপ করলেই Cartesia লাইভ ভয়েস, FLUX.1 ও আনলিমিটেড AI এজেন্ট বিনামূল্যে আনলক হবে!")
         banner_text.setWordWrap(True)
-        banner_text.setStyleSheet("color: #3730A3; font-size: 11.5px;")
+        banner_text.setStyleSheet(f"color: {banner_fg}; font-size: 11.5px;")
         banner_layout.addWidget(banner_text)
         l.addWidget(banner)
 

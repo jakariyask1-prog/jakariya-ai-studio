@@ -5,7 +5,7 @@
 ![Version](https://img.shields.io/badge/Version-2.0.0-blue?style=for-the-badge)
 ![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![GUI](https://img.shields.io/badge/GUI-PySide6%20%2F%20Qt6-41CD52?style=for-the-badge&logo=qt&logoColor=white)
-![Tests](https://img.shields.io/badge/Tests-317%20Passed%20(100%25)-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)
+![Tests](https://img.shields.io/badge/Tests-335%20Passed%20(100%25)-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)
 ![Platform](https://img.shields.io/badge/Platform-Windows%20x64-0078D6?style=for-the-badge&logo=windows&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 
@@ -66,6 +66,10 @@
   10. `code_outline`: High-level symbol analyzer extracting classes, functions, methods, and docstrings from source code.
   11. `check_diagnostics`: AST linter and syntax diagnostics checker providing instant error detection.
   12. `git_tool`: Version control inspector providing git status, diff, log, commit, and branch analysis.
+* **🔍 Antigravity Visual Code Changes & Diff Review Dialog (`CodeChangesReviewDialog` & `DiffTracker`)**:
+  - Live syntax-highlighted unified diff inspection (`+` additions in green, `-` deletions in red) for code and configuration changes.
+  - Exact target-and-replace preview for agent modifications, ensuring transparent user verification.
+  - Multi-file diff tracking with change statistics, line counts, and jump-to-diff review.
 * **⚡ 1-Click "Allow All (Auto Run)" Permission Flow**:
   - Interactive security modal (`ToolApprovalDialog`) with 3 granular choices:
     - **`Deny Action`**: Immediately rejects or aborts the requested tool call.
@@ -77,14 +81,17 @@
 * **Document Intelligence**: Deep document analysis powered by LlamaParse and native PDF extractors.
 * **Secure File I/O**: Reads and writes documents safely within dedicated user directories (`Desktop`, `Documents`, `Downloads`).
 
-### 🎙️ 3. Continuous Live Voice Mode & Natural Speech
+### 🎙️ 3. Continuous Live Voice Mode, Cloned Voices & Voice Studio
 * **Hands-Free Live Conversation (⚡ Live)**: Continuous multi-turn dialogue loop with automatic Voice Activity Detection (VAD) and configurable silence detection (500–5000ms).
 * **Barge-In Interruption**: Interrupt the AI mid-sentence simply by speaking. The audio player immediately stops speaking and transitions back to listening without UI lag.
 * **Acoustic Feedback Shield**: Automatically attenuates microphone gain to **0.15** during TTS playback to eliminate audio loopbacks.
+* **Custom Voices Studio & Presets Manager (`AddVoiceDialog`, `voice_presets.py`)**:
+  - Interactive custom voice dialog supporting custom voice additions with dynamic provider metadata, preview playback, and sample rate negotiation across Cartesia, Fish Audio, Edge TTS, ElevenLabs, and Google TTS.
+  - Built-in Voice Presets catalog with curated conversational personalities (Jenny, Guy, Nabanita, Pradeep, Sonic Clones).
 * **Personal Cloned Voices**: Full support for personal cloned voice IDs in **Cartesia AI** (sub-second sonic speed), **Fish Audio** (reference voice IDs), and **ElevenLabs**.
 * **Human-like Conversational Voices**: Default English voice upgraded to natural conversational `en-US-JennyNeural` and Bengali `bn-BD-NabanitaNeural` with dynamic runtime voice ID resolution.
 * **Comprehensive Voice Stack**:
-  - **Speech-to-Text (STT)**: Google Web Speech (Free, rate-resilient) and ElevenLabs Scribe v2.
+  - **Speech-to-Text (STT)**: Groq Whisper (`whisper-large-v3-turbo` ultra-low latency ~150-250ms), Google Web Speech (Free, rate-resilient), and ElevenLabs Scribe v2.
   - **Text-to-Speech (TTS)**: Cartesia AI (Sonic ultra-fast voice <1s latency & cloned voices), Fish Audio (Expressive neural `s2.1-pro`), Microsoft Edge Neural TTS (Free natural conversational voices), ElevenLabs Multilingual v2, and Google TTS.
 
 ### 🎨 4. Ultra-HD Image Studio & Enhancer
@@ -103,12 +110,19 @@
   - **HTML, MD, TXT, CSV, JSON**: Clean UTF-8 files.
 * **6 Curated Palettes**: `vibrant`, `colorful`, `emerald`, `sunset`, `cyber`, `executive`.
 
-### ⚙️ 6. 9-Page Modular Settings Suite
+### 🛡️ 6. User Authentication, Cloud Sync & 3-Day Trial System
+* **Google Firebase Auth REST Integration**: Seamless email/password sign-up, login, and token refresh directly inside the desktop client (`AuthDialog`, `AuthService`).
+* **3-Day Full-Access Free Trial**: New installations receive automatic 3-day unhindered access to all features.
+* **Hardware-Bound Licensing Engine**: Machine UUID fingerprinting and secure license key activation via `LicenseManager` and `UpgradeDialog`.
+* **Cloud Session Sync**: Automatically syncs user credentials and profiles across devices.
+
+### ⚙️ 7. 9-Page Modular Settings Suite & Minimizable Window
+* **Minimizable Settings Window**: Native Windows minimize/maximize/close hints, dedicated in-window Minimize button, and collapsible sidebar navigation (60px compact icon mode vs 210px expanded mode).
 * **General**: Interface localization (English & বাংলা), system startup auto-launcher, and desktop notifications for background tasks.
 * **Appearance**: 4 curated themes (**GPT Light**, **Modern Dark**, **Midnight OLED**, **Cyberpunk Neon**) with real-time live preview (no app restart required), font family, live font scaling (80%–140%), and spacing density.
 * **AI Providers**: Centralized API key management for all **16 providers** (Google, Groq, OpenRouter, Anthropic, Cerebras, Mistral, Plugsky, Ollama, Cartesia, ElevenLabs, Fish Audio, Stability AI, Hugging Face, Tavily, Brave, LlamaParse) with async background connection testing (`QThread`), live status badges, dynamic failover priority ordering, and dual-layer storage (Keyring + `.env`).
 * **AI Models**: Independent task role assignment (Chat, Coding, Reasoning, Vision, Voice, Image, Fallback).
-* **Voice & Audio**: Engine selector, Voice ID selector, auto-send toggle, speech response toggle, silence timeout, and VAD sensitivity.
+* **Voice & Audio**: Engine selector, Custom Voices Studio, voice test preview, auto-send toggle, speech response toggle, silence timeout, and VAD sensitivity.
 * **Chat & Persona**: System persona prompts (Assistant, Math Tutor, Code Architect, Custom), memory injection, temperature, and max tokens sliders.
 * **Export Preferences**: Default format selection, paper sizes (A4, Letter, Legal), timestamps toggle.
 * **Advanced**: System log level (INFO, DEBUG, WARNING, ERROR), temporary cache cleanup, orphan file sweep on exit.
@@ -282,8 +296,13 @@ $env:QT_QPA_PLATFORM = "offscreen"
 
 ### Test Coverage Highlights
 
-* **Total Test Cases**: **317 Passed (100% Pass Rate)** across 61 test suites.
+* **Total Test Cases**: **335 Passed (100% Pass Rate)** across 63 test suites.
 * **Subsystems Covered**:
+  - `test_antigravity_diff_tracker.py` & `test_antigravity_tools.py`: Validates syntax-highlighted unified diff tracker, file editing diff computations, and code change review dialogues.
+  - `test_custom_voices_and_tts.py`: Validates custom voices persistence, preset loading, and dynamic sample rate negotiation.
+  - `test_latency_fixes.py`: Validates ultra-low latency audio pipeline, Groq Whisper STT, fast FLAC encoding flags, and rapid turn restart (40ms).
+  - `test_auth_and_licensing.py`: Google Firebase Auth REST integration, session tokens, offline grace periods, and hardware UUID licensing.
+  - `test_settings_window_minimize.py`: Verifies native minimization flags, sidebar collapse toggle, and taskbar restoration.
   - `test_provider_registry.py`: Validates central `ProviderRegistry`, dynamic capabilities matching, and schema versioning.
   - `test_homepage_buttons.py`: Bento starter workflow cards, input capsule buttons, live & agent mode toggles, header controls, sidebar actions.
   - `test_ai_agent.py` & `test_agent_worker.py`: ReAct planning loop, 12 tools registry, interactive `ToolApprovalDialog` with `Deny Action`, `Allow Once`, and `⚡ Allow All (Auto Run)` 1-click execution flow with clean task reset.
@@ -382,6 +401,7 @@ jakariya ai studio/
 │   │   ├── tools/                           # 12 Built-in tools (REPL, File I/O, Search, Edit, Shell, Git, Diagnostics, Outline, Web, Exporter)
 │   │   ├── agent_engine.py                  # Core ReAct reasoning & tool execution loop
 │   │   ├── agent_worker.py                  # Background QThread worker, AgentController & Auto-Approval bypass
+│   │   ├── diff_tracker.py                  # Central unified diff and code change tracker (Antigravity-style)
 │   │   └── tool_registry.py                 # Central tool registry with aliases & dynamic discovery
 │   ├── api/                                 # ClaudeClient, TavilyClient, Model catalogs
 │   ├── chat/                                # ChatController, ChatManager, Repository, Worker
@@ -400,11 +420,13 @@ jakariya ai studio/
 │   │   ├── approval_dialog.py               # Tool approval modal (Deny, Allow Once, ⚡ Allow All)
 │   │   ├── chat_area.py                     # Chat streaming, code blocks, Smart Document Cards
 │   │   ├── document_preview_dialog.py       # Interactive document inspector & exporter dialog
+│   │   ├── code_changes_review_dialog.py    # Visual inline diff review dialog
+│   │   ├── add_voice_dialog.py              # Custom voice designer and preset modal
 │   │   ├── input_bar.py                     # Message input, Agent pill, Live pill, Mic button
 │   │   └── styles.py                        # Themes: GPT Light, Modern Dark, Midnight OLED, Cyberpunk Neon
 │   ├── utils/                               # Paths, document detector, markdown renderer, check_keys
-│   └── voice/                               # Voice engine, STT & TTS registries, Cartesia, Fish Audio, Edge-TTS
-└── tests/                                   # 61 test suites containing 317 passing test cases (100%)
+│   └── voice/                               # Voice engine, STT (Groq Whisper, Google) & TTS, Presets, Cartesia
+└── tests/                                   # 63 test suites containing 335 passing test cases (100%)
 ```
 
 ---
@@ -431,4 +453,4 @@ copies or substantial portions of the Software.
 
 * **Architect & Developer**: **Md. Jakariya Sheikh**  
 * **Project**: **Jakariya AI Studio (v2.0.0)**  
-* **Status**: **100% Production Ready & Verified (317/317 Tests Green)**
+* **Status**: **100% Production Ready & Verified (335/335 Tests Green)**

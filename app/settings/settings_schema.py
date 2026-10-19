@@ -92,6 +92,7 @@ class VoiceSettingsSchema:
     stt_provider_id: str = "google_stt"
     tts_provider_id: str = "edge_neural_tts"
     voice_id: str = "bn-BD-NabanitaNeural"
+    custom_voices: list[dict[str, Any]] = field(default_factory=list)
     auto_send: bool = True
     voice_response: bool = True
     silence_timeout_ms: int = 1300
@@ -104,6 +105,7 @@ class VoiceSettingsSchema:
             stt_provider_id=str(data.get("stt_provider_id", "google_stt")),
             tts_provider_id=str(data.get("tts_provider_id", "edge_neural_tts")),
             voice_id=str(data.get("voice_id", "bn-BD-NabanitaNeural")),
+            custom_voices=list(data.get("custom_voices", [])),
             auto_send=bool(data.get("auto_send", True)),
             voice_response=bool(data.get("voice_response", True)),
             silence_timeout_ms=int(data.get("silence_timeout_ms", 1300)),

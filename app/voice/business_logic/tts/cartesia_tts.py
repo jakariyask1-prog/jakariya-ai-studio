@@ -96,9 +96,10 @@ class CartesiaTTS(TTSProvider):
                 return b""
 
             headers = {
-                "Cartesia-Version": "2026-08-14",
-                "Authorization": f"Bearer {self._get_api_key()}",
-                "Content-Type": "application/json"
+                "Cartesia-Version": "2024-06-10",
+                "X-API-Key": current_key,
+                "Authorization": f"Bearer {current_key}",
+                "Content-Type": "application/json",
             }
 
             import uuid
@@ -112,15 +113,20 @@ class CartesiaTTS(TTSProvider):
                     else self.DEFAULT_BANGLA_VOICE_ID
                 )
 
+            # Detect Bengali characters or check language setting
+            has_bengali = any("\u0980" <= ch <= "\u09ff" for ch in clean_text)
+            lang_code = "bn" if (has_bengali or (language and str(language).lower().startswith("bn"))) else "en"
+
             payload = {
                 "model_id": self.model_id,
                 "transcript": clean_text,
-                "voice": {"mode": "id", "id": effective_voice_id},
+                "voice": {"mode": "id", "id": str(effective_voice_id).strip()},
                 "output_format": {
                     "container": "raw",
                     "encoding": "pcm_s16le",
                     "sample_rate": 16000
-                }
+                },
+                "language": lang_code,
             }
 
             response = requests.post(
@@ -132,11 +138,12 @@ class CartesiaTTS(TTSProvider):
 
             if response.status_code != 200:
                 error_msg = response.text
-                if response.status_code == 402 or "quota" in error_msg.lower():
+                if response.status_code == 402 or "quota" in error_msg.lower() or "credits limit" in error_msg.lower():
                     self._quota_exceeded = True
                     raise RuntimeError(
                         "Cartesia TTS credits limit reached (402 Quota Exceeded). "
-                        "Please recharge at https://play.cartesia.ai/subscription."
+                        "Please recharge at https://play.cartesia.ai/subscription "
+                        "or switch to Edge Neural TTS (100% Free)."
                     )
                 raise RuntimeError(f"Cartesia TTS synthesis failed: {response.status_code} - {error_msg}")
 

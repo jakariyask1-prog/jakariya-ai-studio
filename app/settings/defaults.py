@@ -148,6 +148,7 @@ DEFAULT_SETTINGS: dict[str, Any] = {
         "stt_provider_id": "google_stt",
         "tts_provider_id": "edge_neural_tts",
         "voice_id": "bn-BD-NabanitaNeural",
+        "custom_voices": [],
         "auto_send": True,
         "voice_response": True,
         "silence_timeout_ms": 1300,

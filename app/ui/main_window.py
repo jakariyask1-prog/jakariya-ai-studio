@@ -1,5 +1,7 @@
 import logging
+import os
 import sqlite3
+import sys
 from dataclasses import dataclass
 
 from PySide6.QtCore import Slot, QPropertyAnimation, QEasingCurve
@@ -98,6 +100,12 @@ class MainWindow(QMainWindow):
             logger.debug("GoogleSTT registration skipped: %s", exc)
 
         try:
+            from app.voice.business_logic.stt.groq_stt import GroqSTT
+            self.stt_registry.register(GroqSTT())
+        except Exception as exc:
+            logger.debug("GroqSTT registration skipped: %s", exc)
+
+        try:
             from app.voice.business_logic.stt.elevenlabs_stt import ElevenLabsSTT
             self.stt_registry.register(ElevenLabsSTT())
         except Exception as exc:
@@ -145,6 +153,7 @@ class MainWindow(QMainWindow):
             stt_provider_id=stt_id,
             tts_provider_id=tts_id,
             voice_id=saved_voice.voice_id,
+            custom_voices=list(getattr(saved_voice, "custom_voices", []) or []),
             auto_send=saved_voice.auto_send,
             voice_response=saved_voice.voice_response,
             silence_timeout_ms=saved_voice.silence_timeout_ms,
@@ -250,6 +259,8 @@ class MainWindow(QMainWindow):
         # Select initial voice language and connect update signal
         self.voice_controller.state_changed.connect(self.on_voice_state_changed)
         self.voice_controller.transcript_ready.connect(self.on_voice_transcript_ready)
+        self.voice_controller.response_started.connect(self.chat_area.start_assistant_stream)
+        self.voice_controller.partial_token.connect(self.chat_area.append_assistant_stream)
         self.voice_controller.response_ready.connect(self.on_voice_response_ready)
         self.voice_controller.audio_ready.connect(self.on_voice_audio_ready)
         self.voice_controller.error_occurred.connect(self.on_voice_error)
@@ -356,6 +367,20 @@ class MainWindow(QMainWindow):
             apply_dwm_backdrop(int(self.winId()), is_dark=is_dark, backdrop_type="mica")
         except Exception as exc:
             logger.debug("[MainWindow] DWM backdrop application skipped: %s", exc)
+
+        # Refresh active conversation rendering so existing bubbles adapt to new theme colors
+        try:
+            if hasattr(self, "chat_manager"):
+                active_chat = self.chat_manager.get_active_chat()
+                if active_chat:
+                    msgs = self.chat_manager.get_messages(active_chat.id)
+                    if msgs:
+                        self.chat_area.load_messages(
+                            msgs,
+                            self.chat_manager.get_conversation_attachments(active_chat.id),
+                        )
+        except Exception as exc:
+            logger.debug("[MainWindow] Chat refresh on theme change: %s", exc)
 
     def _sync_theme_from_config(self) -> None:
         """Read saved theme preference from SettingsManager and apply it."""
@@ -708,6 +733,8 @@ class MainWindow(QMainWindow):
 
     def _check_first_launch_auth(self) -> None:
         """Prompt user for login or 3-day free trial on startup if not already logged in."""
+        if "pytest" in sys.modules or "unittest" in sys.modules or os.environ.get("PYTEST_CURRENT_TEST"):
+            return
         try:
             from app.auth.auth_service import AuthService
             if not AuthService.instance().is_logged_in:
@@ -753,6 +780,7 @@ class MainWindow(QMainWindow):
             stt_provider_id=stt_id,
             tts_provider_id=tts_id,
             voice_id=saved_voice.voice_id,
+            custom_voices=list(getattr(saved_voice, "custom_voices", []) or []),
             auto_send=saved_voice.auto_send,
             voice_response=saved_voice.voice_response,
             silence_timeout_ms=saved_voice.silence_timeout_ms,
@@ -933,8 +961,9 @@ class MainWindow(QMainWindow):
         if is_active:
             if not skip_render:
                 self.chat_area.end_assistant_stream(final_message=message)
-            else:
-                self.load_active_chat()
+            # When skip_render is True (e.g. from on_agent_finished), the chat area
+            # has already been updated with rich agent cards, timeline, and diff reviews.
+            # Do NOT reload from database as that wipes the live agent timeline!
         self.refresh_sidebar()
 
         self.input_bar.enable()
@@ -981,6 +1010,11 @@ class MainWindow(QMainWindow):
 
         if not clean_output:
             clean_output = output
+
+        # Preserve Antigravity Diff & Changes summary in database record so it displays upon chat reload
+        if "### 📝 Code Changes Summary" in output and "### 📝 Code Changes Summary" not in clean_output:
+            summary_part = output.split("### 📝 Code Changes Summary", 1)[1]
+            clean_output = f"{clean_output.rstrip()}\n\n### 📝 Code Changes Summary{summary_part}"
 
         self.on_reply(clean_output, skip_render=True)
 
@@ -1117,6 +1151,7 @@ class MainWindow(QMainWindow):
                 mgr.service.schema.voice.stt_provider_id = new_settings.stt_provider_id
                 mgr.service.schema.voice.tts_provider_id = new_settings.tts_provider_id
                 mgr.service.schema.voice.voice_id = new_settings.voice_id
+                mgr.service.schema.voice.custom_voices = list(getattr(new_settings, "custom_voices", []) or [])
                 mgr.service.schema.voice.language = new_settings.language
                 mgr.service.schema.voice.auto_send = new_settings.auto_send
                 mgr.service.schema.voice.voice_response = new_settings.voice_response
@@ -1157,8 +1192,11 @@ class MainWindow(QMainWindow):
         else:
             from app.licensing.license_manager import LicenseManager
             active_tts = getattr(self.voice_controller.settings, "tts_provider_id", "")
-            if active_tts in ("cartesia_tts", "elevenlabs_tts", "fish_audio_tts"):
-                if not LicenseManager.instance().is_feature_allowed("cartesia_voice"):
+            clean_tts = active_tts.replace("_tts", "")
+            if clean_tts in ("cartesia", "elevenlabs", "fish_audio"):
+                from app.settings.settings_manager import SettingsManager
+                has_own_key = bool(SettingsManager.instance().service.get_api_key(clean_tts))
+                if not has_own_key and not LicenseManager.instance().is_feature_allowed("cartesia_voice"):
                     self.open_upgrade_window("Cartesia / ElevenLabs লাইভ ভয়েস সুবিধাটি Pro এবং ৩ দিনের ফ্রি ট্রায়ালের অন্তর্ভুক্ত।")
                     return
 
@@ -1194,8 +1232,12 @@ class MainWindow(QMainWindow):
 
         if state in _STATE_ERROR:
             self._app_status_bar.show_error(msg)
+            if hasattr(self.chat_area, "_stream_block_start_position") and self.chat_area._stream_block_start_position is not None:
+                self.chat_area.end_assistant_stream()
         elif state in _STATE_WARNING:
             self._app_status_bar.show_warning(msg)
+            if state == VoiceState.INTERRUPTED and hasattr(self.chat_area, "_stream_block_start_position") and self.chat_area._stream_block_start_position is not None:
+                self.chat_area.end_assistant_stream()
         elif state in _STATE_SUCCESS:
             self._app_status_bar.show_success(msg)
         else:
@@ -1211,7 +1253,8 @@ class MainWindow(QMainWindow):
             conversation = self.chat_manager.get_active_chat()
             try:
                 self.chat_manager.add_user_message(transcript, conversation.id)
-                self.load_active_chat()
+                self.chat_area.append_user_message(transcript)
+                self.refresh_sidebar()
             except Exception:
                 logger.exception("Failed to add user message during voice transcript processing.")
         else:
@@ -1234,7 +1277,11 @@ class MainWindow(QMainWindow):
         except Exception:
             logger.exception("Failed to add assistant message during voice response processing.")
 
-        self.load_active_chat()
+        if self.voice_controller.is_live_session_active():
+            self.chat_area.end_assistant_stream(response_text)
+            self.refresh_sidebar()
+        else:
+            self.load_active_chat()
         self.input_bar.clear()
 
     def on_voice_audio_ready(self, audio_bytes: bytes):

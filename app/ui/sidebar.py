@@ -78,33 +78,45 @@ class Sidebar(QWidget):
         header_layout.addWidget(self.title_label)
         header_layout.addStretch()
 
-        # Action Buttons: Full-width "+ New Chat", "📥" Import, and "☑️" Select Mode Button
-        buttons_layout = QHBoxLayout()
-        buttons_layout.setSpacing(6)
-
+        # 1. Full-width Prominent "+ New Chat" Button
         self.new_chat_button = QPushButton("＋ New Chat")
         self.new_chat_button.setFixedHeight(38)
         self.new_chat_button.setCursor(Qt.CursorShape.PointingHandCursor)
         self.new_chat_button.clicked.connect(self.new_chat_requested.emit)
 
+        # 2. Sleek Utility Row: Search Input + Compact Import & Select Mode Tools
+        search_layout = QHBoxLayout()
+        search_layout.setSpacing(6)
+
+        self.search_input = QLineEdit()
+        self.search_input.setPlaceholderText("🔍  Search chats...")
+        self.search_input.setClearButtonEnabled(True)
+        self.search_input.setFixedHeight(34)
+
+        self._search_timer = QTimer(self)
+        self._search_timer.setSingleShot(True)
+        self._search_timer.setInterval(200)
+        self._search_timer.timeout.connect(self._emit_search_changed)
+        self.search_input.textChanged.connect(self._queue_search)
+
         self.import_button = QToolButton()
         self.import_button.setText("📥")
-        self.import_button.setFixedSize(38, 38)
+        self.import_button.setFixedSize(34, 34)
         self.import_button.setCursor(Qt.CursorShape.PointingHandCursor)
         self.import_button.setToolTip("Import conversation file (JSON, TXT, MD)")
         self.import_button.clicked.connect(self.import_requested.emit)
 
         self.select_mode_button = QToolButton()
         self.select_mode_button.setText("☑️")
-        self.select_mode_button.setFixedSize(38, 38)
+        self.select_mode_button.setFixedSize(34, 34)
         self.select_mode_button.setCursor(Qt.CursorShape.PointingHandCursor)
         self.select_mode_button.setToolTip("Toggle multi-select mode to delete multiple chats at once")
         self.select_mode_button.setCheckable(True)
         self.select_mode_button.clicked.connect(self.toggle_check_mode)
 
-        buttons_layout.addWidget(self.new_chat_button, 1)
-        buttons_layout.addWidget(self.import_button)
-        buttons_layout.addWidget(self.select_mode_button)
+        search_layout.addWidget(self.search_input, 1)
+        search_layout.addWidget(self.import_button)
+        search_layout.addWidget(self.select_mode_button)
 
         # Bulk Action Header Bar (Visible during Select Mode)
         self.bulk_bar = QWidget()
@@ -139,18 +151,6 @@ class Sidebar(QWidget):
         bulk_layout.addWidget(self.delete_selected_btn)
         self.bulk_bar.hide()
 
-        # Search Bar
-        self.search_input = QLineEdit()
-        self.search_input.setPlaceholderText("🔍  Search chats...")
-        self.search_input.setClearButtonEnabled(True)
-        self.search_input.setFixedHeight(36)
-
-        self._search_timer = QTimer(self)
-        self._search_timer.setSingleShot(True)
-        self._search_timer.setInterval(200)
-        self._search_timer.timeout.connect(self._emit_search_changed)
-        self.search_input.textChanged.connect(self._queue_search)
-
         # Conversation QListWidget Container
         self.chat_list = QListWidget()
         self.chat_list.setObjectName("conversationList")
@@ -163,9 +163,9 @@ class Sidebar(QWidget):
         self.empty_search_label.hide()
 
         layout.addLayout(header_layout)
-        layout.addLayout(buttons_layout)
+        layout.addWidget(self.new_chat_button)
         layout.addWidget(self.bulk_bar)
-        layout.addWidget(self.search_input)
+        layout.addLayout(search_layout)
         layout.addWidget(self.empty_search_label)
         layout.addWidget(self.chat_list, 1)
 

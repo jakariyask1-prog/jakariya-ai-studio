@@ -1,5 +1,6 @@
 """Targeted in-place file editing tool (Antigravity-style replace_file_content)."""
 
+import difflib
 from pathlib import Path
 from typing import Dict, Any
 
@@ -7,6 +8,7 @@ from app.agent.tools.base_tool import BaseTool, ToolResult, PermissionLevel
 from app.agent.tools.file_tool import (
     resolve_agent_write_path,
     get_windows_shell_folder,
+    get_active_workspace,
     _is_within,
 )
 
@@ -90,6 +92,32 @@ class FileEditTool(BaseTool):
                 new_text = original_text.replace(clean_target, clean_replacement, 1)
                 replaced_count = 1
 
+            # Compute unified diff line statistics (+added / -removed)
+            old_lines = original_text.splitlines(keepends=True)
+            new_lines = new_text.splitlines(keepends=True)
+            diff = list(difflib.unified_diff(
+                old_lines,
+                new_lines,
+                fromfile=f"a/{resolved_p.name}",
+                tofile=f"b/{resolved_p.name}",
+            ))
+            lines_added = sum(1 for line in diff if line.startswith("+") and not line.startswith("+++"))
+            lines_removed = sum(1 for line in diff if line.startswith("-") and not line.startswith("---"))
+            diff_text = "".join(diff)
+
+            # Calculate parent folder relative to workspace
+            workspace = get_active_workspace()
+            try:
+                if workspace and _is_within(resolved_p, Path(workspace)):
+                    rel_p = resolved_p.relative_to(Path(workspace))
+                    folder_str = str(rel_p.parent).replace("\\", "/") if str(rel_p.parent) != "." else "root"
+                else:
+                    folder_str = resolved_p.parent.name
+            except Exception:
+                folder_str = resolved_p.parent.name
+
+            diff_stat = f"+{lines_added} / -{lines_removed}"
+
             resolved_p.write_text(new_text, encoding="utf-8")
 
             # Mirror to real Windows Shell Desktop if saved in home / Desktop
@@ -108,10 +136,26 @@ class FileEditTool(BaseTool):
                 except Exception:
                     pass
 
+            output_msg = (
+                f"Successfully edited {resolved_p.name} in '{folder_str}' "
+                f"({diff_stat} lines): replaced {replaced_count} occurrence(s)."
+            )
+
             return ToolResult(
                 success=True,
-                output=f"Successfully edited {resolved_p.name}: replaced {replaced_count} occurrence(s).",
-                data={"modified_path": str(resolved_p.resolve()), "replacements_count": replaced_count},
+                output=output_msg,
+                data={
+                    "modified_path": str(resolved_p.resolve()),
+                    "saved_path": str(resolved_p.resolve()),
+                    "file_name": resolved_p.name,
+                    "folder": folder_str,
+                    "lines_added": lines_added,
+                    "lines_removed": lines_removed,
+                    "diff_stat": diff_stat,
+                    "replacements_count": replaced_count,
+                    "action": "modified",
+                    "diff_text": diff_text,
+                },
             )
         except Exception as exc:
             return ToolResult(success=False, output="", error=f"Error editing file: {exc}")

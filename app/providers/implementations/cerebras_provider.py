@@ -29,10 +29,18 @@ class CerebrasProvider(BaseProvider):
             supports_reasoning=False,
         )
 
+    MODEL_ALIASES = {
+        "qwen-3.8-27b": "llama-3.3-70b",
+        "gpt-oss-120b": "llama-3.3-70b",
+    }
+
     def get_supported_models(self) -> List[ModelInfo]:
         return [
-            ModelInfo("qwen-3.8-27b", "Cerebras Qwen 3.8 27B", self.provider_id, context_window=32768, max_output_tokens=8192),
-            ModelInfo("gpt-oss-120b", "Cerebras GPT OSS 120B", self.provider_id, context_window=128000, max_output_tokens=8192),
+            ModelInfo("llama-3.3-70b", "Llama 3.3 70B (Wafer-Scale 2000+ t/s Coding)", self.provider_id, context_window=128000, max_output_tokens=8192),
+            ModelInfo("llama3.1-8b", "Llama 3.1 8B (Wafer-Scale Ultra-Fast)", self.provider_id, context_window=128000, max_output_tokens=8192),
+            # Legacy compatibility
+            ModelInfo("qwen-3.8-27b", "Qwen 3.8 27B (Auto -> Llama 3.3 70B)", self.provider_id, context_window=32768, max_output_tokens=8192),
+            ModelInfo("gpt-oss-120b", "GPT OSS 120B (Auto -> Llama 3.3 70B)", self.provider_id, context_window=128000, max_output_tokens=8192),
         ]
 
     def validate_api_key(self) -> bool:
@@ -55,8 +63,8 @@ class CerebrasProvider(BaseProvider):
 
     def _format_model_name(self, model: str) -> str:
         if model.startswith("cerebras/"):
-            return model[len("cerebras/"):]
-        return model
+            model = model[len("cerebras/"):]
+        return self.MODEL_ALIASES.get(model, model)
 
     def _format_messages(self, request: ChatRequest) -> list:
         msgs = []

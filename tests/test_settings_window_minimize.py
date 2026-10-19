@@ -4,6 +4,7 @@ import unittest
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication
 
+from app.database import DatabaseService
 from app.settings.ui.settings_window import SettingsWindow
 from app.ui.main_window import MainWindow
 
@@ -12,6 +13,11 @@ _APP = QApplication.instance() or QApplication([])
 
 class TestSettingsWindowMinimization(unittest.TestCase):
     """Test suite verifying minimization functionality for SettingsWindow and MainWindow integration."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls._db_service = DatabaseService()
+        cls._db_service.initialize()
 
     def test_settings_window_flags_and_buttons(self):
         win = SettingsWindow()

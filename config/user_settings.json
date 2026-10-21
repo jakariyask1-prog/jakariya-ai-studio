@@ -159,7 +159,7 @@
         "custom_voices": [],
         "auto_send": true,
         "voice_response": true,
-        "silence_timeout_ms": 1300,
+        "silence_timeout_ms": 1032,
         "vad_threshold": 0.012,
         "language": "auto",
         "input_device_index": null,

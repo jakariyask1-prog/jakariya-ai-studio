@@ -53,7 +53,7 @@ class AudioPlayer(QObject):
             except Exception:
                 pass
 
-    BUFFER_THRESHOLD: int = 6400  # ~200ms pre-buffer at 16kHz 16-bit mono (safe minimum for Edge TTS chunks)
+    BUFFER_THRESHOLD: int = 3200  # ~100ms low-latency pre-buffer at 16kHz 16-bit mono for ultra-responsive playback
 
     def play_bytes(
         self,

@@ -366,32 +366,48 @@ def apply_combobox_theme(combo, theme_name: str = "light") -> None:
 
 
 
-def get_chat_browser_style(theme_name: str = "light") -> str:
+def get_chat_browser_style(
+    theme_name: str = "light",
+    font_family: str = "Segoe UI",
+    font_scale: float = 1.0,
+) -> str:
     p = get_theme_palette(theme_name)
+    font_stack = f"'{font_family}', 'Segoe UI Variable', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Inter', 'Noto Sans Bengali', system-ui, sans-serif"
+    font_pt = 11.0 * font_scale
     return f"""
 QTextBrowser {{
     background-color: {p['bg_chat']};
     color: {p['text_chat']};
     border: none;
     padding: 10px 14px;
-    font-size: 11pt;
-    font-family: 'Segoe UI Variable', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Inter', 'Noto Sans Bengali', system-ui, sans-serif;
+    font-size: {font_pt:.1f}pt;
+    font-family: {font_stack};
     selection-background-color: #4F46E5;
     selection-color: #FFFFFF;
 }}
 """
 
 
-def get_document_css(theme_name: str = "light") -> str:
+def get_document_css(
+    theme_name: str = "light",
+    font_family: str = "Segoe UI",
+    font_scale: float = 1.0,
+    message_density: str = "comfortable",
+) -> str:
     p = get_theme_palette(theme_name)
     link_color = "#4F46E5" if theme_name in ("light", "dark", "oled") else "#F472B6"
     code_inline_bg = "#EEF2FF" if theme_name == "light" else "#1E293B"
+    font_stack = f"'{font_family}', 'Segoe UI Variable', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Inter', 'Noto Sans Bengali', system-ui, sans-serif"
+    base_font_pt = 11.0 * font_scale
+    code_font_pt = 9.5 * font_scale
+    line_height = "1.38" if message_density == "compact" else "1.55"
+    pre_margin = "5px 0" if message_density == "compact" else "8px 0"
     return f"""
 body, p, div, td {{
-    font-size: 11pt;
-    line-height: 1.55;
+    font-size: {base_font_pt:.1f}pt;
+    line-height: {line_height};
     color: {p['text_chat']};
-    font-family: 'Segoe UI Variable', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Inter', 'Noto Sans Bengali', system-ui, sans-serif;
+    font-family: {font_stack};
 }}
 pre {{
     background-color: #0F172A;
@@ -400,8 +416,8 @@ pre {{
     border-radius: 10px;
     padding: 12px 16px;
     font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
-    font-size: 9.5pt;
-    margin: 8px 0;
+    font-size: {code_font_pt:.1f}pt;
+    margin: {pre_margin};
 }}
 code {{
     font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
@@ -409,7 +425,7 @@ code {{
     color: {p['text_chat']};
     padding: 2px 6px;
     border-radius: 4px;
-    font-size: 9.5pt;
+    font-size: {code_font_pt:.1f}pt;
 }}
 pre code {{
     background-color: transparent;
@@ -427,18 +443,23 @@ a:hover {{
 """
 
 
-def get_global_app_style(theme_name: str = "light") -> str:
+def get_global_app_style(
+    theme_name: str = "light",
+    font_family: str = "Segoe UI",
+    font_scale: float = 1.0,
+) -> str:
     p = get_theme_palette(theme_name)
     tooltip_bg = "#FFFFFF" if theme_name == "light" else "#0F172A"
     tooltip_text = "#0F172A" if theme_name == "light" else "#F8FAFC"
     tooltip_border = "#CBD5E1" if theme_name == "light" else "#334155"
+    font_stack = f"'{font_family}', 'Segoe UI Variable', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Inter', 'Noto Sans Bengali', system-ui, sans-serif"
     return f"""
 /* Global Application Font & Base Window Background */
 QMainWindow, QDialog, #centralWidget {{
     background-color: {p['bg_app']};
 }}
 QWidget {{
-    font-family: 'Segoe UI Variable', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Inter', 'Noto Sans Bengali', system-ui, sans-serif;
+    font-family: {font_stack};
 }}
 QScrollArea, QScrollArea > QWidget > QWidget {{
     background: transparent;

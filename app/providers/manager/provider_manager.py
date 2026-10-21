@@ -89,6 +89,33 @@ class ProviderManager:
         """Get registered provider instance by ID."""
         return self._providers.get(provider_id)
 
+    def sync_from_settings(self) -> None:
+        """Sync provider priorities, credentials, and invalidate cached client sessions from Settings."""
+        try:
+            from app.settings.settings_manager import SettingsManager
+            schema = SettingsManager.instance().service.schema
+            for p_id, p_conf in schema.providers.items():
+                if p_id in self._providers:
+                    p_inst = self._providers[p_id]
+                    # Invalidate cached clients so new credentials/base_url are picked up
+                    if hasattr(p_inst, "_client"):
+                        p_inst._client = None
+                    if hasattr(p_inst, "_last_key"):
+                        p_inst._last_key = None
+                    if hasattr(p_inst, "_last_url"):
+                        p_inst._last_url = None
+                    # Update priority if valid
+                    if p_conf.priority and p_conf.priority > 0:
+                        self._priority_map[p_id] = p_conf.priority
+            # Rebuild priority list
+            self._priority_list = sorted(
+                self._priority_map.keys(),
+                key=lambda pid: self._priority_map[pid],
+            )
+            logger.info("[ProviderManager] Synced providers and priorities from user settings.")
+        except Exception as exc:
+            logger.debug("[ProviderManager] sync_from_settings skipped: %s", exc)
+
     def list_providers(self) -> List[str]:
         """Return list of registered provider IDs."""
         return list(self._providers.keys())

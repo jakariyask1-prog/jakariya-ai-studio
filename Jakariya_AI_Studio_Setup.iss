@@ -53,11 +53,17 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
 
 [Files]
-; Main Executable & Bundled Dependencies (Directory mode from main.spec)
+; Main Executable & Bundled Dependencies:
+; If folder layout exists (dist\Jakariya AI Studio), install all bundled files for instant startup.
+; Otherwise, if standalone single-file EXE exists, install that single executable.
+#if DirExists("dist\" + MyAppName)
+Source: "dist\{#MyAppName}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+#elif FileExists("dist\" + MyAppExeName)
+Source: "dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+#else
 Source: "dist\Jakariya AI Studio\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist
-
-; Standalone Executable (Single-file mode from Jakariya AI Studio.spec)
 Source: "dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+#endif
 
 ; Environment Configuration Template (Preserved if present on upgrade)
 Source: ".env"; DestDir: "{app}"; Flags: onlyifdoesntexist uninsneveruninstall skipifsourcedoesntexist

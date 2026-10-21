@@ -6,11 +6,14 @@ from typing import Any
 import re
 import socket
 import logging
+import queue
+import threading
 from PySide6.QtCore import QObject, QThread, Signal, Slot
 
 from app.api.ClaudeClient import ClaudeClient
 from app.voice.business_logic.pipeline.interruption import InterruptionToken
 from app.voice.utils.audio_utils import strip_markdown
+from app.voice.utils.speech_normalizer import normalize_stt_transcript
 from app.voice.voice_service import VoiceService
 from app.voice.voice_state import VoiceState
 
@@ -64,8 +67,9 @@ class PipelineWorker(QObject):
                 self.turn_completed.emit()
                 return
 
-            # Optimize STT transcript cleaning: strip acoustic annotations, bracketed tags, and filter Whisper noise
-            cleaned_transcript = re.sub(r'\[.*?\]|\(.*?\)|[*_~]', ' ', transcript)
+            # Optimize STT transcript cleaning: apply bilingual phonetic normalization and filter Whisper noise
+            cleaned_transcript = normalize_stt_transcript(transcript, language=settings.language)
+            cleaned_transcript = re.sub(r'\[.*?\]|\(.*?\)|[*_~]', ' ', cleaned_transcript)
             cleaned_transcript = re.sub(r'\s+', ' ', cleaned_transcript).strip()
 
             clean_trans = re.sub(r'[^\w\s]', '', cleaned_transcript).strip().lower()
@@ -89,7 +93,7 @@ class PipelineWorker(QObject):
                 self.turn_completed.emit()
                 return
 
-            # --- 2 & 3. Streaming Claude & TTS Phase ---
+            # --- 2 & 3. Streaming Claude & Concurrent TTS Phase ---
             self.state_changed.emit(VoiceState.THINKING)
             # Bug Fix #5: Create a fresh ClaudeClient per turn.
             # A shared/cached instance holds mutable state (_messages list, web flags)
@@ -101,28 +105,16 @@ class PipelineWorker(QObject):
             sentence_buffer = ""
             is_first_audio = True
 
+            SENTENCE_END_RE = re.compile(r'([.!?\n\u0964\u0965]+(?:\s+|$))')
+            FIRST_CHUNK_END_RE = re.compile(r'([.!?,，;:—–…\n\u0964\u0965]+(?:\s+|$))')
+            MAX_RUNON_WORD_TRIGGER = 14  # Safe threshold for unpunctuated run-on text
+
+            LEADING_SILENCE = b"\x00" * 3840   # ~120ms leading silence (WASAPI hardware init)
+            TRAILING_SILENCE = b"\x00" * 4800  # ~150ms trailing silence (avoids dead air gaps)
+
             if settings.voice_response:
                 tts_provider = self._service.active_tts_provider()
 
-            # ----------------------------------------------------------------
-            # Natural continuous speech flow & pre-roll/post-roll padding
-            # ----------------------------------------------------------------
-            # Pre-roll silence (120ms = 3840 zero bytes @ 16kHz 16-bit mono):
-            #   Prepended to first TTS chunk so Windows QAudioSink / WASAPI
-            #   hardware initializes during silence → zero first-word clipping.
-            # Post-roll silence (250ms = 8000 zero bytes @ 16kHz 16-bit mono):
-            #   Appended to final TTS chunk so hardware drains the last spoken
-            #   syllable cleanly → zero last-word clipping.
-            # ----------------------------------------------------------------
-            # ----------------------------------------------------------------
-            # Complete sentence-level speech synthesis
-            # ----------------------------------------------------------------
-            # Neural TTS models (like ElevenLabs eleven_multilingual_v2) need
-            # complete sentence context to maintain a consistent speaker timbre,
-            # natural prosody, and correct language pronunciation.
-            # Splitting at commas or tiny word fragments causes multi-speaker
-            # pitch artifacts and language confusion.
-            # ----------------------------------------------------------------
             SENTENCE_END_RE = re.compile(r'([.!?\n\u0964\u0965]+(?:\s+|$))')
             FIRST_CHUNK_END_RE = re.compile(r'([.!?,，;:—–…\n\u0964\u0965]+(?:\s+|$))')
             MAX_RUNON_WORD_TRIGGER = 14  # Safe threshold for unpunctuated run-on text
@@ -150,8 +142,8 @@ class PipelineWorker(QObject):
                 return False
 
             is_first_token = True
-            # Cap tokens at 200 for Live Voice Mode: keeps responses short and TTS latency low.
-            live_max_tokens = 200 if is_live else 2048
+            # Live Voice Mode: 1024 tokens allows detailed, thorough answers when needed without artificial truncation
+            live_max_tokens = 1024 if is_live else 2048
             for chunk in claude.ask_stream(
                 transcript,
                 model=model,
@@ -264,7 +256,7 @@ class PipelineWorker(QObject):
         try:
             res = stt_provider.transcribe(audio_bytes, language)
             if res:
-                return res
+                return normalize_stt_transcript(res, language=language)
         except Exception as exc:
             pid = getattr(stt_provider, "provider_id", "primary")
             logging.warning(
@@ -278,7 +270,7 @@ class PipelineWorker(QObject):
                 if fallback_groq and fallback_groq.is_available():
                     res = fallback_groq.transcribe(audio_bytes, language)
                     if res:
-                        return res
+                        return normalize_stt_transcript(res, language=language)
             except Exception as exc:
                 logging.warning(f"[PipelineWorker] Fallback Groq STT failed: {exc}")
 
@@ -287,7 +279,9 @@ class PipelineWorker(QObject):
             try:
                 fallback = self._service.get_stt_provider("google_stt")
                 if fallback and fallback.is_available():
-                    return fallback.transcribe(audio_bytes, language)
+                    res = fallback.transcribe(audio_bytes, language)
+                    if res:
+                        return normalize_stt_transcript(res, language=language)
             except Exception as exc:
                 logging.exception(f"[PipelineWorker] Fallback Google STT failed: {exc}")
 

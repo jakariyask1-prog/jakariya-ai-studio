@@ -25,8 +25,6 @@ class BaseProvider(ABC):
 
     @property
     def api_key(self) -> Optional[str]:
-        if self._explicit_api_key and self._explicit_api_key.strip():
-            return self._explicit_api_key.strip()
         try:
             from app.settings.settings_manager import SettingsManager
             cfg_key = SettingsManager.instance().service.get_api_key(self.provider_id)
@@ -34,6 +32,8 @@ class BaseProvider(ABC):
                 return cfg_key.strip()
         except Exception:
             pass
+        if self._explicit_api_key and self._explicit_api_key.strip():
+            return self._explicit_api_key.strip()
         return self._explicit_api_key
 
     @api_key.setter
@@ -42,8 +42,6 @@ class BaseProvider(ABC):
 
     @property
     def base_url(self) -> Optional[str]:
-        if self._explicit_base_url and self._explicit_base_url.strip():
-            return self._explicit_base_url.strip()
         try:
             from app.settings.settings_manager import SettingsManager
             p_conf = SettingsManager.instance().service.get_provider_config(self.provider_id)
@@ -51,6 +49,8 @@ class BaseProvider(ABC):
                 return p_conf.base_url.strip()
         except Exception:
             pass
+        if self._explicit_base_url and self._explicit_base_url.strip():
+            return self._explicit_base_url.strip()
         return self._explicit_base_url
 
     @base_url.setter

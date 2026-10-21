@@ -262,6 +262,9 @@ class VoiceController(QObject):
         logging.debug("[VoiceController] start_live_session called")
         self.reset()
         self._manager.start_live_session()
+        # In Live conversational mode, use low-latency silence timeout (550ms)
+        # for ultra-fast, snappy conversational turn-taking
+        self._mic_manager.silence_timeout_ms = 550
         self.start_listening()
 
     def stop_live_session(self) -> None:
@@ -270,6 +273,9 @@ class VoiceController(QObject):
         self._restart_scheduled = False
         self.interrupt()
         self._manager.stop_live_session()
+        # Restore standard configured silence timeout
+        if hasattr(self.settings, 'silence_timeout_ms'):
+            self._mic_manager.silence_timeout_ms = self.settings.silence_timeout_ms
         self.state_changed.emit(self._manager.state)
 
     def is_live_session_active(self) -> bool:

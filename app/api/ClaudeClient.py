@@ -11,19 +11,23 @@ from prompt import SYSTEM_PROMPT, PROFILE_PROMPT
 LIVE_VOICE_SYSTEM_DIRECTIVE = """
 # ULTRA-RESPONSIVE BILINGUAL LIVE CONVERSATION & PHONETIC INTELLIGENCE DIRECTIVE:
 
-1. ROLE & LATENCY PRIORITY:
+1. ROLE & ADAPTIVE CONVERSATIONAL RESPONSE LENGTH (যেমন প্রশ্ন, তেমন উত্তর):
    - You are in a real-time spoken voice conversation. Speed and natural spoken rhythm are #1 priority.
-   - KEEP IT ULTRA-CONCISE: Respond in 1 to 2 short spoken sentences (maximum 20-35 words). Never produce bullet points, markdown symbols (***, ###, ---), code blocks, or lengthy lists.
+   - ALWAYS MATCH THE DEPTH, DETAIL, AND LENGTH OF YOUR RESPONSE DYNAMICALLY TO THE USER'S SPECIFIC QUESTION:
+     * FOR SIMPLE / CASUAL QUESTIONS, GREETINGS, OR QUICK FACTS (e.g., "কেমন আছো?", "সময় কত?", "weather কেমন?", "hi", "how are you"): Respond crisply, warmly, and directly in 1 to 2 spoken sentences without unnecessary filler.
+     * FOR COMPLEX QUESTIONS, EXPLANATIONS, CONCEPTS, TUTORIALS, OR IN-DEPTH QUERIES (e.g., "কীভাবে কাজ করে?", "explain in detail", "tell me a story", "পদ্ধতি বুঝিয়ে বলো"): Provide a full, comprehensive, informative spoken explanation matching the user's need. Do NOT artificially truncate to 1-2 lines. Explain step-by-step using natural spoken transitions ("প্রথমত", "দ্বিতীয়ত", "First", "Furthermore", etc.).
+   - VOICE FORMATTING: Since your output is spoken aloud by a neural TTS engine, speak in continuous, fluid paragraphs. Do not produce raw markdown symbols (***, ###, ---, ```), raw asterisk bullet lists, or tables. Speak as an intelligent, articulate human speaking aloud on a call or in person.
 
 2. NOISY STT & PHONETIC ERROR TOLERANCE (ZERO WRONG-WORD PENALTY):
    - The user's input comes from a real-time Speech-to-Text (STT) audio transcriber which often introduces phonetic misspellings, accent distortions, and missing characters (e.g., Bangla transliteration, accented English like 'pithon' -> 'python', 'debelop' -> 'develop').
    - NEVER judge, criticize, or falsely count phonetic STT transcriptions as user mistakes.
    - Always infer the TRUE intended meaning phonetically from acoustic context and respond naturally to the real intent.
 
-3. PRONUNCIATION & SPELLING ACCURACY:
-   - If the user asks for the spelling of any word (in Bangla or English), clearly state the standard correct spelling letter-by-letter with clean spacing (e.g., "The correct spelling of Accommodation is A-C-C-O-M-M-O-D-A-T-I-O-N").
-   - When speaking Bangla, use 100% correct standard Bangla spelling (শুদ্ধ প্রমিত বাংলা উচ্চারণ ও বানান).
-   - When speaking English, speak in clear, natural, grammatically sound modern spoken English.
+3. PRONUNCIATION & SPELLING ACCURACY (BANGLA & ENGLISH WORD IT RIGHT):
+   - When asked for the spelling of any word (in Bangla or English), clearly state the exact correct spelling letter-by-letter with clean hyphenation (e.g., "The correct spelling of Accommodation is A-C-C-O-M-M-O-D-A-T-I-O-N" or বাংলাতে: "উচ্চারণ বানানটি হলো উ-চ্চা-র-ণ").
+   - When asked how to pronounce a word, describe the phonetic pronunciation cleanly without technical IPA symbols (e.g., "It is pronounced uh-kom-uh-DAY-shun").
+   - When speaking Bangla, use 100% correct standard Bangla spelling and pronunciation (শুদ্ধ প্রমিত বাংলা উচ্চারণ ও নির্ভুল বানান).
+   - When speaking English, speak in clear, natural, grammatically sound modern spoken English with proper vocabulary.
 
 4. VOICE ENGINE COMPATIBILITY:
    - Every word you produce will be synthesized directly by a neural Text-to-Speech (TTS) engine.
@@ -167,13 +171,50 @@ class ClaudeClient:
         except Exception:
             pass
 
+        persona_directive = ""
+        include_profile = True
+        language_directive = ""
+        try:
+            from app.settings.settings_manager import SettingsManager
+            cfg_schema = SettingsManager.instance().service.schema
+
+            # Persona selection
+            persona_key = getattr(cfg_schema.chat, "system_persona", "default")
+            custom_prompt = getattr(cfg_schema.chat, "custom_system_prompt", "").strip()
+            include_profile = getattr(cfg_schema.chat, "attach_user_profile", True)
+
+            if persona_key == "math_tutor":
+                persona_directive = (
+                    "\n\n# ACTIVE PERSONA: MATHEMATICS & SCIENTIFIC RESEARCH TUTOR\n"
+                    "- You are an expert mathematics, physics, and scientific research tutor.\n"
+                    "- Provide rigorous, step-by-step mathematical derivations, analytical clarity, and educational depth."
+                )
+            elif persona_key == "code_expert":
+                persona_directive = (
+                    "\n\n# ACTIVE PERSONA: SOFTWARE ARCHITECT & CODE MASTER\n"
+                    "- You are an elite principal software architect and systems programmer.\n"
+                    "- Provide clean, production-ready, modular code with best architectural patterns, error handling, and unit testability."
+                )
+            elif persona_key == "custom" and custom_prompt:
+                persona_directive = f"\n\n# CUSTOM SYSTEM INSTRUCTIONS:\n{custom_prompt}"
+
+            # Interface Language preference
+            if getattr(cfg_schema.general, "language", "en") == "bn":
+                language_directive = (
+                    "\n\n# PREFERRED INTERFACE LANGUAGE:\n"
+                    "- The user has set Bengali as their preferred interface language. Provide natural, articulate Bengali responses by default."
+                )
+        except Exception:
+            pass
+
         # Use the full Master Live Voice Directive (phonetic STT tolerance + TTS compatibility)
         live_voice_directive = ""
         if is_live:
             live_voice_directive = "\n" + LIVE_VOICE_SYSTEM_DIRECTIVE
 
-        base_prompt = getattr(self, "system_prompt", SYSTEM_PROMPT + "\n\n" + PROFILE_PROMPT)
-        return base_prompt + temporal_context + user_age_directive + live_voice_directive
+        profile_part = ("\n\n" + PROFILE_PROMPT) if include_profile else ""
+        base_prompt = getattr(self, "system_prompt", SYSTEM_PROMPT + profile_part)
+        return base_prompt + persona_directive + language_directive + temporal_context + user_age_directive + live_voice_directive
 
     def _search_duckduckgo_fallback(self, query: str, max_results: int = 5) -> str:
         import html
@@ -322,10 +363,24 @@ USER QUESTION:
             yield from self._stream_anthropic_direct(getattr(self, "client"), model or self.DEFAULT_MODEL, prompt, max_tokens, history)
             return
 
-        # Live Voice Mode latency optimisation: cap tokens for fast spoken responses
+        # Resolve generation parameters from settings
+        configured_temperature = 0.7
+        try:
+            from app.settings.settings_manager import SettingsManager
+            cfg_schema = SettingsManager.instance().service.schema
+            if hasattr(cfg_schema, "chat"):
+                configured_temperature = float(getattr(cfg_schema.chat, "temperature", 0.7))
+                if not is_live and (max_tokens is None or max_tokens == 2048):
+                    configured_tokens = getattr(cfg_schema.chat, "max_tokens", 2048)
+                    if configured_tokens and configured_tokens > 0:
+                        max_tokens = int(configured_tokens)
+        except Exception:
+            pass
+
+        # Live Voice Mode latency optimisation: cap tokens to 1024 so in-depth questions are not truncated
         # and apply a snappy temperature for deterministic streamed output.
         if is_live:
-            max_tokens = min(max_tokens, 200)  # Max 200 tokens keeps responses under ~35 words
+            max_tokens = min(max_tokens, 1024)
 
         final_prompt = prompt
         if isinstance(prompt, str) and self.needs_web_search(prompt, is_live=is_live):
@@ -353,7 +408,7 @@ USER QUESTION:
 
         # In Live Voice Mode use a slightly lower temperature (0.6) for snappy,
         # deterministic spoken responses with natural but predictable phrasing.
-        live_temperature = 0.6 if is_live else 0.7
+        live_temperature = 0.6 if is_live else configured_temperature
         req = ChatRequest(
             messages=msg_contents,
             model=norm_model,

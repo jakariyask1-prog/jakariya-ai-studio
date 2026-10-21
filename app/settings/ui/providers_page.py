@@ -362,6 +362,15 @@ class ProviderCardWidget(QFrame):
             self.btn_toggle_eye.setText("👁")
 
     def _on_changed(self) -> None:
+        if self.enable_check.isChecked():
+            if self.key_edit.text().strip():
+                self._set_badge("🟢 Active", "success")
+            else:
+                self._set_badge("⚠️ Enabled (Key Empty)", "warning")
+        elif not self.key_edit.text().strip():
+            self._set_badge("⚪ Not Configured", "neutral")
+        else:
+            self._set_badge("⚪ Disabled", "neutral")
         self.setting_changed.emit()
 
     def _on_key_changed(self) -> None:
@@ -494,15 +503,25 @@ class ProviderCardWidget(QFrame):
 
         # Handle keyring sentinel
         if config.api_key == "__keyring__":
-            self._key_in_vault = True
             from app.settings.key_vault import retrieve_api_key
             vault_k = retrieve_api_key(self.provider_id)
             if vault_k:
+                self._key_in_vault = True
                 self.key_edit.setText(vault_k)
+                self.key_edit.setPlaceholderText("Enter API Key...")
+                self._set_badge("🔑 Key in Vault", "info")
             else:
-                self.key_edit.clear()
-            self.key_edit.setPlaceholderText("Enter API Key...")
-            self._set_badge("🔑 Key in Vault", "info")
+                self._key_in_vault = False
+                from app.settings.settings_manager import SettingsManager
+                env_key = SettingsManager.instance().service.get_api_key(self.provider_id)
+                if env_key:
+                    self.key_edit.setText(env_key)
+                    self.key_edit.setPlaceholderText("Enter API Key...")
+                    self._set_badge("🔑 Key in .env", "info")
+                else:
+                    self.key_edit.clear()
+                    self.key_edit.setPlaceholderText("Enter API Key...")
+                    self._set_badge("⚪ Not Configured", "neutral")
         elif config.api_key:
             self._key_in_vault = False
             self.key_edit.setText(config.api_key)
@@ -522,8 +541,16 @@ class ProviderCardWidget(QFrame):
                 self.key_edit.setPlaceholderText("Enter API Key...")
                 self._set_badge("⚪ Not Configured", "neutral")
 
-        if config.status == "active":
-            self._set_badge("🟢 Active", "success")
+        if config.enabled:
+            effective_k = self.key_edit.text().strip()
+            if effective_k:
+                self._set_badge("🟢 Active", "success")
+            else:
+                self._set_badge("⚠️ Enabled (Key Empty)", "warning")
+        elif not self.key_edit.text().strip():
+            self._set_badge("⚪ Not Configured", "neutral")
+        else:
+            self._set_badge("⚪ Disabled", "neutral")
 
         self.priority_spin.blockSignals(False)
         self.url_edit.blockSignals(False)

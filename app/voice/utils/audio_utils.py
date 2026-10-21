@@ -5,6 +5,7 @@ from __future__ import annotations
 import io
 import re
 import wave
+from app.voice.utils.speech_normalizer import normalize_tts_text
 
 
 def strip_markdown(text: str, language: str = "en") -> str:
@@ -35,86 +36,6 @@ def strip_markdown(text: str, language: str = "en") -> str:
         text,
     )
 
-    # Expand single-character hyphenated spelling (e.g. "P-S-Y-C-H-O-L-O-G-I-C-A-L" -> "P, S, Y, C, H, O, L, O, G, I, C, A, L")
-    # so TTS clearly articulates each letter individually without merging into alien words
-    text = re.sub(r"\b[A-Za-z](?:-[A-Za-z])+\b", lambda m: ", ".join(m.group(0).split("-")), text)
-
-    # Remove IPA phonetic symbols/pronunciation guides enclosed in slashes so TTS does not glitch on raw phonetic markers
-    text = re.sub(r"/[\u0250-\u02AF\u02B0-\u02FF\u0300-\u036Fˈˌːˑa-zA-Z\s\.-]+/", " ", text)
-
-    # Convert dashes, ellipses, colons into natural comma pauses
-    text = text.replace("...", ", ")
-    text = text.replace("—", ", ")
-    text = text.replace("–", ", ")
-    text = text.replace(" - ", ", ")
-    text = text.replace(" : ", ", ")
-
-    # Expand common symbols to spoken words based on language/script
-    is_bn = (language == "bn") or bool(re.search(r"[\u0980-\u09FF]", text))
-    if is_bn:
-        replacements = {
-            "৳": " টাকা ",
-            "%": " শতাংশ ",
-            "$": " ডলার ",
-            "&": " এবং ",
-            "+": " যোগ ",
-            "=": " সমান ",
-            "/": " অথবা ",
-            "°C": " ডিগ্রি সেলসিয়াস ",
-            "°F": " ডিগ্রি ফারেনহাইট ",
-        }
-        # Expand common English tech terms in Bengali for smooth phonetics
-        tech_bn = {
-            r"\bAI\b": "এআই",
-            r"\bAPI\b": "এপিআই",
-            r"\bAPIs\b": "এপিআই",
-            r"\bUI\b": "ইউআই",
-            r"\bUX\b": "ইউএক্স",
-            r"\bLLM\b": "এলএলএম",
-            r"\bTTS\b": "টিটিএস",
-            r"\bSTT\b": "এসটিটি",
-        }
-        for pattern, repl in tech_bn.items():
-            text = re.sub(pattern, repl, text)
-    else:
-        replacements = {
-            "%": " percent ",
-            "$": " dollars ",
-            "&": " and ",
-            "+": " plus ",
-            "=": " equals ",
-            "/": " or ",
-            "°C": " degrees Celsius ",
-            "°F": " degrees Fahrenheit ",
-            "℃": " degrees Celsius ",
-            "℉": " degrees Fahrenheit ",
-        }
-    for char, word in replacements.items():
-        text = text.replace(char, word)
-
-    # Expand common technical and conversational abbreviations for natural pronunciation
-    if not is_bn:
-        # Punctuation-based abbreviations
-        text = re.sub(r"\be\.g\.,?\b", "for example, ", text, flags=re.IGNORECASE)
-        text = re.sub(r"\bi\.e\.,?\b", "that is, ", text, flags=re.IGNORECASE)
-        text = re.sub(r"\bvs\.\b|\bvs\b", "versus", text, flags=re.IGNORECASE)
-        text = re.sub(r"\betc\.\b|\betc\b", "etcetera", text, flags=re.IGNORECASE)
-        text = re.sub(r"\bDr\.\b", "Doctor ", text)
-        text = re.sub(r"\bMr\.\b", "Mister ", text)
-        text = re.sub(r"\bMrs\.\b", "Missus ", text)
-        text = re.sub(r"\bMs\.\b", "Miss ", text)
-
-        # Technical acronyms to phonetic letters for smooth vocalization
-        text = re.sub(r"\bAI\b", "A.I.", text)
-        text = re.sub(r"\bAPI\b", "A.P.I.", text)
-        text = re.sub(r"\bAPIs\b", "A.P.I.s", text)
-        text = re.sub(r"\bUI\b", "U.I.", text)
-        text = re.sub(r"\bUX\b", "U.X.", text)
-        text = re.sub(r"\bURL\b", "U.R.L.", text)
-        text = re.sub(r"\bURLs\b", "U.R.L.s", text)
-        text = re.sub(r"\bLLM\b", "L.L.M.", text)
-        text = re.sub(r"\bLLMs\b", "L.L.M.s", text)
-
     # Remove HTML tags and remaining brackets
     text = re.sub(r"<[^>]+>", "", text)
     text = re.sub(r"[\[\]{}<>]", " ", text)
@@ -127,13 +48,11 @@ def strip_markdown(text: str, language: str = "en") -> str:
     text = re.sub(r"(?m)^\s*[-*+•]\s+", "", text)
     text = re.sub(r"(?m)^\s*\d+\.\s+", "", text)
 
-    # Remove stray non-speech punctuation (preserve Bengali danda \u0964 and double danda \u0965)
-    text = re.sub(r"[|#\\^~]", " ", text)
+    # Remove IPA phonetic symbols/pronunciation guides enclosed in slashes
+    text = re.sub(r"/[\u0250-\u02AF\u02B0-\u02FF\u0300-\u036Fˈˌːˑa-zA-Z\s\.-]+/", " ", text)
 
-    # Normalize whitespace and ensure natural comma spacing
-    text = re.sub(r"\s+", " ", text)
-    text = re.sub(r"\s*,\s*", ", ", text)
-    text = re.sub(r"\s*\.\s*", ". ", text)
+    # Pass through comprehensive TTS speech normalizer
+    text = normalize_tts_text(text, language=language)
     return text.strip()
 
 

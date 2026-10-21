@@ -19,24 +19,27 @@ class GoogleTTS(TTSProvider):
 
     def synthesise(self, text: str, language: str) -> bytes:
         """Convert text to raw PCM audio bytes using gTTS and miniaudio."""
-        if not text.strip():
+        from app.voice.utils.audio_utils import strip_markdown
+
+        clean_text = strip_markdown(text, language=language).strip()
+        if not clean_text or not any(char.isalnum() for char in clean_text):
             return b""
 
         try:
             from gtts import gTTS
             import miniaudio
 
-            has_bengali = any("\u0980" <= char <= "\u09ff" for char in text)
-            lang_code = language.strip().lower()
-            if has_bengali or lang_code == "bn":
+            has_bengali = any("\u0980" <= char <= "\u09ff" for char in clean_text)
+            lang_code = language.strip().lower() if language else "en"
+            if has_bengali or lang_code.startswith("bn"):
                 lang_code = "bn"
-            elif lang_code == "en":
+            elif lang_code.startswith("en"):
                 lang_code = "en"
             else:
-                lang_code = language
+                lang_code = lang_code.split("-")[0]
 
             mp3_fp = io.BytesIO()
-            tts = gTTS(text=text, lang=lang_code)
+            tts = gTTS(text=clean_text, lang=lang_code)
             tts.write_to_fp(mp3_fp)
             mp3_bytes = mp3_fp.getvalue()
 

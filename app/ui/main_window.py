@@ -356,12 +356,36 @@ class MainWindow(QMainWindow):
 
     def apply_theme(self, theme_name: str) -> None:
         """Propagate active theme changes to all central application widgets."""
+        from app.settings.settings_manager import SettingsManager
         from app.ui.styles import get_global_app_style
-        self.setStyleSheet(get_global_app_style(theme_name))
+        from PySide6.QtGui import QFont
+        from PySide6.QtWidgets import QApplication
+
+        try:
+            appearance = SettingsManager.instance().service.schema.appearance
+            font_family = appearance.font_family or "Segoe UI"
+            font_scale = appearance.font_scale or 1.0
+            density = appearance.message_density or "comfortable"
+        except Exception:
+            font_family = "Segoe UI"
+            font_scale = 1.0
+            density = "comfortable"
+
+        # Apply application-level font family and scale
+        try:
+            base_pt = max(8, int(round(10 * font_scale)))
+            app_font = QFont(font_family, base_pt)
+            q_app = QApplication.instance()
+            if q_app:
+                q_app.setFont(app_font)
+        except Exception as exc:
+            logger.debug("[MainWindow] Font application skipped: %s", exc)
+
+        self.setStyleSheet(get_global_app_style(theme_name, font_family=font_family, font_scale=font_scale))
         self.sidebar.apply_theme(theme_name)
         self.header.apply_theme(theme_name)
         self.input_bar.apply_theme(theme_name)
-        self.chat_area.set_theme(theme_name)
+        self.chat_area.set_theme(theme_name, font_family=font_family, font_scale=font_scale, density=density)
         self._app_status_bar.apply_theme(theme_name)
 
         # Apply Windows 11 native Mica / Acrylic backdrop and dark mode titlebar
@@ -575,9 +599,17 @@ class MainWindow(QMainWindow):
         if not destination:
             return
 
+        from app.settings.settings_manager import SettingsManager
+        exp_schema = SettingsManager.instance().service.schema.export
+        exp_opts = ExportOptions(
+            format_id,
+            include_timestamps=exp_schema.include_timestamps,
+            include_attachments=exp_schema.include_attachments,
+        )
+
         try:
             result = self.export_manager.export_conversation(
-                destination, ExportOptions(format_id), conversation.id
+                destination, exp_opts, conversation.id
             )
         except (OSError, ValueError, RuntimeError) as error:
             self._app_status_bar.show_error(f"Could not export chat: {error}")
@@ -606,7 +638,14 @@ class MainWindow(QMainWindow):
         if not destination:
             return
         try:
-            result = self.export_manager.export_response(destination, ExportOptions(format_id), "AI Response", content)
+            from app.settings.settings_manager import SettingsManager
+            exp_schema = SettingsManager.instance().service.schema.export
+            exp_opts = ExportOptions(
+                format_id,
+                include_timestamps=exp_schema.include_timestamps,
+                include_attachments=exp_schema.include_attachments,
+            )
+            result = self.export_manager.export_response(destination, exp_opts, "AI Response", content)
         except (OSError, ValueError, RuntimeError) as error:
             self._app_status_bar.show_error(f"Could not save response: {error}")
             return
@@ -721,7 +760,14 @@ class MainWindow(QMainWindow):
         # 5. Notifications enabled flag (store for later use in on_reply etc.)
         self._notifications_enabled = schema.general.notifications_enabled
 
-        # 6. Refresh provider/model dropdowns in header
+        # 6. ProviderManager credentials and priorities sync
+        try:
+            from app.providers.manager.provider_manager import ProviderManager
+            ProviderManager.instance().sync_from_settings()
+        except Exception:
+            pass
+
+        # 7. Refresh provider/model dropdowns in header
         try:
             self.header.refresh_providers_and_models()
         except Exception:
@@ -790,6 +836,8 @@ class MainWindow(QMainWindow):
             silence_timeout_ms=saved_voice.silence_timeout_ms,
             vad_threshold=saved_voice.vad_threshold,
             language=saved_voice.language,
+            input_device_index=getattr(saved_voice, "input_device_index", None),
+            output_device_index=getattr(saved_voice, "output_device_index", None),
         )
         self.voice_service.update_settings(updated)
         self.voice_controller.update_settings(updated)
@@ -1395,6 +1443,27 @@ class MainWindow(QMainWindow):
         # Discard any files the user had staged but never sent, so they are
         # not left as orphans on disk after the application closes.
         self.clear_pending_attachments()
+
+        try:
+            from app.settings.settings_manager import SettingsManager
+            schema = SettingsManager.instance().service.schema
+            if getattr(schema.advanced, "auto_sweep_orphans", True):
+                from app.utils.paths import get_uploaded_files_dir
+                up_dir = get_uploaded_files_dir()
+                if up_dir.exists():
+                    limit_mb = getattr(schema.advanced, "cache_limit_mb", 500)
+                    total_bytes = sum(f.stat().st_size for f in up_dir.glob("*") if f.is_file())
+                    if total_bytes > (limit_mb * 1024 * 1024):
+                        files = sorted([f for f in up_dir.glob("*") if f.is_file()], key=lambda f: f.stat().st_mtime)
+                        while files and total_bytes > (limit_mb * 1024 * 1024):
+                            oldest = files.pop(0)
+                            try:
+                                total_bytes -= oldest.stat().st_size
+                                oldest.unlink()
+                            except Exception:
+                                pass
+        except Exception as exc:
+            logger.debug("[MainWindow] Auto sweep orphans on exit skipped: %s", exc)
 
         if getattr(self, "_settings_dialog", None) is not None:
             try:

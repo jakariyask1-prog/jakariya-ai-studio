@@ -7,7 +7,10 @@
 # ==============================================================================
 
 Set-StrictMode -Off
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Continue"
+if (Test-Path Variable:\PSNativeCommandUseErrorActionPreference) {
+    $PSNativeCommandUseErrorActionPreference = $false
+}
 
 $proj    = if ($PSScriptRoot) { $PSScriptRoot } else { (Get-Item .).FullName }
 $venvPy  = Join-Path $proj ".venv\Scripts\python.exe"

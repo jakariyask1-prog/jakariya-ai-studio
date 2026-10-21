@@ -174,13 +174,13 @@ class TestLiveVoiceProviderLock(unittest.TestCase):
 # ---------------------------------------------------------------------------
 
 class TestLiveVoiceLatencySettings(unittest.TestCase):
-    """Verify max_tokens=200 cap and temperature=0.6 in live mode."""
+    """Verify max_tokens=1024 cap and temperature=0.6 in live mode."""
 
     def setUp(self):
         ProviderManager.reset_instance()
 
     def test_ask_stream_caps_max_tokens_in_live_mode(self):
-        """max_tokens must be capped at 200 when is_live=True."""
+        """max_tokens must be capped at 1024 when is_live=True."""
         from app.api.ClaudeClient import ClaudeClient
 
         captured_requests = []
@@ -194,8 +194,8 @@ class TestLiveVoiceLatencySettings(unittest.TestCase):
             list(client.ask_stream("Hello", max_tokens=2048, is_live=True))
 
         self.assertEqual(len(captured_requests), 1)
-        self.assertLessEqual(captured_requests[0].max_tokens, 200,
-                             "max_tokens must be capped at 200 in Live Voice Mode")
+        self.assertLessEqual(captured_requests[0].max_tokens, 1024,
+                             "max_tokens must be capped at 1024 in Live Voice Mode")
 
     def test_ask_stream_uses_live_temperature_in_live_mode(self):
         """temperature must be 0.6 when is_live=True."""

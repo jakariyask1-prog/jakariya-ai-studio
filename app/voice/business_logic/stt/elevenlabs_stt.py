@@ -6,6 +6,7 @@ import logging
 import os
 import requests
 from app.voice.business_logic.stt.stt_provider import STTProvider
+from app.voice.utils.speech_normalizer import normalize_stt_transcript
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +76,8 @@ class ElevenLabsSTT(STTProvider):
                 raise RuntimeError(f"ElevenLabs STT failed ({response.status_code}): {response.text}")
 
             result = response.json()
-            return result.get("text", "").strip()
+            raw_text = result.get("text", "").strip()
+            return normalize_stt_transcript(raw_text, language=language)
 
         except Exception as exc:
             logger.exception("Failed to transcribe audio via ElevenLabs STT")

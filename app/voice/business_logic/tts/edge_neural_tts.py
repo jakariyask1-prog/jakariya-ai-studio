@@ -60,7 +60,7 @@ class EdgeNeuralTTS(TTSProvider):
         loop = self._ensure_loop()
         future: Future = asyncio.run_coroutine_threadsafe(coro, loop)
         # 2.0-second timeout guards against network hangs and fast-fails to Google TTS
-        return future.result(timeout=7.0)
+        return future.result(timeout=4.0)
 
     # ------------------------------------------------------------------ #
     # Core synthesis                                                       #

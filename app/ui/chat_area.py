@@ -142,12 +142,31 @@ class ChatArea(QWidget):
         # Render initial empty welcome state
         self.show_empty_state()
 
-    def set_theme(self, theme: str) -> None:
-        """Set the active UI theme (light, dark, oled, neon)."""
+    def set_theme(
+        self,
+        theme: str,
+        font_family: str | None = None,
+        font_scale: float | None = None,
+        density: str | None = None,
+    ) -> None:
+        """Set the active UI theme (light, dark, oled, neon) and appearance options."""
         self.theme = str(theme).lower()
+        if font_family is not None:
+            self._font_family = font_family
+        if font_scale is not None:
+            self._font_scale = font_scale
+        if density is not None:
+            self._density = density
+
+        cur_font = getattr(self, "_font_family", "Segoe UI")
+        cur_scale = getattr(self, "_font_scale", 1.0)
+        cur_density = getattr(self, "_density", "comfortable")
+
         from app.ui.styles import get_chat_browser_style, get_document_css
-        self.chat_box.setStyleSheet(get_chat_browser_style(self.theme))
-        self.chat_box.document().setDefaultStyleSheet(get_document_css(self.theme))
+        self.chat_box.setStyleSheet(get_chat_browser_style(self.theme, font_family=cur_font, font_scale=cur_scale))
+        self.chat_box.document().setDefaultStyleSheet(
+            get_document_css(self.theme, font_family=cur_font, font_scale=cur_scale, message_density=cur_density)
+        )
         if not self._messages:
             self.show_empty_state()
 
@@ -195,14 +214,20 @@ class ChatArea(QWidget):
     def _build_user_bubble_html(self, safe_text: str, attachment_html: str = "") -> str:
         from app.ui.styles import get_theme_palette
         p = get_theme_palette(getattr(self, "theme", "light"))
+        cur_density = getattr(self, "_density", "comfortable")
+        cur_scale = getattr(self, "_font_scale", 1.0)
+        cellpadding = 8 if cur_density == "compact" else 12
+        margin_top = 8 if cur_density == "compact" else 14
+        font_size_pt = 11.5 * cur_scale
+        line_height = "1.38" if cur_density == "compact" else "1.5"
         return f"""
-        <table width="100%" cellspacing="0" cellpadding="0" style="margin-top:14px; margin-bottom:6px;"><tr>
+        <table width="100%" cellspacing="0" cellpadding="0" style="margin-top:{margin_top}px; margin-bottom:6px;"><tr>
             <td width="20%"></td>
             <td align="right">
-                <table cellspacing="0" cellpadding="12" style="
+                <table cellspacing="0" cellpadding="{cellpadding}" style="
                     background-color:{p['user_bubble']};
                     border-radius:20px 20px 4px 20px;">
-                    <tr><td style="color:{p['user_text']}; font-size:11.5pt; line-height:1.5;">{safe_text}{attachment_html}</td></tr>
+                    <tr><td style="color:{p['user_text']}; font-size:{font_size_pt:.1f}pt; line-height:{line_height};">{safe_text}{attachment_html}</td></tr>
                 </table>
             </td>
         </tr></table>

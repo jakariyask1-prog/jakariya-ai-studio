@@ -7,6 +7,7 @@ import os
 import re
 import requests
 from app.voice.business_logic.stt.stt_provider import STTProvider
+from app.voice.utils.speech_normalizer import normalize_stt_transcript
 
 logger = logging.getLogger(__name__)
 
@@ -145,9 +146,10 @@ class GroqSTT(STTProvider):
 
             result = response.json()
             raw_text = result.get("text", "").strip()
-            
-            # Post-process Bengali output to correct Whisper phonetic grapheme distortions
-            return self._normalize_bengali_text(raw_text)
+
+            # Apply comprehensive bilingual phonetic & orthographic normalization
+            normalized = normalize_stt_transcript(raw_text, language=clean_lang)
+            return self._normalize_bengali_text(normalized)
 
         except Exception as exc:
             logger.exception("Failed to transcribe audio via Groq STT")

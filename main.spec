@@ -37,7 +37,7 @@ plugins_dir = os.path.join(pyside6_dir, "plugins")
 # Core Data Files & Selective Assets
 datas = []
 for data_target, dest in [
-    ('.env', '.env'),
+    ('.env', '.'),
     ('config', 'config'),
     ('prompt', 'prompt'),
     ('README.md', '.'),
@@ -93,6 +93,8 @@ package_data_targets = [
     'edge_tts',
     'speech_recognition',
     'markdown_it',
+    'pypdf',
+    'pydantic',
 ]
 
 for pkg in package_data_targets:
@@ -134,8 +136,9 @@ qt_plugin_categories = (
     "iconengines",
     "tls",
     "multimedia",
-    "audio",
-    "translations",
+    "networkinformation",
+    "platforminputcontexts",
+    "generic",
 )
 
 if os.path.exists(plugins_dir):
@@ -146,6 +149,11 @@ if os.path.exists(plugins_dir):
                 if fname.lower().endswith((".dll", ".pyd")):
                     full_dll = os.path.join(plug_path, fname)
                     binaries.append((full_dll, f"PySide6/plugins/{plug}"))
+
+# Collect PySide6 translations directory if present
+trans_dir = os.path.join(pyside6_dir, "translations")
+if os.path.exists(trans_dir):
+    datas.append((trans_dir, "PySide6/translations"))
 
 
 hiddenimports = [

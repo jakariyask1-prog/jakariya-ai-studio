@@ -14,6 +14,7 @@ with warnings.catch_warnings():
 
 from app.voice.business_logic.stt.stt_provider import STTProvider
 from app.voice.utils.patch_speech import patch_speech_recognition
+from app.voice.utils.speech_normalizer import normalize_stt_transcript
 
 # Ensure speech_recognition FLAC converter is patched in windowed and frozen modes
 patch_speech_recognition()
@@ -83,7 +84,12 @@ _COMMON_ENGLISH_WORDS = frozenset({
     "error", "bug", "fix", "test", "testing", "button", "window", "data", "database", "query", "search",
     "internet", "online", "chat", "message", "response", "answer", "input", "output", "image", "document",
     "psychological", "science", "history", "geography", "math", "mathematics", "english", "bengali", "bangla",
-    "please", "thank", "thanks", "welcome", "hello", "hi", "hey", "bye", "goodbye", "morning", "afternoon", "evening"
+    "please", "thank", "thanks", "welcome", "hello", "hi", "hey", "bye", "goodbye", "morning", "afternoon", "evening",
+    # Additional common conversational & technical words
+    "pipeline", "latency", "misspell", "misspelling", "pronunciation", "pronounce", "spelling", "spell",
+    "speed", "fast", "slow", "sound", "receive", "receiving", "send", "mode", "live", "conversation", "conversational",
+    "developer", "development", "architecture", "algorithm", "solution", "server", "network", "device", "volume",
+    "correct", "right", "wrong", "problem", "solve", "working", "ready", "listening", "speaking", "thinking", "sure"
 })
 
 _BANGLISH_MARKERS = frozenset({
@@ -167,7 +173,8 @@ class GoogleSTT(STTProvider):
         # Explicit Bengali request
         if lang_code in ("bn", "bn-bd", "bangla", "bengali"):
             try:
-                return self._recognize_single(audio_bytes, "bn-BD")
+                res = self._recognize_single(audio_bytes, "bn-BD")
+                return normalize_stt_transcript(res, language="bn")
             except sr.UnknownValueError:
                 return ""
             except Exception as exc:
@@ -177,7 +184,8 @@ class GoogleSTT(STTProvider):
         # Explicit English request
         if lang_code in ("en", "en-us", "en-gb", "english"):
             try:
-                return self._recognize_single(audio_bytes, "en-US")
+                res = self._recognize_single(audio_bytes, "en-US")
+                return normalize_stt_transcript(res, language="en")
             except sr.UnknownValueError:
                 return ""
             except Exception as exc:
@@ -187,7 +195,8 @@ class GoogleSTT(STTProvider):
         # Explicit other language (e.g. 'hi-IN', 'fr-FR', etc.)
         if lang_code not in ("auto", "all", ""):
             try:
-                return self._recognize_single(audio_bytes, language)
+                res = self._recognize_single(audio_bytes, language)
+                return normalize_stt_transcript(res, language=language)
             except sr.UnknownValueError:
                 return ""
             except Exception as exc:
@@ -212,11 +221,17 @@ class GoogleSTT(STTProvider):
             with ThreadPoolExecutor(max_workers=2) as executor:
                 future_bn = executor.submit(_fetch_bn)
                 future_en = executor.submit(_fetch_en)
-                res_bn = future_bn.result()
-                res_en = future_en.result()
+                try:
+                    res_bn = future_bn.result(timeout=6.0)
+                except Exception:
+                    res_bn = None
+                try:
+                    res_en = future_en.result(timeout=6.0)
+                except Exception:
+                    res_en = None
 
             selected = self._choose_best_auto_transcript(res_bn, res_en)
-            return selected
+            return normalize_stt_transcript(selected, language="auto")
 
         except Exception as exc:
             logger.exception("Failed to transcribe audio via Google STT dual-language pipeline")

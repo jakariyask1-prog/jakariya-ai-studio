@@ -235,10 +235,23 @@ class Header(QWidget):
     def _on_provider_changed(self) -> None:
         """Refresh model dropdown whenever the active provider is changed."""
         p_id = str(self.provider_selector.currentData() or "")
+        self.model_selector.blockSignals(True)
         self.model_selector.clear()
         models = get_model_options(p_id if p_id else None)
         for display_name, model_id in models:
             self.model_selector.addItem(display_name, model_id)
+
+        # Pre-select configured default model from settings if present
+        try:
+            from app.settings.settings_manager import SettingsManager
+            cfg_model = SettingsManager.instance().service.schema.models.chat_model
+            if cfg_model:
+                idx = self.model_selector.findData(cfg_model)
+                if idx >= 0:
+                    self.model_selector.setCurrentIndex(idx)
+        except Exception:
+            pass
+        self.model_selector.blockSignals(False)
 
     def set_chat_title(self, title: str) -> None:
         """Show the active conversation title in the application header."""

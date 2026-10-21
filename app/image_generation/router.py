@@ -32,6 +32,14 @@ _IMAGE_ENHANCEMENT_PATTERNS = (
     r"(?:ছবি|পিকচার|ফটো|ইমেজ)\s*(?:ক্লিয়ার|শার্প|পরিষ্কার|সুন্দর|ভালো|প্রফেশনাল)\s*(?:করো|করুন|করে\s*দাও|বানাও|বানিয়ে\s*দাও|দাও)",
 )
 
+_SAME_TYPE_IMAGE_PATTERNS = (
+    r"\b(?:same|similar|like\s+this)\b.{0,30}\b(?:type|style|kind|format)?\s*(?:image|picture|photo|pic)\b",
+    r"\b(?:image|picture|photo|pic)\b.{0,30}\b(?:like\s+this|same\s+type|similar)\b",
+    r"\b(?:generate|create|make|produce)\b.{0,30}\b(?:same|similar)\b.{0,30}\b(?:image|picture|photo|pic)\b",
+    r"(?:এই\s*ছবির\s*মতো|সেইম\s*টাইপ\s*ছবি|একই\s*রকম\s*ছবি|এই\s*ধরণের\s*ছবি|এই\s*টাইপের\s*ছবি)",
+    r"(?:মতো|একই\s*রকম|সেইম\s*টাইপ)\s*(?:ছবি|পিকচার|ফটো|ইমেজ)\s*(?:বানাও|তৈরি\s*করো|দাও|আঁকো|জেনারেট\s*করো)",
+)
+
 
 def is_image_generation_request(message: str) -> bool:
     """Return whether a message is an explicit request to create an image.
@@ -50,6 +58,14 @@ def is_image_enhancement_request(message: str) -> bool:
     return any(
         re.search(pattern, message, flags=re.IGNORECASE)
         for pattern in _IMAGE_ENHANCEMENT_PATTERNS
+    )
+
+
+def is_same_type_image_request(message: str) -> bool:
+    """Return whether a message is an explicit request to create/generate an image of the same type/style as an attached image."""
+    return any(
+        re.search(pattern, message, flags=re.IGNORECASE)
+        for pattern in _SAME_TYPE_IMAGE_PATTERNS
     )
 
 

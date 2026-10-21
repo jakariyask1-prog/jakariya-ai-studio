@@ -32,22 +32,24 @@ class AdvancedPage(QWidget):
 
     def _init_ui(self) -> None:
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.setSpacing(15)
+        layout.setContentsMargins(16, 12, 16, 8)
+        layout.setSpacing(10)
 
-        title_label = QLabel("Advanced Maintenance & Diagnostics")
-        title_label.setStyleSheet("font-size: 18px; font-weight: bold;")
+        # Title & Subtitle Banner
+        title_label = QLabel("🛠️ Advanced Maintenance & Diagnostics")
+        title_label.setStyleSheet("font-size: 18px; font-weight: 700;")
         layout.addWidget(title_label)
 
         desc_label = QLabel("Configure system diagnostics, orphan file cleanup rules, and local cache maintenance.")
-        desc_label.setStyleSheet("color: #888888; font-size: 12px;")
+        desc_label.setProperty("subtext", "true")
+        desc_label.setWordWrap(True)
         layout.addWidget(desc_label)
 
         # Logging Group
         log_group = QGroupBox("System Logging & Maintenance")
         log_form = QFormLayout(log_group)
-        log_form.setContentsMargins(15, 20, 15, 20)
-        log_form.setSpacing(15)
+        log_form.setContentsMargins(14, 12, 14, 12)
+        log_form.setSpacing(10)
 
         self.log_combo = QComboBox()
         self.log_combo.addItems(["INFO", "DEBUG", "WARNING", "ERROR"])
@@ -63,13 +65,13 @@ class AdvancedPage(QWidget):
         # Actions Group
         action_group = QGroupBox("Cache & Storage Actions")
         action_layout = QVBoxLayout(action_group)
-        action_layout.setContentsMargins(15, 20, 15, 20)
-        action_layout.setSpacing(12)
+        action_layout.setContentsMargins(14, 12, 14, 12)
+        action_layout.setSpacing(10)
 
         # Cache Limit Slider
         cache_form = QFormLayout()
-        cache_form.setContentsMargins(0, 0, 0, 10)
-        cache_form.setSpacing(12)
+        cache_form.setContentsMargins(0, 0, 0, 8)
+        cache_form.setSpacing(10)
 
         cache_box = QHBoxLayout()
         self.cache_slider = QSlider(Qt.Orientation.Horizontal)
@@ -89,12 +91,15 @@ class AdvancedPage(QWidget):
 
         btn_box = QHBoxLayout()
         self.btn_clear_cache = QPushButton("🧹 Clear Temp Cache")
-        self.btn_clear_cache.setStyleSheet("background-color: #374151; color: #E5E7EB; padding: 6px 14px; border-radius: 6px;")
+        self.btn_clear_cache.setStyleSheet(
+            "QPushButton { background-color: #4F46E5; color: #FFFFFF; font-weight: 600; padding: 7px 16px; border: none; border-radius: 8px; }"
+            "QPushButton:hover { background-color: #4338CA; }"
+        )
         self.btn_clear_cache.clicked.connect(self._clear_cache)
         btn_box.addWidget(self.btn_clear_cache)
 
         self.cache_status_label = QLabel("Ready")
-        self.cache_status_label.setStyleSheet("color: #888888; font-size: 12px;")
+        self.cache_status_label.setProperty("subtext", "true")
         btn_box.addWidget(self.cache_status_label)
         btn_box.addStretch()
 
@@ -151,4 +156,16 @@ class AdvancedPage(QWidget):
             log_level=self.log_combo.currentText(),
             auto_sweep_orphans=self.sweep_check.isChecked(),
             cache_limit_mb=self.cache_slider.value(),
+        )
+
+    def apply_theme(self, theme_name: str) -> None:
+        """Apply active theme styles to advanced page buttons."""
+        from app.ui.styles import get_theme_palette
+        p = get_theme_palette(theme_name)
+        accent = p.get("accent", "#4F46E5")
+        accent_hover = p.get("accent_hover", "#4338CA")
+
+        self.btn_clear_cache.setStyleSheet(
+            f"QPushButton {{ background-color: {accent}; color: #FFFFFF; font-weight: 600; padding: 7px 16px; border: none; border-radius: 8px; }} "
+            f"QPushButton:hover {{ background-color: {accent_hover}; }}"
         )

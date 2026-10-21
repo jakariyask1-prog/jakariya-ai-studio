@@ -2,6 +2,7 @@
 ; Jakariya AI Studio - Inno Setup Script
 ; Production-Ready Windows Installer Configuration
 ; Creator: Md. Jakariya Sheikh
+; Version: 2.0.0
 ; ============================================================================
 
 #define MyAppName "Jakariya AI Studio"
@@ -67,6 +68,11 @@ Source: "USER_GUIDE_PROVIDERS_AND_MODELS_BANGLA.txt"; DestDir: "{app}\docs"; Fla
 Source: "LICENSE"; DestDir: "{app}\docs"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "Jakariya_AI_Studio_Client_Presentation.docx"; DestDir: "{app}\docs"; Flags: ignoreversion skipifsourcedoesntexist
 
+; Maintenance & Helper Scripts
+Source: "cleanup_locked_temp.bat"; DestDir: "{app}\tools"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "cleanup_locked_temp.ps1"; DestDir: "{app}\tools"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "create_project_rar.bat"; DestDir: "{app}\tools"; Flags: ignoreversion skipifsourcedoesntexist
+
 [Dirs]
 ; Writable User Data Directories created in LocalAppData
 Name: "{localappdata}\Jakariya AI Studio"
@@ -77,7 +83,10 @@ Name: "{localappdata}\Jakariya AI Studio\exports"
 Name: "{localappdata}\Jakariya AI Studio\chats"
 
 [Icons]
-Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"
+Name: "{autoprograms}\{#MyAppName}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"
+Name: "{autoprograms}\{#MyAppName}\User Guide (Bangla & English)"; Filename: "{app}\docs\USER_GUIDE_PROVIDERS_AND_MODELS_BANGLA.txt"
+Name: "{autoprograms}\{#MyAppName}\Readme & Documentation"; Filename: "{app}\docs\README.md"
+Name: "{autoprograms}\{#MyAppName}\Uninstall {#MyAppName}"; Filename: "{uninstallexe}"; IconFilename: "{app}\{#MyAppExeName}"; IconIndex: 0
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; Tasks: desktopicon
 
 [Registry]

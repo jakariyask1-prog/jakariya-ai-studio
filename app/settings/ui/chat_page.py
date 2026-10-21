@@ -7,9 +7,11 @@ from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QFormLayout,
+    QFrame,
     QGroupBox,
     QHBoxLayout,
     QLabel,
+    QScrollArea,
     QSlider,
     QTextEdit,
     QVBoxLayout,
@@ -29,23 +31,38 @@ class ChatPage(QWidget):
         self._init_ui()
 
     def _init_ui(self) -> None:
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.setSpacing(15)
+        outer_layout = QVBoxLayout(self)
+        outer_layout.setContentsMargins(16, 12, 16, 8)
+        outer_layout.setSpacing(10)
 
-        title_label = QLabel("Chat & AI Persona Settings")
-        title_label.setStyleSheet("font-size: 18px; font-weight: bold;")
-        layout.addWidget(title_label)
+        # Title & Subtitle Banner
+        title_label = QLabel("💬 Chat Persona & Generation Parameters")
+        title_label.setStyleSheet("font-size: 18px; font-weight: 700;")
+        outer_layout.addWidget(title_label)
 
-        desc_label = QLabel("Configure AI system personas, custom system instructions, memory context, and generation hyper-parameters.")
-        desc_label.setStyleSheet("color: #888888; font-size: 12px;")
-        layout.addWidget(desc_label)
+        desc_label = QLabel("Configure system personas, custom system instructions, user memory injection, and generation parameters.")
+        desc_label.setProperty("subtext", "true")
+        desc_label.setWordWrap(True)
+        outer_layout.addWidget(desc_label)
+
+        scroll = QScrollArea()
+        scroll.setObjectName("chatScrollArea")
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
+        scroll.setStyleSheet("QScrollArea#chatScrollArea, QScrollArea#chatScrollArea > QWidget > QWidget { background: transparent; border: none; }")
+
+        container = QWidget()
+        container.setObjectName("chatContainer")
+        container.setStyleSheet("QWidget#chatContainer { background: transparent; border: none; }")
+        layout = QVBoxLayout(container)
+        layout.setContentsMargins(0, 4, 10, 4)
+        layout.setSpacing(12)
 
         # Persona Group
         p_group = QGroupBox("AI Assistant Persona & System Instruction")
         p_form = QFormLayout(p_group)
-        p_form.setContentsMargins(15, 20, 15, 20)
-        p_form.setSpacing(12)
+        p_form.setContentsMargins(14, 12, 14, 12)
+        p_form.setSpacing(10)
 
         self.persona_combo = QComboBox()
         self.persona_combo.addItem("Jakariya AI Studio Assistant (Default)", "default")
@@ -70,8 +87,8 @@ class ChatPage(QWidget):
         # Hyper-parameters Group
         param_group = QGroupBox("Generation Hyper-parameters")
         param_form = QFormLayout(param_group)
-        param_form.setContentsMargins(15, 20, 15, 20)
-        param_form.setSpacing(12)
+        param_form.setContentsMargins(14, 12, 14, 12)
+        param_form.setSpacing(10)
 
         # Temperature
         temp_box = QHBoxLayout()
@@ -122,6 +139,9 @@ class ChatPage(QWidget):
 
         layout.addWidget(param_group)
         layout.addStretch()
+
+        scroll.setWidget(container)
+        outer_layout.addWidget(scroll)
 
     def _on_persona_changed(self) -> None:
         is_custom = self.persona_combo.currentData() == "custom"

@@ -46,13 +46,12 @@ class ProviderRegistry:
                 supports_tts=True,
             ),
             models=[
-                "google/gemini-2.5-pro",
-                "google/gemini-2.0-flash",
-                "google/gemini-2.0-flash-thinking-exp",
-                "google/gemini-1.5-pro",
-                "google/gemini-1.5-flash",
                 "google/gemini-3.8-flash",
+                "google/gemini-3.7-flash",
                 "google/gemini-3.6-flash",
+                "google/gemini-3.5-flash",
+                "google/gemini-flash-latest",
+                "google/gemini-pro-latest",
             ],
         ),
         "openrouter": ProviderMeta(
@@ -68,10 +67,7 @@ class ProviderRegistry:
                 supports_web_search=True,
             ),
             models=[
-                "anthropic/claude-3.7-sonnet",
-                "anthropic/claude-3.5-sonnet",
                 "deepseek/deepseek-chat",
-                "deepseek/deepseek-r1",
                 "qwen/qwen-2.5-coder-32b-instruct",
                 "meta-llama/llama-3.3-70b-instruct",
                 "openai/gpt-4o",
@@ -90,12 +86,10 @@ class ProviderRegistry:
                 supports_vision=False,
             ),
             models=[
-                "llama-3.3-70b-versatile",
-                "qwen-2.5-coder-32b",
-                "deepseek-r1-distill-llama-70b",
-                "llama-3.1-8b-instant",
                 "openai/gpt-oss-120b",
                 "qwen/qwen3.8-27b",
+                "openai/gpt-oss-20b",
+                "allam-2-7b",
             ],
         ),
         "cerebras": ProviderMeta(
@@ -108,10 +102,8 @@ class ProviderRegistry:
                 supports_reasoning=False,
             ),
             models=[
-                "llama-3.3-70b",
-                "llama3.1-8b",
-                "qwen-3.8-27b",
                 "gpt-oss-120b",
+                "qwen-3.8-27b",
             ],
         ),
         "anthropic": ProviderMeta(
@@ -159,9 +151,6 @@ class ProviderRegistry:
             models=[
                 "plugsky-lite",
                 "plugsky-micro",
-                "plugsky-pro",
-                "plugsky-reasoning",
-                "plugsky-deepseek-pro",
             ],
         ),
         "mistral": ProviderMeta(
@@ -175,9 +164,9 @@ class ProviderRegistry:
                 supports_vision=True,
             ),
             models=[
+                "codestral-latest",
                 "mistral-large-latest",
                 "mistral-small-latest",
-                "codestral-latest",
                 "pixtral-large-latest",
             ],
         ),

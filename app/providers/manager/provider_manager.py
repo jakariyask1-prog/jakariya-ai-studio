@@ -51,7 +51,9 @@ class ProviderManager:
     def auto_initialize(self) -> None:
         """Auto-discover and register all core providers from environment/settings."""
         provider_classes = [
-            (PlugskyProvider, 1),
+            # Groq is the top-priority provider for its ultra-low latency (Live Voice Mode benefit).
+            # Plugsky is demoted to priority 50 so it NEVER preempts any real provider during
+            # Live Voice turns.  It remains available as a last-resort static fallback.
             (GroqProvider, 2),
             (GoogleAIStudioProvider, 4),
             (OpenRouterProvider, 5),
@@ -59,6 +61,7 @@ class ProviderManager:
             (CerebrasProvider, 7),
             (MistralProvider, 8),
             (OllamaProvider, 9),
+            (PlugskyProvider, 50),  # Demoted: must never preempt user-selected provider
         ]
         for p_cls, priority in provider_classes:
             try:
@@ -143,9 +146,15 @@ class ProviderManager:
 
         return request
 
-    def chat(self, request: ChatRequest, provider_id: Optional[str] = None) -> ChatResponse:
-        """Send chat request with automatic failover if the targeted provider fails."""
-        candidate_ids = self._get_candidate_provider_ids(provider_id)
+    def chat(self, request: ChatRequest, provider_id: Optional[str] = None, is_live: bool = False) -> ChatResponse:
+        """Send chat request with automatic failover if the targeted provider fails.
+
+        When ``is_live=True`` (Live Voice Mode) the failover list is restricted so that
+        Plugsky — or any provider ranked lower than the user-selected one — is NEVER
+        silently substituted.  If the selected provider fails we raise immediately
+        rather than hijacking the user's voice session.
+        """
+        candidate_ids = self._get_candidate_provider_ids(provider_id, is_live=is_live)
 
         last_exception: Optional[Exception] = None
         for p_id in candidate_ids:
@@ -157,13 +166,17 @@ class ProviderManager:
             except (AuthenticationError, RateLimitError, ProviderUnavailableError, ProviderError) as exc:
                 logger.warning(f"[ProviderManager] Provider '{p_id}' failed ({exc}). Attempting automatic failover...")
                 last_exception = exc
+                # In Live Voice Mode: stop at first failure when provider was explicitly selected
+                # so we never silently land on Plugsky or a lower-priority provider.
+                if is_live and provider_id and p_id == provider_id:
+                    break
                 continue
 
         if last_exception:
             raise last_exception
         raise ProviderUnavailableError("No active AI Provider with a valid API Key is available.")
 
-    def chat_stream(self, request: ChatRequest, provider_id: Optional[str] = None) -> Generator[StreamChunk, None, None]:
+    def chat_stream(self, request: ChatRequest, provider_id: Optional[str] = None, is_live: bool = False) -> Generator[StreamChunk, None, None]:
         """Send streaming chat request with automatic failover before first chunk yields.
 
         Failover strategy:
@@ -171,8 +184,14 @@ class ProviderManager:
         - If a provider returns an *empty* stream (StopIteration on first chunk),
           treat it as a transient failure and also try the next candidate instead
           of silently returning an empty response to the caller.
+
+        Live Voice Mode guard (``is_live=True``):
+        - When the user has explicitly chosen a provider (``provider_id`` is set),
+          we NEVER fall through to Plugsky or any lower-priority provider.
+        - On first-provider failure we raise immediately so the pipeline can surface
+          a clear error to the user rather than silently hijacking their session.
         """
-        candidate_ids = self._get_candidate_provider_ids(provider_id)
+        candidate_ids = self._get_candidate_provider_ids(provider_id, is_live=is_live)
 
         primary_exception: Optional[Exception] = None
         last_exception: Optional[Exception] = None
@@ -197,6 +216,11 @@ class ProviderManager:
                         f"[ProviderManager] Provider '{p_id}' returned an empty stream. "
                         f"Attempting automatic failover..."
                     )
+                    # In Live Voice Mode with explicit provider: raise, don't silently shift.
+                    if is_live and provider_id and p_id == provider_id:
+                        raise ProviderUnavailableError(
+                            f"Provider '{p_id}' returned an empty response during Live Voice session."
+                        )
                     continue
 
                 # Successfully got the first chunk — yield it and stream the rest.
@@ -212,6 +236,10 @@ class ProviderManager:
                 if p_id == provider_id or primary_exception is None:
                     primary_exception = exc
                 last_exception = exc
+                # In Live Voice Mode: stop at first failure for user-selected provider
+                # so Plugsky or other low-priority providers cannot silently take over.
+                if is_live and provider_id and p_id == provider_id:
+                    break
                 continue
 
         if primary_exception:
@@ -220,8 +248,25 @@ class ProviderManager:
             raise last_exception
         raise ProviderUnavailableError("No active AI Provider with a valid API Key is available.")
 
-    def _get_candidate_provider_ids(self, provider_id: Optional[str]) -> List[str]:
-        """Return ordered list of candidate provider IDs starting with requested or priority valid providers."""
+    def _get_candidate_provider_ids(self, provider_id: Optional[str], is_live: bool = False) -> List[str]:
+        """Return ordered list of candidate provider IDs starting with requested or priority valid providers.
+
+        When ``is_live=True`` and a ``provider_id`` is explicitly given, the candidate
+        list is limited to ONLY that provider.  This enforces strict provider lock during
+        Live Voice Mode so we never silently drift to Plugsky or any fallback provider.
+        """
+        # Live Voice Mode strict lock: only attempt the user-selected provider.
+        if is_live and provider_id and provider_id in self._providers:
+            provider = self._providers[provider_id]
+            if provider.validate_api_key():
+                logger.debug(
+                    f"[ProviderManager] Live Voice Mode: strictly using provider '{provider_id}' — no failover."
+                )
+                return [provider_id]
+            # Key invalid but still keep only this provider so the caller gets a
+            # clear error rather than a silent Plugsky hijack.
+            return [provider_id]
+
         candidates = []
         if provider_id and provider_id in self._providers:
             provider = self._providers[provider_id]
@@ -230,6 +275,9 @@ class ProviderManager:
                     candidates.append(provider_id)
 
         for p_id in self._priority_list:
+            # In live voice mode, never silently failover or drift to Plugsky
+            if is_live and p_id == "plugsky" and provider_id != "plugsky":
+                continue
             if p_id not in candidates and p_id in self._providers:
                 p_inst = self._providers[p_id]
                 # Skip offline Ollama server during automatic failover to prevent hanging timeouts
@@ -243,6 +291,8 @@ class ProviderManager:
             if provider_id and provider_id in self._providers:
                 candidates.append(provider_id)
             for p_id in self._priority_list:
+                if is_live and p_id == "plugsky" and provider_id != "plugsky":
+                    continue
                 if p_id not in candidates:
                     p_inst = self._providers[p_id]
                     if p_id == "ollama" and hasattr(p_inst, "is_server_running") and not p_inst.is_server_running():

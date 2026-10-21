@@ -130,9 +130,12 @@ class TestSettingsArchitecture(unittest.TestCase):
 
     def test_plugsky_key_resolution_from_env(self):
         os.environ["PLUGSKY_API_KEY"] = "sk-plugsky-testkey"
+        self.service.update_provider_config("plugsky", ProviderConfig(api_key=""))
         try:
-            resolved_key = self.service.get_api_key("plugsky")
-            self.assertEqual(resolved_key, "sk-plugsky-testkey")
+            with unittest.mock.patch("app.settings.key_vault.retrieve_api_key", return_value=None), \
+                 unittest.mock.patch("app.utils.paths.load_environment"):
+                resolved_key = self.service.get_api_key("plugsky")
+                self.assertEqual(resolved_key, "sk-plugsky-testkey")
         finally:
             del os.environ["PLUGSKY_API_KEY"]
 

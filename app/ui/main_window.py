@@ -204,7 +204,7 @@ class MainWindow(QMainWindow):
         # -----------------------------
         # Central Widget
         # -----------------------------
-        central_widget = QWidget()
+        central_widget = QWidget(self)
         self.setCentralWidget(central_widget)
 
         # -----------------------------
@@ -238,6 +238,7 @@ class MainWindow(QMainWindow):
         self.input_bar.send_requested.connect(
             self.send_message
         )
+        self.input_bar.cancel_requested.connect(self.cancel_current_task)
         self.chat_area.prompt_selected.connect(self.send_message)
 
         self.input_bar.attach_requested.connect(self.select_files)
@@ -324,6 +325,9 @@ class MainWindow(QMainWindow):
         # Forward partial streaming updates to the chat area
         self.controller.partial.connect(
             self.on_partial
+        )
+        self.controller.cancelled.connect(
+            self.on_cancelled
         )
 
         # When the worker starts, prepare the chat area for streaming
@@ -435,7 +439,7 @@ class MainWindow(QMainWindow):
 
             from app.providers.models.chat_request import MessageContent
             history_msgs = [MessageContent(role=m["role"], content=m["content"]) for m in history]
-            self.statusBar().showMessage("Autonomous ReAct Agent executing task...")
+            self._app_status_bar.show_info("Autonomous ReAct Agent executing... (Click ⏹ or press Esc to cancel)")
             self.agent_controller.run_agent_task(
                 # FileService already includes the instruction text in its
                 # multimodal payload. Passing it unchanged preserves image
@@ -632,8 +636,8 @@ class MainWindow(QMainWindow):
 
     def create_new_chat(self):
         """Create a fresh conversation and prepare the UI for its first message."""
-        if not self.input_bar.send_button.isEnabled():
-            self._app_status_bar.show_warning("Please wait for the current response.")
+        if self.input_bar.is_generating():
+            self._app_status_bar.show_warning("Please wait or cancel the current response.")
             return
 
         conversation = self.chat_manager.create_new_chat()
@@ -650,8 +654,8 @@ class MainWindow(QMainWindow):
 
     def switch_chat(self, conversation_id: str):
         """Select a chat and replace the displayed conversation history."""
-        if not self.input_bar.send_button.isEnabled():
-            self._app_status_bar.show_warning("Please wait for the current response.")
+        if self.input_bar.is_generating():
+            self._app_status_bar.show_warning("Please wait or cancel the current response.")
             return
 
         conversation = self.chat_manager.select_chat(conversation_id)
@@ -800,8 +804,8 @@ class MainWindow(QMainWindow):
 
     def rename_chat(self, conversation_id: str):
         """Prompt for and persist a new title for a sidebar conversation."""
-        if not self.input_bar.send_button.isEnabled():
-            self._app_status_bar.show_warning("Please wait for the current response.")
+        if self.input_bar.is_generating():
+            self._app_status_bar.show_warning("Please wait or cancel the current response.")
             return
 
         try:
@@ -830,8 +834,8 @@ class MainWindow(QMainWindow):
 
     def delete_chat(self, conversation_id: str):
         """Confirm and delete a conversation, then refresh the visible state."""
-        if not self.input_bar.send_button.isEnabled():
-            self._app_status_bar.show_warning("Please wait for the current response.")
+        if self.input_bar.is_generating():
+            self._app_status_bar.show_warning("Please wait or cancel the current response.")
             return
 
         try:
@@ -879,8 +883,8 @@ class MainWindow(QMainWindow):
         if not conversation_ids:
             return
 
-        if not self.input_bar.send_button.isEnabled():
-            self._app_status_bar.show_warning("Please wait for the current response.")
+        if self.input_bar.is_generating():
+            self._app_status_bar.show_warning("Please wait or cancel the current response.")
             return
 
         count = len(conversation_ids)
@@ -926,7 +930,6 @@ class MainWindow(QMainWindow):
         pending_message = self._pending_message
         if pending_message is None:
             self.chat_area.cancel_assistant_stream()
-            self.chat_area.append_error("The response did not match an active request.")
             self.input_bar.enable()
             return
 
@@ -976,6 +979,9 @@ class MainWindow(QMainWindow):
     # --------------------------------------------------
 
     def on_error(self, message: str):
+        if not self.input_bar.is_generating():
+            return
+        logger.error(f"[MainWindow] AI Response Error: {message}")
         self.chat_area.cancel_assistant_stream()
         if self._pending_message is not None:
             self.file_service.discard_files(self._pending_message.attachments)
@@ -983,15 +989,86 @@ class MainWindow(QMainWindow):
 
         self.input_bar.enable()
 
-        self._app_status_bar.show_error("Error")
+        self._app_status_bar.show_error(f"Error: {message[:50]}")
         self._pending_message = None
+
+    def cancel_current_task(self):
+        """Cancel ongoing AI response generation or ReAct Agent execution."""
+        if not self.input_bar.is_generating():
+            return
+
+        logger.info("[MainWindow] User requested cancellation of active AI task.")
+        self._app_status_bar.show_info("Cancelling task...")
+
+        # 1. Cancel Agent task if Agent mode is active
+        if hasattr(self, "agent_controller") and self.agent_controller:
+            self.agent_controller.cancel_agent_task()
+
+        # 2. Cancel standard LLM streaming worker
+        if hasattr(self, "controller") and self.controller:
+            self.controller.cancel()
+
+        # 3. Handle standard streaming chat cancellation immediately on UI thread
+        if not self.input_bar.is_agent_mode_active():
+            partial_text = getattr(self.chat_area, "_stream_raw_text", "").strip()
+            if partial_text and self._pending_message is not None:
+                stopped_msg = f"{partial_text}\n\n*(Generation stopped by user)*"
+                self.on_reply(stopped_msg)
+            else:
+                self.chat_area.cancel_assistant_stream()
+                if self._pending_message is not None:
+                    self.file_service.discard_files(self._pending_message.attachments)
+                    self._pending_message = None
+                self.input_bar.enable()
+                self.input_bar.focus_input()
+                self.update_status_bar("Ready")
+                self._app_status_bar.show_info("Generation stopped")
+        else:
+            self.chat_area.update_agent_progress("🛑 Task cancellation requested by user...", is_tool=False)
+
+    def on_cancelled(self, partial_text: str = ""):
+        """Handle cancellation completion signal from chat worker."""
+        logger.info("[MainWindow] Worker confirmed cancellation.")
+        if self._pending_message is not None:
+            if partial_text:
+                stopped_msg = f"{partial_text}\n\n*(Generation stopped by user)*"
+                self.on_reply(stopped_msg)
+            else:
+                self.chat_area.cancel_assistant_stream()
+                self.file_service.discard_files(self._pending_message.attachments)
+                self._pending_message = None
+                self.input_bar.enable()
+                self.input_bar.focus_input()
+                self.update_status_bar("Ready")
+                self._app_status_bar.show_info("Generation stopped")
+        else:
+            self.input_bar.enable()
+            self.update_status_bar("Ready")
+
+    def keyPressEvent(self, event):
+        """Global key shortcuts for MainWindow, including Escape to stop generation or live voice."""
+        if event.key() == Qt.Key.Key_Escape:
+            if hasattr(self, "voice_controller") and self.voice_controller.is_live_session_active():
+                self.voice_controller.stop_live_session()
+                self.input_bar.set_live_mode(False)
+                self._app_status_bar.show_info("Live Conversation stopped")
+                event.accept()
+                return
+            if self.input_bar.is_generating():
+                self.cancel_current_task()
+                event.accept()
+                return
+        super().keyPressEvent(event)
 
     def on_agent_finished(self, output: str):
         """Finalize agent execution and persist response."""
         self.chat_area.end_agent_bubble(final_message=output)
 
         clean_output = output
-        if "Final Answer:" in clean_output:
+        if "Task Cancelled" in clean_output:
+            clean_output = "*(Task stopped by user)*"
+            self._app_status_bar.show_info("Agent task stopped")
+        elif "Final Answer:" in clean_output:
             clean_output = clean_output.split("Final Answer:", 1)[1].strip()
         elif "Observation: Error" in clean_output or "Observation: Exception" in clean_output:
             for line in clean_output.split("\n"):
@@ -1096,7 +1173,7 @@ class MainWindow(QMainWindow):
     # --------------------------------------------------
 
     def on_thinking(self):
-        self._app_status_bar.show_info("Creating response...")
+        self._app_status_bar.show_info("Creating response... (Click ⏹ or press Esc to cancel)")
 
     def on_partial(self, chunk: str):
 

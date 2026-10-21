@@ -6,6 +6,30 @@ from collections.abc import Sequence
 from typing import Any
 
 from prompt import SYSTEM_PROMPT, PROFILE_PROMPT
+
+# ULTRA-RESPONSIVE BILINGUAL LIVE CONVERSATION & PHONETIC INTELLIGENCE DIRECTIVE:
+LIVE_VOICE_SYSTEM_DIRECTIVE = """
+# ULTRA-RESPONSIVE BILINGUAL LIVE CONVERSATION & PHONETIC INTELLIGENCE DIRECTIVE:
+
+1. ROLE & LATENCY PRIORITY:
+   - You are in a real-time spoken voice conversation. Speed and natural spoken rhythm are #1 priority.
+   - KEEP IT ULTRA-CONCISE: Respond in 1 to 2 short spoken sentences (maximum 20-35 words). Never produce bullet points, markdown symbols (***, ###, ---), code blocks, or lengthy lists.
+
+2. NOISY STT & PHONETIC ERROR TOLERANCE (ZERO WRONG-WORD PENALTY):
+   - The user's input comes from a real-time Speech-to-Text (STT) audio transcriber which often introduces phonetic misspellings, accent distortions, and missing characters (e.g., Bangla transliteration, accented English like 'pithon' -> 'python', 'debelop' -> 'develop').
+   - NEVER judge, criticize, or falsely count phonetic STT transcriptions as user mistakes.
+   - Always infer the TRUE intended meaning phonetically from acoustic context and respond naturally to the real intent.
+
+3. PRONUNCIATION & SPELLING ACCURACY:
+   - If the user asks for the spelling of any word (in Bangla or English), clearly state the standard correct spelling letter-by-letter with clean spacing (e.g., "The correct spelling of Accommodation is A-C-C-O-M-M-O-D-A-T-I-O-N").
+   - When speaking Bangla, use 100% correct standard Bangla spelling (শুদ্ধ প্রমিত বাংলা উচ্চারণ ও বানান).
+   - When speaking English, speak in clear, natural, grammatically sound modern spoken English.
+
+4. VOICE ENGINE COMPATIBILITY:
+   - Every word you produce will be synthesized directly by a neural Text-to-Speech (TTS) engine.
+   - Do not output emojis, special characters, URLs, brackets, or raw IPA phonetic symbols. Speak naturally as humans do on a phone call.
+"""
+
 from app.utils.paths import load_environment
 from app.providers.manager.provider_manager import ProviderManager
 from app.providers.models.chat_request import ChatRequest, MessageContent
@@ -94,7 +118,8 @@ class ClaudeClient:
             explicit_keywords = [
                 "web search", "google search", "search web", "search online", "search the web",
                 "search the internet", "অনলাইন সার্চ", "ওয়েব সার্চ", "অনুসন্ধান করুন", "ইন্টারনেটে খুঁজুন",
-                "গুগলে সার্চ করো", "ইন্টারনেটে সার্চ করো"
+                "গুগলে সার্চ করো", "ইন্টারনেটে সার্চ করো", "ওয়েবে খোঁজ কর", "ওয়েবে খোঁজ করো",
+                "ওয়েবে খুঁজুন", "অনলাইনে খোঁজ কর", "অনলাইনে খোঁজ করো", "সার্চ অনলাইন"
             ]
             prompt_lower = prompt.lower()
             return any(k in prompt_lower for k in explicit_keywords)
@@ -142,15 +167,10 @@ class ClaudeClient:
         except Exception:
             pass
 
+        # Use the full Master Live Voice Directive (phonetic STT tolerance + TTS compatibility)
         live_voice_directive = ""
         if is_live:
-            live_voice_directive = (
-                "\n\n# REAL-TIME LIVE VOICE CONVERSATION DIRECTIVE:\n"
-                "- You are speaking with the user in a real-time live voice conversation.\n"
-                "- ADAPTIVE CONVERSATIONAL LENGTH: For simple chit-chat, greetings, or short questions, reply naturally in 1 to 2 spoken sentences. For intellectual, analytical, conceptual, or educational questions, provide a thoughtful, clear, and comprehensive explanation in 2 to 4 spoken sentences so the topic is explained thoroughly and well.\n"
-                "- ZERO MARKDOWN RULE: Never output Markdown formatting, headings (###), bullet points, asterisks (**), or code blocks as your output will be directly read aloud by a Text-to-Speech audio engine. Speak in natural prose.\n"
-                "- Reply in the exact same language spoken by the user (Bengali if spoken in Bengali, English if spoken in English)."
-            )
+            live_voice_directive = "\n" + LIVE_VOICE_SYSTEM_DIRECTIVE
 
         base_prompt = getattr(self, "system_prompt", SYSTEM_PROMPT + "\n\n" + PROFILE_PROMPT)
         return base_prompt + temporal_context + user_age_directive + live_voice_directive
@@ -302,6 +322,11 @@ USER QUESTION:
             yield from self._stream_anthropic_direct(getattr(self, "client"), model or self.DEFAULT_MODEL, prompt, max_tokens, history)
             return
 
+        # Live Voice Mode latency optimisation: cap tokens for fast spoken responses
+        # and apply a snappy temperature for deterministic streamed output.
+        if is_live:
+            max_tokens = min(max_tokens, 200)  # Max 200 tokens keeps responses under ~35 words
+
         final_prompt = prompt
         if isinstance(prompt, str) and self.needs_web_search(prompt, is_live=is_live):
             final_prompt = self._build_web_context(prompt)
@@ -326,29 +351,57 @@ USER QUESTION:
         else:
             resolved_provider, norm_model = self._resolve_provider_id(target_model)
 
+        # In Live Voice Mode use a slightly lower temperature (0.6) for snappy,
+        # deterministic spoken responses with natural but predictable phrasing.
+        live_temperature = 0.6 if is_live else 0.7
         req = ChatRequest(
             messages=msg_contents,
             model=norm_model,
             system_prompt=self._get_dynamic_system_prompt(is_live=is_live),
             max_tokens=max_tokens,
+            temperature=live_temperature,
             stream=True,
         )
 
         full_text = []
         accumulated_reasoning = []
+        in_think_block = False
         try:
-            for stream_chunk in self._provider_manager.chat_stream(req, provider_id=resolved_provider):
+            for stream_chunk in self._provider_manager.chat_stream(req, provider_id=resolved_provider, is_live=is_live):
                 if stream_chunk.reasoning_delta:
                     accumulated_reasoning.append(stream_chunk.reasoning_delta)
                 if stream_chunk.delta:
-                    full_text.append(stream_chunk.delta)
-                    yield stream_chunk.delta
+                    delta = stream_chunk.delta
+                    # Filter out inline <think>...</think> reasoning tags
+                    if "<think>" in delta:
+                        in_think_block = True
+                        before, _, after = delta.partition("<think>")
+                        if before:
+                            full_text.append(before)
+                            yield before
+                        delta = after
+                    if in_think_block:
+                        if "</think>" in delta:
+                            in_think_block = False
+                            _, _, after = delta.partition("</think>")
+                            delta = after
+                        else:
+                            delta = ""
+                    if delta:
+                        full_text.append(delta)
+                        yield delta
 
-            # If the model ONLY emitted reasoning tokens and zero normal content, yield reasoning as fallback
-            if not full_text and accumulated_reasoning:
-                fallback_reply = "".join(accumulated_reasoning)
-                full_text.append(fallback_reply)
-                yield fallback_reply
+            # If the model ONLY emitted reasoning tokens and zero normal content, handle gracefully
+            if not full_text:
+                if is_live:
+                    # In live voice mode, NEVER leak internal reasoning/thoughts to TTS
+                    fallback_reply = "I am Jakariya AI Studio, your personal AI assistant. How can I assist you today?"
+                    full_text.append(fallback_reply)
+                    yield fallback_reply
+                elif accumulated_reasoning:
+                    fallback_reply = "".join(accumulated_reasoning)
+                    full_text.append(fallback_reply)
+                    yield fallback_reply
         except Exception as exc:
             raise RuntimeError(f"Provider Execution Error ({target_model}): {exc}") from exc
 

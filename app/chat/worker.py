@@ -1,4 +1,8 @@
+import base64
+import html
+import re
 from dataclasses import dataclass
+import threading
 from typing import Any
 from urllib.parse import quote
 
@@ -10,6 +14,7 @@ from app.image_generation import (
     ImageEnhancer,
     is_image_generation_request,
     is_image_enhancement_request,
+    is_same_type_image_request,
     extract_image_payload,
 )
 
@@ -37,10 +42,12 @@ class ClaudeWorker(QObject):
     partial = Signal(str)
     finished = Signal(str)
     failed = Signal(str)
+    cancelled = Signal(str)
 
     def __init__(self):
         super().__init__()
 
+        self._cancel_event = threading.Event()
         self.client = None
         self.image_client = None
         self.enhancer = None
@@ -67,12 +74,21 @@ class ClaudeWorker(QObject):
             self.enhancer = ImageEnhancer()
         return self.enhancer
 
+    def cancel(self) -> None:
+        """Signal the worker to halt generation as soon as possible."""
+        self._cancel_event.set()
+
+    def is_cancelled(self) -> bool:
+        """Check if a cancellation was requested."""
+        return self._cancel_event.is_set()
+
     @Slot(object)
     def process(self, request: ChatRequest | str | list[dict[str, Any]]):
         """
         Process user message, supporting image enhancement, image generation,
         and streaming conversational LLM requests.
         """
+        self._cancel_event.clear()
         if isinstance(request, ChatRequest):
             message = request.message
             history = request.history
@@ -127,10 +143,74 @@ class ClaudeWorker(QObject):
                 return
 
             # -------------------------------------------------------------
+            # Case 1.5: Image attached + request to generate a same type / similar image
+            # -------------------------------------------------------------
+            if image_bytes_list and (is_same_type_image_request(prompt_text) or is_image_generation_request(prompt_text)):
+                gen_prompt = prompt_text
+                try:
+                    client = self._get_client()
+                    describe_prompt = [
+                        {
+                            "type": "text",
+                            "text": (
+                                "Describe the subject, visual elements, lighting, and art style of this image in 1 concise sentence "
+                                "to use as an image generation prompt for creating a new image of the exact same style. "
+                                "Output ONLY the visual description, no intro or outro."
+                            ),
+                        },
+                        {
+                            "type": "image",
+                            "source": (
+                                message[1]["source"]
+                                if isinstance(message, list) and len(message) > 1 and isinstance(message[1], dict) and "source" in message[1]
+                                else {
+                                    "type": "base64",
+                                    "media_type": "image/jpeg",
+                                    "data": base64.b64encode(image_bytes_list[0]).decode("ascii"),
+                                }
+                            ),
+                        },
+                    ]
+                    vis_desc = client.ask(describe_prompt, model=model)
+                    if vis_desc and len(vis_desc.strip()) > 10:
+                        gen_prompt = vis_desc.strip().strip('"').strip("'")
+                except Exception as exc:
+                    import logging
+                    logging.getLogger(__name__).warning("[ClaudeWorker] Vision description fallback: %s", exc)
+
+                clean_prompt = re.sub(
+                    r"\b(?:generate|create|make|produce)\s+(?:a\s+)?(?:same|similar)\s+(?:type|kind|style)?\s*(?:image|picture|photo)?\b",
+                    "",
+                    gen_prompt,
+                    flags=re.IGNORECASE,
+                ).strip() or gen_prompt
+
+                image_path = self._get_image_client().generate(clean_prompt)
+                save_target = quote(str(image_path.resolve()))
+                card_html = (
+                    '<div style="margin: 10px 0; padding: 14px; background: rgba(16, 185, 129, 0.08); '
+                    'border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.25);">'
+                    '<p style="margin: 0 0 8px 0; font-weight: bold; color: #059669; font-size: 14px;">'
+                    '🎨 Same-Type Generated Image (একই ধরণের নতুন ছবি তৈরি করা হয়েছে):'
+                    '</p>'
+                    f'<p style="margin: 0 0 10px 0; font-size: 11.5px; color: #4b5563;"><b>Prompt:</b> {html.escape(clean_prompt[:180])}...</p>'
+                    '<div style="text-align:center; margin:8px 0;">'
+                    f'<img src="{image_path.as_uri()}" width="460" style="border-radius: 8px;">'
+                    '<br><br>'
+                    f'<a href="saveimage:{save_target}" style="background-color:#059669; color:#ffffff; padding:7px 16px; text-decoration:none; border-radius:6px; font-weight:bold; font-size:13px;">'
+                    '💾 Save Image'
+                    '</a>'
+                    '</div>'
+                    '</div>'
+                )
+                self.finished.emit(card_html)
+                return
+
+            # -------------------------------------------------------------
             # Case 2: Plain text prompt asking to create/generate an image
             # -------------------------------------------------------------
-            if isinstance(message, str) and is_image_generation_request(message):
-                image_path = self._get_image_client().generate(message)
+            if not image_bytes_list and is_image_generation_request(prompt_text):
+                image_path = self._get_image_client().generate(prompt_text)
                 save_target = quote(str(image_path.resolve()))
                 self.finished.emit(
                     '<div style="text-align:center; margin:8px 0;">'
@@ -150,10 +230,21 @@ class ClaudeWorker(QObject):
             trimmed_history = history[-self.max_history_turns:] if self.max_history_turns > 0 else history
 
             for chunk in client.ask_stream(message, model=model, history=trimmed_history, provider_id=provider_id):
+                if self._cancel_event.is_set():
+                    break
                 full_reply.append(chunk)
                 self.partial.emit(chunk)
 
-            self.finished.emit("".join(full_reply))
+            if self._cancel_event.is_set():
+                accumulated = "".join(full_reply).strip()
+                self.cancelled.emit(accumulated)
+                return
 
+            self.finished.emit("".join(full_reply))
         except Exception as error:
+            if self._cancel_event.is_set():
+                self.cancelled.emit("")
+                return
+            import logging
+            logging.getLogger(__name__).error(f"[ClaudeWorker] Chat processing failed: {error}", exc_info=True)
             self.failed.emit(str(error))

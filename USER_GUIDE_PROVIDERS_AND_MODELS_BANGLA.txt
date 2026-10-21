@@ -2,335 +2,350 @@
           JAKARIYA AI STUDIO - COMPLETE USER GUIDE (BANGLA & ENGLISH)
           জাকারিয়া এআই স্টুডিও - সম্পূর্ণ ইউজার গাইড (বাংলা ও ইংরেজি)
 ================================================================================
-================================================================================
-                    JAKARIYA AI STUDIO - COMPLETE USER GUIDE
-================================================================================
-Project: Jakariya AI Studio v2.0.0 (Unified Desktop AI Ecosystem)
-Creator: Md. Jakariya Sheikh
-Architecture: Multi-Provider + Autonomous ReAct Agent + Live Voice + Exporter
-Release Date: August 2026 / October 2026 Release
-
-================================================================================
-1. PROJECT OVERVIEW & INTRODUCTION
-================================================================================
-Jakariya AI Studio is a high-performance unified desktop AI workstation that connects 
-top-tier AI providers, an autonomous ReAct multi-step agent with sandboxed tool execution, 
-continuous live voice conversation with active barge-in support, real-time web search, 
-interactive document preview cards, and a multi-format document exporter into a single 
-modern native application.
-
-================================================================================
-2. SUPPORTED AI PROVIDERS & BEST USE CASES
-================================================================================
-
-[1] GITHUB MODELS (Azure AI Inference)
---------------------------------------------------------------------------------
-* Provider ID: github_models
-* Models:
-  - github/gpt-4o (OpenAI GPT-4o) [128k context, Multimodal Vision, Code, Deep Logic]
-  - github/gpt-4o-mini (OpenAI GPT-4o Mini) [128k context, Ultra Fast Response]
-  - github/phi-4 (Microsoft Phi-4) [16k context, Reasoning & Math Specialization]
-  - github/meta-llama-3.3-70b-instruct (Meta Llama 3.3 70B) [128k context, General Chat]
-* Best Use Cases: General conversational AI, advanced coding, algorithmic math, vision.
-
-[2] GROQ ULTRA-FAST ENGINE
---------------------------------------------------------------------------------
-* Provider ID: groq
-* Models:
-  - groq/llama-3.3-70b-versatile (Llama 3.3 70B Versatile) [128k context]
-* Performance: 300+ tokens per second.
-* Best Use Cases: Real-time hands-free voice conversations, instant code generation.
-
-[3] GOOGLE AI STUDIO (Gemini)
---------------------------------------------------------------------------------
-* Provider ID: google_ai_studio
-* Models:
-  - google/gemini-2.0-flash (Gemini 2.0 Flash) [1M context, High Reasoning, Multimodal]
-  - google/gemini-1.5-pro (Gemini 1.5 Pro) [2M massive context, Deep Document Analytics]
-  - google/gemini-1.5-flash (Gemini 1.5 Flash) [Fast response, Lightweight Multimodal]
-* Best Use Cases: Massive document summaries, image analysis, long-form research.
-
-[4] OPENROUTER MULTI-MODEL GATEWAY
---------------------------------------------------------------------------------
-* Provider ID: openrouter
-* Models:
-  - deepseek/deepseek-r1 (DeepSeek R1) [Chain-of-Thought Reasoning Engine]
-  - deepseek/deepseek-chat (DeepSeek V3) [Advanced Coding & General Intelligence]
-  - anthropic/claude-3.5-sonnet (Claude 3.5 Sonnet) [Nuanced Prose, Architecture]
-  - openai/gpt-4o (GPT-4o) [128k context, Multimodal]
-  - qwen/qwen-2.5-72b-instruct (Qwen 2.5 72B) [Multilingual & Math]
-* Best Use Cases: Mathematical proofs, complex programming architectures, creative writing.
-
-[5] ANTHROPIC DIRECT (Claude)
---------------------------------------------------------------------------------
-* Provider ID: anthropic
-* Models:
-  - claude-3-5-sonnet-20241022 (Claude 3.5 Sonnet)
-  - claude-3-opus-20240229 (Claude 3 Opus)
-  - claude-3-haiku-20240307 (Claude 3 Haiku)
-* Best Use Cases: High-precision software engineering and human-like natural dialogue.
-
-[6] CEREBRAS WAFER-SCALE INFERENCE
---------------------------------------------------------------------------------
-* Provider ID: cerebras
-* Models:
-  - cerebras/llama-3.3-70b (Cerebras Llama 3.3)
-* Best Use Cases: Ultra low-latency token streaming powered by Wafer-Scale Engines.
-
-[7] MISTRAL AI
---------------------------------------------------------------------------------
-* Provider ID: mistral
-* Models:
-  - mistral/mistral-large-latest (Mistral Large) [128k context]
-  - mistral/codestral-latest (Codestral) [32k context, Dedicated Coding Model]
-* Best Use Cases: Multilingual business communications and clean code refactoring.
-
-[8] OLLAMA (Local Offline AI)
---------------------------------------------------------------------------------
-* Provider ID: ollama
-* Models: Local models installed on your PC (e.g., llama3, mistral, qwen, deepseek)
-* Best Use Cases: 100% private, offline AI execution with zero data leaving your machine.
-
-================================================================================
-3. ADVANCED ARCHITECTURAL FEATURES & CAPABILITIES
-================================================================================
-
-[A] AUTONOMOUS RE-ACT AGENT & TOOL EXECUTION
---------------------------------------------------------------------------------
-* Execute multi-step complex instructions with autonomous decision-making.
-* 12 sandboxed tools: web search, document export, code outline, file I/O, terminal, etc.
-* Multi-Color Document Themes: vibrant, colorful, emerald, sunset, cyber, executive.
-
-[B] CONTINUOUS LIVE VOICE WITH BARGE-IN (⚡ Live Mode)
---------------------------------------------------------------------------------
-* Hands-free voice dialogues with active interrupt support (Barge-In).
-* Speak freely at any time to pause or interrupt the AI.
-* Multi-engine support: Cartesia Sonic Voice, ElevenLabs, Fish Audio, Edge Neural TTS.
-
-[C] REAL-TIME WEB SEARCH
---------------------------------------------------------------------------------
-* Ground your questions with live internet searches via Tavily API and DuckDuckGo.
-* Generates source-referenced answers for breaking news, stock prices, and weather.
-
-[D] 8-FORMAT CONVERSATION & DOCUMENT EXPORTER
---------------------------------------------------------------------------------
-* Supported Formats: PDF, Word (DOCX), Excel (XLSX), HTML, Markdown, Plain Text, CSV, JSON.
-* Retains custom tables, styled typography, code highlighting, and Unicode/Bangla glyphs.
-
-[E] 3-DAY PRO TRIAL & FREEMIUM ACCESS
---------------------------------------------------------------------------------
-* 72-hour all-facility Pro trial upon sign-up.
-* Automatic fallback to free tier after trial ends.
-* Lifetime & subscription Pro activation with license keys.
-
-================================================================================
-4. GETTING STARTED & CONFIGURATION
-================================================================================
-1. Launching the App:
-   - Double-click "Jakariya AI Studio" from your Desktop or Start Menu.
-2. Sign Up & Login:
-   - Create an account with your Email & Password to activate your 3-Day Free Trial.
-3. Setting API Keys:
-   - Open Settings (Gear Icon ⚙️), navigate to "AI Providers", enter your keys, and click Save.
-
-================================================================================
-Created by Md. Jakariya Sheikh | All Rights Reserved
-================================================================================
-
-
-
-Project / প্রজেক্ট: Jakariya AI Studio v2.0.0 (Desktop AI Ecosystem)
-Creator / নির্মাতা: Md. Jakariya Sheikh
-Architecture / আর্কিটেকচার: Multi-Provider + Autonomous ReAct Agent + Live Voice + Exporter
-Updated / আপডেট: August 2026 / আগস্ট ২০২৬
+Application / সফটওয়্যার: Jakariya AI Studio v2.0.0 (Ultimate Desktop AI Workstation)
+Creator & Architect / নির্মাতা ও স্থপতি: Md. Jakariya Sheikh
+Release / সংস্করণ: October 2026 Production Release (v2.0.0)
+Supported OS / সমর্থিত অপারেটিং সিস্টেম: Windows 10 & Windows 11 (64-bit)
 
 ================================================================================
 1. PROJECT OVERVIEW & INTRODUCTION / প্রজেক্ট পরিচিতি ও সারসংক্ষেপ
 ================================================================================
 [ENGLISH]
-Jakariya AI Studio is a unified desktop AI workstation that connects 9 top-tier 
-AI providers, an autonomous ReAct multi-step agent with tool execution, continuous 
-live voice conversation with active barge-in support, real-time web search, interactive 
-smart document preview cards, and 6-format document exporting into a single cohesive app.
+Jakariya AI Studio is an enterprise-grade, all-in-one desktop AI workstation designed 
+to eliminate vendor lock-in, maximize productivity, and guarantee complete user data privacy. 
+Built on Python and PySide6 (Qt6), it integrates 16 premier cloud and local AI engines, an 
+autonomous multi-turn ReAct agent with 12 sandboxed tools, continuous hands-free live voice 
+dialogue with active barge-in support, hardware audio device selectors, FLUX.1 ultra-HD image 
+generation (with same-type companion art synthesis), smart Claude-style interactive document 
+preview cards, 8 physical export formats (PDF with Bengali font embedding, DOCX, XLSX, HTML, 
+MD, TXT, CSV, JSON), and 4 curated eye-comfort theme palettes.
 
 [বাংলা]
-জাকারিয়া এআই স্টুডিও হলো একটি শক্তিশালী অল-ইন-ওয়ান ডেস্কটপ এআই ওয়ার্কস্টেশন। 
-এখানে বিশ্বের সেরা ৯টি এআই প্রোভাইডার, স্বায়ত্তশাসিত রিঅ্যাক্ট এআই এজেন্ট (টুল এক্সিকিউশনসহ), 
-লাইভ ভয়েস কনভার্সেশন (বার্জ-ইন সুবিধাসহ), রিয়েল-টাইম ওয়েব সার্চ, স্মার্ট ডকুমেন্ট প্রিভিউ 
-কার্ড এবং ৬টি ফরম্যাটে এক্সপোর্ট সিস্টেম একসাথে যুক্ত করা হয়েছে।
+জাকারিয়া এআই স্টুডিও (Jakariya AI Studio) হলো একটি প্রিমিয়াম এন্টারপ্রাইজ-গ্রেড অল-ইন-ওয়ান 
+ডেস্কটপ এআই ওয়ার্কস্টেশন। এটি ১৬টি বিশ্বসেরা ক্লাউড ও লোকাল এআই ইঞ্জিন, ১২টি সুরক্ষিত টুলস-সমৃদ্ধ 
+স্বায়ত্তশাসিত রিঅ্যাক্ট (ReAct) এআই এজেন্ট, হ্যান্ডস-ফ্রি লাইভ ভয়েস কনভার্সেশন (বার্জ-ইন ইন্টারাপশনসহ), 
+মাইক্রোফোন ও স্পিকার হার্ডওয়্যার ডিভাইস সিলেক্টর, FLUX.1 আল্ট্রা-এইচডি ইমেজ জেনারেশন (একই ধরণের ছবি তৈরি 
+সুবিধাসহ), ক্লদ-স্টাইল স্মার্ট ডকুমেন্ট প্রিভিউ কার্ড, ৮টি ফরম্যাটে এক্সপোর্ট সিস্টেম (বাংলা ফন্ট এমবেডেড 
+পিডিএফ, ওয়ার্ড, এক্সেল, এইচটিএমএল, ইত্যাদি), এবং চোখের জন্য আরামদায়ক ৪টি আধুনিক থিম একসাথে যুক্ত করেছে।
 
 ================================================================================
-2. 9 AI PROVIDERS & BEST USE CASES / ৯টি এআই প্রোভাইডার ও তাদের সেরা ব্যবহার
+2. 16 AI PROVIDERS & ACTIVE MODELS / ১৬টি এআই প্রোভাইডার ও সক্রিয় মডেলসমূহ
 ================================================================================
 
-[1] GITHUB MODELS (Azure AI Inference)
---------------------------------------------------------------------------------
-* Provider ID: github_models
-* Models / মডেল:
-  - github/gpt-4o (OpenAI GPT-4o) [128k context, Vision, Code, Deep Logic]
-  - github/gpt-4o-mini (OpenAI GPT-4o Mini) [128k context, Ultra Fast]
-  - github/phi-4 (Microsoft Phi-4) [16k context, Reasoning & Math]
-  - github/meta-llama-3.3-70b-instruct (Meta Llama 3.3 70B) [128k context, General]
-* Best Use Cases (EN): General chat, complex programming, math, and vision analysis.
-* সেরা ব্যবহার (BN): সাধারণ চ্যাট, জটিল কোডিং সমস্যা সমাধান, গণিত এবং ছবি বিশ্লেষণ।
-
-[2] GROQ ULTRA-FAST ENGINE
---------------------------------------------------------------------------------
-* Provider ID: groq
-* Models / মডেল:
-  - groq/llama-3.3-70b-versatile (Llama 3.3 70B Versatile) [128k context]
-* Performance: 300+ tokens per second / প্রতি সেকেন্ডে ৩০০+ টোকেন স্পিড
-* Best Use Cases (EN): Real-time live voice dialogues, instant code generation.
-* সেরা ব্যবহার (BN): রিয়েল-টাইম লাইভ ভয়েস চ্যাট এবং চোখের পলকে কোড ও উত্তর তৈরি।
-
-[3] GOOGLE AI STUDIO (Gemini)
+[1] GOOGLE AI STUDIO (Gemini Series)
 --------------------------------------------------------------------------------
 * Provider ID: google_ai_studio
-* Models / মডেল:
-  - google/gemini-3.6-flash (Gemini 3.6 Flash) [1M context, High Reasoning, Vision]
-  - google/gemini-3.5-flash (Gemini 3.5 Flash) [1M context, Vision, Fast Response]
-  - google/gemini-2.0-flash (Gemini 2.0 Flash) [1M context, Vision, Web Grounding]
-  - google/gemini-1.5-pro (Gemini 1.5 Pro) [2M massive context, Deep Analytics]
-* Best Use Cases (EN): Massive document analysis, high-speed multimodal vision, deep research.
-* সেরা ব্যবহার (BN): বই বা বিশাল পিডিএফ সামারি, ছবি বিশ্লেষণ এবং আধুনিক ওয়েব রিসার্চ।
+* Active Validated Models / সক্রিয় মডেলসমূহ:
+  - google/gemini-3.8-flash [1M Context, Flagship High-Speed Multimodal Intelligence]
+  - google/gemini-3.7-flash [1M Context, Hybrid Deep Reasoning & Rapid Coding]
+  - google/gemini-3.6-flash [1M Context, Fast Agent Planning & Code Generation]
+  - google/gemini-3.5-flash [1M Context, Ultra-Fast Lightweight Model]
+  - google/gemini-flash-latest [Auto-Resolved Latest Stable Flash Model]
+  - google/gemini-pro-latest [Auto-Resolved Latest Deep Reasoning Model]
+* Status Note: Old legacy models (gemini-1.5-pro, 1.5-flash, 2.0-flash, 2.5-pro) have been 
+  decommissioned by Google and are automatically mapped forward to the 3.8/3.7/3.6 Flash series.
+* Best Use Cases (EN): Massive document processing, image analysis, long-form research.
+* সেরা ব্যবহার (BN): বিশাল বই বা পিডিএফ অ্যানালাইসিস, ছবি বিশ্লেষণ এবং আধুনিক ওয়েব রিসার্চ।
 
-[4] OPENROUTER MULTI-MODEL GATEWAY
+[2] GROQ ULTRA-FAST ENGINE (LPU Inference)
+--------------------------------------------------------------------------------
+* Provider ID: groq
+* Speed / গতি: 300+ to 800+ tokens per second (Sub-second token delivery)
+* Active Validated Models / সক্রিয় মডেলসমূহ:
+  - groq/openai/gpt-oss-120b [128k Context, SOTA Reasoning, Math & Complex Code]
+  - groq/qwen/qwen3.8-27b [32k Context, Multilingual Fluency & Programming]
+  - groq/openai/gpt-oss-20b [Ultra-Fast Lightweight Model for Instant Answers]
+  - groq/allam-2-7b [High-Speed Conversational Engine]
+  - whisper-large-v3-turbo [Speech-to-Text STT (~150ms transcription latency)]
+* Status Note: Decommissioned models (llama-3.3-70b-versatile, qwen-2.5-coder-32b) are 
+  automatically routed to active GPT-OSS 120B and Qwen 3.8 27B models.
+* Best Use Cases (EN): Real-time voice dialogues, instant code writing, fast chat.
+* সেরা ব্যবহার (BN): রিয়েল-টাইম লাইভ ভয়েস চ্যাট এবং চোখের পলকে কোড ও কনটেন্ট তৈরি।
+
+[3] OPENROUTER MULTI-MODEL GATEWAY
 --------------------------------------------------------------------------------
 * Provider ID: openrouter
-* Models / মডেল:
-  - deepseek/deepseek-r1 (DeepSeek R1) [Chain-of-Thought Reasoning]
-  - deepseek/deepseek-chat (DeepSeek V3) [Advanced Coding & General AI]
-  - anthropic/claude-3.5-sonnet (Claude 3.5 Sonnet) [Nuanced Writing]
-  - openai/gpt-4o (GPT-4o) [128k context, Vision]
-  - qwen/qwen-2.5-72b-instruct (Qwen 2.5 72B) [Multilingual & Math]
-* Best Use Cases (EN): Deep mathematical proofs, algorithm design, creative writing.
-* সেরা ব্যবহার (BN): জটিল গাণিতিক প্রমাণ, অ্যালগরিদম ডিজাইন এবং চমৎকার প্রবন্ধ রচনা।
+* Active Working Models / সক্রিয় মডেলসমূহ:
+  - deepseek/deepseek-chat [DeepSeek V3: Advanced Software Engineering & General Intelligence]
+  - qwen/qwen-2.5-coder-32b-instruct [Specialized Coding SOTA Model]
+  - meta-llama/llama-3.3-70b-instruct [128k Context Open Weights Flagship]
+  - openai/gpt-4o [128k Context, Multimodal Vision & Deep Logic]
+  - openai/gpt-4o-mini [Fast, Cost-Effective Intelligence]
+  - qwen/qwen-2.5-72b-instruct [Multilingual High-Accuracy Reasoning]
+* Best Use Cases (EN): Complex software architectures, algorithm design, vision tasks.
+* সেরা ব্যবহার (BN): জটিল সফটওয়্যার ডিজাইন, অ্যালগরিদম সলভিং এবং নির্ভুল কোডিং।
 
-[5] ANTHROPIC DIRECT (Claude)
+[4] MISTRAL AI DIRECT
 --------------------------------------------------------------------------------
-* Provider ID: anthropic
-* Models / মডেল:
-  - claude-3-5-sonnet-20241022 (Claude 3.5 Sonnet)
-  - claude-3-opus-20240229 (Claude 3 Opus)
-  - claude-3-haiku-20240307 (Claude 3 Haiku)
-* Best Use Cases (EN): High-precision software architecture, human-like dialogue.
-* সেরা ব্যবহার (BN): নিখুঁত সফটওয়্যার আর্কিটেকচার এবং সাবলীল প্রাকৃতিক কথোপকথন।
+* Provider ID: mistral
+* Active Models / সক্রিয় মডেলসমূহ:
+  - mistral/codestral-latest [256k Context, Specialized Coding & Refactoring SOTA]
+  - mistral/mistral-small-latest [Fast Reasoning & Multilingual Translation]
+* Best Use Cases (EN): Clean code refactoring, full repo analysis, European languages.
+* সেরা ব্যবহার (BN): নিখুঁত কোড রিফ্যাক্টরিং, বাগ ফিক্সিং এবং বহুভাষিক অনুবাদ।
+
+[5] PLUGSKY AI SUITE
+--------------------------------------------------------------------------------
+* Provider ID: plugsky
+* Active Models / সক্রিয় মডেলসমূহ:
+  - plugsky-lite [Fast General Intelligence, Free Daily Quota]
+  - plugsky-micro [Ultra-Fast Lightweight Assistant]
+* Best Use Cases (EN): Everyday conversational questions, homework help, reliable fallback.
+* সেরা ব্যবহার (BN): প্রতিদিনের প্রশ্নোত্তর এবং নির্ভরযোগ্য ফ্রি ব্যাকআপ ইঞ্জিন।
 
 [6] CEREBRAS WAFER-SCALE INFERENCE
 --------------------------------------------------------------------------------
 * Provider ID: cerebras
-* Models / মডেল:
-  - cerebras/llama-3.3-70b (Cerebras Llama 3.3)
-* Best Use Cases (EN): Extreme speed inference powered by Wafer-Scale Engine.
-* সেরা ব্যবহার (BN): ওয়্যাফার-স্কেল হার্ডওয়্যারে বিদ্যুৎগতির এআই প্রসেসিং।
+* Performance / গতি: 2000+ tokens per second (Wafer-Scale Engine CS-3)
+* Active Models / সক্রিয় মডেলসমূহ:
+  - cerebras/gpt-oss-120b [Ultra High-Throughput Reasoning]
+  - cerebras/qwen-3.8-27b [Lightning-Fast Coding]
+* Best Use Cases (EN): Zero-latency generation, massive batch code review.
+* সেরা ব্যবহার (BN): অবিশ্বাস্য গতির টোকেন স্ট্রিমিং ও দ্রুত কোড জেনারেশন।
 
-[7] MISTRAL AI
+[7] ANTHROPIC DIRECT (Claude)
 --------------------------------------------------------------------------------
-* Provider ID: mistral
-* Models / মডেল:
-  - mistral/mistral-large-latest (Mistral Large) [128k context]
-  - mistral/codestral-latest (Codestral) [32k context, Dedicated Coding]
-* Best Use Cases (EN): Multilingual business communications, professional code refactor.
-* সেরা ব্যবহার (BN): বহুভাষিক অফিশিয়াল চিঠি, ইমেইল এবং উন্নত কোড রিফ্যাক্টরিং।
+* Provider ID: anthropic
+* Active Models / সক্রিয় মডেলসমূহ:
+  - claude-3-7-sonnet-20250219 [Claude 3.7 Sonnet: Hybrid Thinking Architecture]
+  - claude-3-5-sonnet-20241022 [Claude 3.5 Sonnet: Industry Standard for Coding]
+  - claude-3-5-haiku-20241022 [Ultra-Fast Responsive Prose & Data Extraction]
+* Best Use Cases (EN): High-precision software architecture, human-like dialogue.
+* সেরা ব্যবহার (BN): প্রফেশনাল সফটওয়্যার আর্কিটেকচার এবং সাবলীল প্রাকৃতিক কথোপকথন।
 
-[8] KIMI / MOONSHOT AI
---------------------------------------------------------------------------------
-* Provider ID: kimi
-* Models / মডেল:
-  - kimi/moonshot-v1-8k (Moonshot V1)
-* Best Use Cases (EN): Long-context cross-lingual chat, Chinese/English translation.
-* সেরা ব্যবহার (BN): দীর্ঘ প্রসঙ্গের বহুভাষিক কথোপকথন ও নিখুঁত অনুবাদ।
-
-[9] OLLAMA (Local Offline AI)
+[8] OLLAMA (100% Offline Local AI)
 --------------------------------------------------------------------------------
 * Provider ID: ollama
-* Models / মডেল: Local models installed on your PC (e.g., llama3, mistral, qwen, deepseek)
-* Best Use Cases (EN): 100% private, offline AI execution without sending data to cloud.
-* সেরা ব্যবহার (BN): সম্পূর্ণ প্রাইভেট এবং ইন্টারনেট ছাড়া অফলাইন এআই এক্সিকিউশন।
+* Base URL: http://localhost:11434/v1
+* Models / মডেল: Local models on your PC (e.g. llama3, qwen2.5, deepseek-coder-v2, mistral)
+* Best Use Cases (EN): 100% private execution with zero data leaving your machine.
+* সেরা ব্যবহার (BN): শতভাগ অফলাইন ও ব্যক্তিগত গোপনীয়তা রক্ষা করে ইন্টারনেট ছাড়া এআই ব্যবহার।
+
+[9] CARTESIA AI (Sonic Voice Engine)
+--------------------------------------------------------------------------------
+* Provider ID: cartesia
+* Highlights: Sub-second voice synthesis (<1000ms latency), personal cloned voice IDs.
+* Best Use Cases: Ultra-responsive live conversational voice dialogues.
+
+[10] FISH AUDIO (Expressive Neural Voice)
+--------------------------------------------------------------------------------
+* Provider ID: fish_audio
+* Highlights: Emotionally expressive neural voice (`s2.1-pro`), custom voice reference IDs.
+
+[11] ELEVENLABS (Multilingual Audio Suite)
+--------------------------------------------------------------------------------
+* Provider ID: elevenlabs
+* Highlights: ElevenLabs Multilingual v2 speech synthesis and Scribe v2 STT transcription.
+
+[12] MICROSOFT EDGE NEURAL TTS (100% Free Out of the Box)
+--------------------------------------------------------------------------------
+* Provider ID: edge_neural_tts
+* Highlights: Zero API key required, completely free natural conversational voices:
+  - English: `en-US-JennyNeural`, `en-US-GuyNeural`
+  - Bengali: `bn-BD-NabanitaNeural`, `bn-BD-PradeepNeural`
+
+[13] HUGGING FACE FLUX.1-SCHNELL (Ultra-HD Image Studio)
+--------------------------------------------------------------------------------
+* Provider ID: huggingface
+* Highlights: Next-generation open-weights image generation model (Black Forest Labs FLUX.1).
+
+[14] STABILITY AI (SDXL)
+--------------------------------------------------------------------------------
+* Provider ID: stability
+* Highlights: Photorealistic portraits, cinematic lighting, and commercial graphic design.
+
+[15] TAVILY AI SEARCH (Live Internet Intelligence)
+--------------------------------------------------------------------------------
+* Provider ID: tavily
+* Highlights: Real-time ground truth web search with citations and clean markdown formatting.
+
+[16] LLAMAPARSE (Complex Document Intelligence)
+--------------------------------------------------------------------------------
+* Provider ID: llamaparse
+* Highlights: Extracts tables, financial figures, and complex multi-column structures from PDFs.
 
 ================================================================================
-3. ADVANCED FEATURES & USAGE / উন্নত ফিচারসমূহ ও ব্যবহারের নিয়ম
+3. IMAGE GENERATION & SAME-TYPE IMAGE STUDIO / ইমেজ জেনারেশন ও ছবি তৈরি
 ================================================================================
+[ENGLISH]
+1. Text-to-Image Generation:
+   - Type any natural prompt (e.g. "Create an ultra-HD portrait of an astronaut on Mars" or 
+     "একটি সুন্দর আধুনিক ঢাকার ডিজিটাল আর্ট তৈরি করো").
+   - The studio dispatches the request to FLUX.1-schnell or Stability AI and displays a 
+     high-resolution preview card with an embedded "💾 Save Image" action.
+2. 🎨 Same-Type / Similar Image Generation (NEW in v2.0.0):
+   - Attach an existing photo or artwork using the Paperclip icon (📎).
+   - Enter a prompt like "Create a similar image in this style", "generate the same type of image", 
+     or "এই ছবির মতো একই স্টাইলের আরেকটি নতুন ছবি বানিয়ে দাও".
+   - The system utilizes vision intelligence to analyze artistic medium, lighting, color palette, 
+     and subject dynamics, synthesizes an aligned prompt, and generates a brand-new companion artwork!
+3. Offline Dual-Frequency Enhancer:
+   - Request image enhancement ("Enhance this photo" / "ছবিটি ক্লিয়ার করো") to upscale 2X and 
+     sharpen skin and portrait details locally without external servers.
 
-[A] AUTONOMOUS RE-ACT AGENT & TOOL EXECUTION
---------------------------------------------------------------------------------
-* English:
-  - Enter any complex multi-step request (e.g., "Search the web for the latest tech news 
-    and export a 2-page executive summary to Word docx and PDF with colorful theme").
-  - The AI Agent creates an actionable execution plan, calls tools (web_search, 
-    export_document, python_interpreter, file_io), verifies results, and shows the full 
-    output both in chat and saved to disk.
-  - Multi-Color Document Themes: vibrant, colorful, emerald, sunset, cyber, executive.
-* বাংলা:
-  - যেকোনো জটিল বহু-ধাপ বিশিষ্ট নির্দেশ দিলে (যেমন: "আজকের তাজা প্রযুক্তি খবর সার্চ 
-    করে একটি সুন্দর রঙিন ওয়ার্ড ও পিডিএফ রিপোর্ট তৈরি করো") এআই এজেন্ট স্বয়ংক্রিয়ভাবে 
-    টুল ব্যবহার করে সম্পূর্ণ কাজ সম্পন্ন করবে এবং লোকাল ডিস্কে সেভ করবে।
-  - রঙিন থিমসমূহ: vibrant, colorful, emerald, sunset, cyber, executive.
-
-[B] CONTINUOUS LIVE VOICE WITH BARGE-IN (⚡ Live Mode)
---------------------------------------------------------------------------------
-* English:
-  - Click the "⚡ Live" button to start continuous, hands-free voice dialogue.
-  - Barge-In Feature: You can speak and interrupt the AI assistant while it is speaking! 
-    The app dynamically manages microphone gain (`0.15` attenuation during playback) 
-    to eliminate speaker echo while detecting user speech.
-  - Full native support for Bangla (বাংলা) and English.
-* বাংলা:
-  - "⚡ Live" বাটনে ক্লিক করে হাত ছাড়া সার্বক্ষণিক লাইভ ভয়েস চ্যাট করুন।
-  - বার্জ-ইন (Barge-In) সুবিধা: এআই কথা বলা অবস্থাতেও আপনি কথা বলে তাকে থামাতে পারবেন।
-  - বাংলা ও ইংরেজি উভয় ভাষায় সাবলীল ভয়েস ইনপুট ও আউটপুট সমর্থন করে।
-
-[C] REAL-TIME SUB-SECOND WEB SEARCH
---------------------------------------------------------------------------------
-* English:
-  - Real-time questions (current news, weather, stock prices, live scores) automatically 
-    trigger live web search via Tavily API, Brave Search API, or DuckDuckGo.
-* বাংলা:
-  - সাম্প্রতিক খবর, আজকের আবহাওয়া বা স্টক প্রাইস সম্পর্কে প্রশ্ন করলে স্বয়ংক্রিয়ভাবে 
-    ইন্টারনেট সার্চ করে নির্ভরযোগ্য সোর্স লিঙ্কসহ সঠিক তথ্য দেবে।
-
-[D] 6-FORMAT CONVERSATION & DOCUMENT EXPORTER
---------------------------------------------------------------------------------
-* Formats Supported / সমর্থিত ফরম্যাট:
-  1. PDF Document (.pdf) - Multi-colored headings, styled tables, callouts
-  2. Microsoft Word (.docx) - Custom typography, XML shaded table cells
-  3. Microsoft Excel (.xlsx) - Styled spreadsheet with header fills and borders
-  4. Web Page (.html) - Responsive CSS variables and dark/light palettes
-  5. Markdown (.md) - Clean GitHub flavored formatting
-  6. Plain Text (.txt) - Universal plain text
-* Features / বৈশিষ্ট্য:
-  - Retains rich styling, tables, code highlighting, and Unicode/Bangla text.
-  - One-click copy and download buttons on every code block.
-
-[E] AUTOMATIC FAILOVER & ZERO-CRASH ENGINE
---------------------------------------------------------------------------------
-* English:
-  - If a selected provider runs out of rate limits (HTTP 429) or faces network issues, 
-    the engine seamlessly catches the exception and routes the request to an 
-    active backup provider without interrupting your chat session.
-* বাংলা:
-  - কোনো প্রোভাইডারে সার্ভার সমস্যা বা রেট লিমিট শেষ হলে অ্যাপ না আটকে স্বয়ংক্রিয়ভাবে 
-    ব্যাকগ্রাউন্ডে সচল ব্যাকআপ প্রোভাইডারে স্যুইচ করে উত্তর প্রদান করবে।
+[বাংলা]
+১. টেক্সট থেকে ছবি তৈরি: চ্যাট বক্সে সরাসরি লিখুন "একটি সুন্দর নদী ও নৌকার ছবি তৈরি করো"। সিস্টেম 
+   স্বয়ংক্রিয়ভাবে FLUX.1 বা স্টেবিলিটি এআই দিয়ে হাই-কোয়ালিটি ছবি বানিয়ে সরাসরি চ্যাটে দেখাবে।
+২. 🎨 একই ধরণের ছবি তৈরি (Same-Type Image - নতুন ফিচার): আপনার যেকোনো ছবি পেপারক্লিপ (📎) 
+   আইকনে ক্লিক করে যুক্ত করুন এবং লিখুন "এই ধরণের আরেকটি ছবি বানাও" বা "Create a similar image"। 
+   এআই আপনার ছবির আর্ট স্টাইল, লাইটিং ও ব্যাকগ্রাউন্ড বিশ্লেষণ করে ঠিক একই স্টাইলের সম্পূর্ণ নতুন ছবি তৈরি করবে।
+৩. অফলাইন ছবি ক্লিয়ারিং: যেকোনো ঝাপসা ছবি এটাচ করে "ছবিটি পরিষ্কার করো" লিখলে ডুয়াল-ফ্রিকোয়েন্সি 
+   অ্যালগরিদমের মাধ্যমে ২ গুণ শার্প ও স্পষ্ট করে দেবে।
 
 ================================================================================
-4. QUICK START & CONFIGURATION / দ্রুত চালু ও কনফিগারেশন গাইড
+4. CONTINUOUS LIVE VOICE WITH BARGE-IN / সার্বক্ষণিক লাইভ ভয়েস ও বার্জ-ইন
 ================================================================================
+[ENGLISH]
+* Hands-Free Live Dialogue (⚡ Live Mode):
+  - Click the "⚡ Live" button on the right of the input bar to enter conversational live mode.
+  - Speak naturally in English or Bangla. The app automatically detects speech via Voice Activity 
+    Detection (VAD) and transitions through Listening ➔ Transcribing ➔ Thinking ➔ Speaking.
+* Active Barge-In Interruption:
+  - If the AI is speaking aloud and you wish to correct or interrupt it, simply speak!
+  - The studio immediately halts audio playback, silences the speaker, and listens to your new query.
+  - Acoustic Loopback Shield: Microphone gain is dynamically attenuated to `0.15` during playback, 
+    preventing speaker sound from triggering false barge-in loops.
+* Audio Hardware Devices (NEW in v2.0.0):
+  - Navigate to **Settings > Voice & Audio > Audio Input & Output Hardware Devices**.
+  - Explicitly select your desired physical Microphone (Input) and Speaker/Headphones (Output).
+* Natural Conversational Pause:
+  - Silence timeout calibrated to 1000–1300ms, providing comfortable pauses while speaking without 
+    cutting you off mid-sentence.
+* Cloned & Custom Voices Studio:
+  - Use the "➕ Add Custom Voice" button to register personal voice IDs from Cartesia, Fish Audio, 
+    ElevenLabs, or Microsoft Edge.
 
-1. Launching the App / অ্যাপ চালু করা:
-   - Run from installed Windows Shortcut: Double-click "Jakariya AI Studio"
-   - Or run from source terminal / সোর্স কোড থেকে:
+[বাংলা]
+* লাইভ ভয়েস মোড (⚡ Live): ইনপুট বারের ডানপাশের "⚡ Live" বাটনে ক্লিক করুন। কোনো টাইপিং ছাড়াই মানুষের 
+  মতো স্বাভাবিকভাবে কথা বলুন। বাংলা ও ইংরেজি উভয় ভাষায় নির্ভুলভাবে কথা বলা ও শোনা যায়।
+* বার্জ-ইন (Barge-In) ইন্টারাপশন: এআই কথা বলার সময় আপনি কথা শুরু করলেই এআই সাথে সাথে থেমে যাবে এবং 
+  আপনার নতুন কথা মনোযোগ দিয়ে শুনবে। ল্যাপটপ বা স্পিকারের শব্দের কারণে যেন নিজে নিজে না থেমে যায়, সেজন্য 
+  স্পিকারের শব্দ ফিল্টার করার জন্য আধুনিক অ্যাকোস্টিক শিল্ড যুক্ত আছে।
+* হার্ডওয়্যার অডিও ডিভাইস নির্বাচন (নতুন ফিচার): Settings > Voice & Audio পেজ থেকে আপনার পছন্দমতো 
+  মাইক্রোফোন এবং হেডফোন/স্পিকার সরাসরি ড্রপডাউন থেকে সিলেক্ট করে নিতে পারবেন।
+
+================================================================================
+5. AUTONOMOUS REACT AGENT & 12 TOOLS / স্বয়ংক্রিয় রিঅ্যাক্ট এজেন্ট ও ১২টি টুলস
+================================================================================
+[ENGLISH]
+* Multi-Turn ReAct Reasoning Loop:
+  - Give complex, multi-step engineering prompts (e.g. "Inspect project files, fix the bug in 
+    worker.py, run pytest, and export a report to Word docx").
+  - The agent formulates a plan, executes actions, analyzes observations, and iterates to a solution.
+* 12 Built-in Autonomous Agent Tools:
+  1. `read_file`: Safe multi-encoding file reader.
+  2. `write_file`: Path-guarded file writer restricted to user workspace folders.
+  3. `list_directory`: Workspace explorer with recursive glob filtering.
+  4. `search_files`: High-speed regex and textual search.
+  5. `edit_file`: Surgical target-and-replace code editor.
+  6. `run_command`: Sandboxed command shell execution with timeouts.
+  7. `python_interpreter`: AST-secured in-process & subprocess Python REPL.
+  8. `web_search`: Live real-time internet search via Tavily & DuckDuckGo.
+  9. `export_document`: Multi-color document publisher (PDF, DOCX, XLSX, HTML, MD).
+  10. `code_outline`: High-level symbol parser (extracts classes, methods, docstrings).
+  11. `check_diagnostics`: Instant Python AST syntax diagnostics and linter.
+  12. `git_tool`: Version control inspector (git status, diff, log, commit).
+* ⚡ 1-Click "Allow All (Auto Run)" Permission Flow:
+  - When the agent requests a sensitive action (editing a file or running a command), a permission 
+    dialog (`ToolApprovalDialog`) appears with 3 options:
+    - **`Deny Action`**: Aborts the operation immediately.
+    - **`Allow Once`**: Authorizes only this single step.
+    - **`⚡ Allow All (Auto Run)`**: Authorizes the agent for the entire active task session. The 
+      agent works continuously without interrupting you with repetitive popups!
+* Visual Code Changes & Diff Review Dialog (`CodeChangesReviewDialog` & `DiffTracker`):
+  - View live green (`+`) and red (`-`) syntax-highlighted side-by-side diffs of all modifications.
+
+[বাংলা]
+* স্বয়ংক্রিয় রিঅ্যাক্ট এজেন্ট: যেকোনো বড় কাজ দিলে (যেমন: "ফাইলের কোড চেক করো, বাগ ফিক্স করো এবং টেস্ট রান 
+  করে ওয়ার্ডে রিপোর্ট সেভ করো") এআই নিজের বুদ্ধিমত্তা দিয়ে ধাপে ধাপে কাজ সম্পন্ন করবে।
+* ⚡ ১-ক্লিকে "Allow All (Auto Run)": বারবার পারমিশন ক্লিক করার ঝামেলা ছাড়াই "⚡ Allow All" চাপলে 
+  এজেন্ট নিজে নিজে সব স্টেপ নির্বিঘ্নে শেষ করবে।
+* ভিজ্যুয়াল ডিফারেন্স রিভিউ (Diff Review): কোডের কোথায় কি পরিবর্তন হয়েছে তা সবুজ ও লাল রঙে পরিষ্কার দেখতে পাবেন।
+
+================================================================================
+6. SMART DOCUMENT CARDS & 8 EXPORT FORMATS / স্মার্ট কার্ড ও ৮ ফরম্যাট এক্সপোর্টার
+================================================================================
+[ENGLISH]
+* Claude Desktop-Style Preview Cards:
+  - Long research reports, tables, proposals, and roadmaps are automatically wrapped in interactive 
+    visual document cards showing document title, word count, and estimated page counts.
+* Interactive Document Preview Dialog:
+  - Click on any document card to open a full modal viewer with rendered preview, markdown source, 
+    and 1-click physical export buttons:
+    - 📕 **Export PDF**: Styled ReportLab PDF with embedded `NotoSansBengali` fonts (no mojibake).
+    - 📘 **Export Word**: Professional `.docx` with callout boxes, headers, and colored tables.
+    - 📊 **Export Excel (NEW)**: Direct `.xlsx` spreadsheet with shaded headers and clean borders.
+    - 🌐 **Export HTML / Markdown / Plain Text / CSV / JSON**.
+* 6 Curated Color Themes: `vibrant`, `colorful`, `emerald`, `sunset`, `cyber`, `executive`.
+* Full Round-Trip Conversation Backup:
+  - Export entire chat histories to JSON, Markdown, or Plain Text.
+  - Import previously saved chat backups with intelligent role header normalization (`### User`, `### Assistant`).
+
+[বাংলা]
+* স্মার্ট ডকুমেন্ট কার্ড: চ্যাটে কোনো বড় রিপোর্ট তৈরি হলে ক্লদ ডেস্কটপের মতো সুন্দর কার্ড দেখা যাবে।
+* ১-ক্লিকে এক্সপোর্ট: কার্ডে ক্লিক করে সরাসরি ৮টি ফরম্যাটে সেভ করতে পারবেন:
+  - 📕 **PDF**: নিখুঁত বাংলা ফন্ট সাপোর্টসহ প্রিমিয়াম ডিজাইন করা রঙিন পিডিএফ।
+  - 📘 **DOCX**: মাইক্রোসফট ওয়ার্ড ফাইল।
+  - 📊 **Excel (নতুন)**: সরাসরি স্প্রেডশিট টেবিলে এক্সপোর্ট।
+  - 🌐 **HTML, Markdown, TXT, CSV, JSON**।
+
+================================================================================
+7. EYE-COMFORT THEMES & MINIMIZABLE SETTINGS / চোখ-বান্ধব থিম ও মিনিমাইজ সেটিংস
+================================================================================
+[ENGLISH]
+* 4 Curated Eye-Comfort Themes:
+  1. **GPT Light**: Soothing luminous pearl slate (`#F8FAFC`) with soft indigo accents (`#4F46E5`), 
+     eliminating harsh screen glare fatigue during daytime work.
+  2. **Modern Dark**: Luxurious deep midnight slate (`#0F172A`) matching Linear & Cursor aesthetics.
+  3. **Midnight OLED**: Deep power-saving pure black (`#000000`) for OLED and HDR monitors.
+  4. **Cyberpunk Neon**: Ambient violet dark theme (`#0B0813`) with electric pink highlights (`#F472B6`).
+* Minimizable Settings Window (NEW in v2.0.0):
+  - Settings dialog supports native Windows taskbar minimize/restore, top-level window controls, 
+    and an in-window Minimize button.
+  - Collapsible navigation sidebar (60px compact icon bar vs 210px expanded mode).
+
+[বাংলা]
+* ৪টি আধুনিক চোখের আরামদায়ক থিম:
+  ১. **GPT Light**: চোখের জন্য অত্যন্ত আরামদায়ক অফ-হোয়াইট পার্ল স্লেট কালার যা একটানা কাজ করলেও চোখে চাপ পড়ে না।
+  ২. **Modern Dark**: বিশ্বমানের মিডনাইট স্লেট ডার্ক থিম।
+  ৩. **Midnight OLED**: ট্রু ব্ল্যাক ওলেড থিম যা ব্যাটারি ও ডিসপ্লে বাঁচায়।
+  ৪. **Cyberpunk Neon**: আকর্ষণীয় ভায়োলেট ও নিয়ন পিঙ্ক থিম।
+* সেটিংস উইন্ডো মিনিমাইজ: সেটিংস পেজে কাজ করার সময় চ্যাট দেখার জন্য মিনিমাইজ বাটন ব্যবহার করতে পারবেন।
+
+================================================================================
+8. SECURITY, PRIVACY & LICENSING / নিরাপত্তা, গোপনীয়তা ও লাইসেন্সিং
+================================================================================
+* Local-First Privacy:
+  - All chat histories, databases, files, and credentials remain 100% on your local machine.
+  - Data directory: `%LOCALAPPDATA%\Jakariya AI Studio\`
+* Hardware Keyring Encryption:
+  - All API keys are encrypted via Windows Credential Manager (`keyring`), never stored in plaintext.
+* 3-Day Pro Trial & Free Access:
+  - New installations receive an automatic 72-hour full-access Pro trial with unlimited exports.
+  - When the trial ends, all free engines (Edge TTS, Google STT, Pollinations AI, Ollama, Plugsky Free) 
+    continue working forever without any mandatory charges.
+
+================================================================================
+9. QUICK START & SETUP GUIDE / দ্রুত চালু ও সেটআপ গাইড
+================================================================================
+1. Launching the App:
+   - Double-click the **Jakariya AI Studio** desktop shortcut, or launch from source:
+     ```powershell
      & .\.venv\Scripts\python.exe main.py
-
-2. Configuring API Keys / এপিআই কি (API Key) সেটআপ:
-   - Open Settings UI inside the app (Gear Icon ⚙️ at header or status bar).
-   - Go to "AI Providers" tab and paste your API keys.
-   - Click "Save" — keys are securely loaded into the runtime configuration.
-
-3. Testing Live Connections / সংযোগ পরীক্ষা:
-   - Inside the Settings "AI Providers" page, click "Test Connection" on any provider 
-     to verify instant live connectivity.
+     ```
+2. Entering API Keys:
+   - Click the Gear Icon (⚙️) on the top header or status bar to open Settings.
+   - Click on the **AI Providers** tab, paste your keys (e.g. Google AI Studio, Groq, OpenRouter), 
+     and click **Save & Close**.
+   - Click **Test Connection** on any provider to verify instant live connectivity.
+3. Choosing Models & Voice:
+   - In Settings > **AI Models**, assign your preferred models for Chat, Coding, and Reasoning.
+   - In Settings > **Voice & Audio**, pick your preferred STT (Groq Whisper or Google STT), TTS 
+     (Edge Neural TTS or Cartesia), and physical audio devices.
+4. Enjoying the Studio:
+   - Chat, generate code, create images, run autonomous tasks, and speak hands-free!
 
 ================================================================================
-Thank you for using Jakariya AI Studio! / জাকারিয়া এআই স্টুডিও ব্যবহারের জন্য ধন্যবাদ!
-Created by Md. Jakariya Sheikh / নির্মাতা: মোঃ জাকারিয়া শেখ
+Created with passion by Md. Jakariya Sheikh | All Rights Reserved © 2026
+নির্মাতা ও স্বত্বাধিকারী: মোঃ জাকারিয়া শেখ | সর্বস্বত্ব সংরক্ষিত ২০২৬
 ================================================================================

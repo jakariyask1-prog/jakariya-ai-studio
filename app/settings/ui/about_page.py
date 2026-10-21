@@ -23,25 +23,25 @@ class AboutPage(QWidget):
 
     def _init_ui(self) -> None:
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.setSpacing(15)
+        layout.setContentsMargins(16, 12, 16, 8)
+        layout.setSpacing(10)
 
         # App Header Banner
         self.title_label = QLabel("Jakariya AI Studio")
-        self.title_label.setStyleSheet("font-size: 22px; font-weight: bold; color: #4F46E5;")
+        self.title_label.setStyleSheet("font-size: 24px; font-weight: 800; color: #4F46E5;")
         layout.addWidget(self.title_label)
 
-        subtitle_label = QLabel("Desktop Multi-Model AI Workspace & Intelligent Assistant")
-        subtitle_label.setStyleSheet("color: #888888; font-size: 13px;")
+        subtitle_label = QLabel("Desktop Multi-Model AI Workspace & Autonomous Intelligent Assistant")
+        subtitle_label.setProperty("subtext", "true")
         layout.addWidget(subtitle_label)
 
         # Application Details Group Box
         app_group = QGroupBox("Application Metadata")
         app_form = QFormLayout(app_group)
-        app_form.setContentsMargins(15, 20, 15, 20)
-        app_form.setSpacing(12)
+        app_form.setContentsMargins(14, 12, 14, 12)
+        app_form.setSpacing(10)
 
-        self.version_label = QLabel("1.0.0")
+        self.version_label = QLabel("2.0.0")
         app_form.addRow("Application Version:", self.version_label)
 
         self.creator_label = QLabel("Md. Jakariya Sheikh")
@@ -57,8 +57,8 @@ class AboutPage(QWidget):
         # System & Environment Info
         sys_group = QGroupBox("System Information")
         sys_form = QFormLayout(sys_group)
-        sys_form.setContentsMargins(15, 20, 15, 20)
-        sys_form.setSpacing(12)
+        sys_form.setContentsMargins(14, 12, 14, 12)
+        sys_form.setSpacing(10)
 
         sys_form.addRow("Operating System:", QLabel(sys.platform.capitalize()))
         sys_form.addRow("Encoding:", QLabel("UTF-8 (Unicode / Bangla Enabled)"))
@@ -80,3 +80,12 @@ class AboutPage(QWidget):
             version=self.version_label.text(),
             creator=self.creator_label.text(),
         )
+
+    def apply_theme(self, theme_name: str) -> None:
+        """Propagate active theme accent to title."""
+        from app.ui.styles import get_theme_palette
+        p = get_theme_palette(theme_name)
+        accent = p.get("accent", "#4F46E5")
+        self.title_label.setStyleSheet(f"font-size: 24px; font-weight: 800; color: {accent};")
+        if hasattr(self, "creator_label"):
+            self.creator_label.setStyleSheet(f"font-weight: bold; color: {p['input_text']};")

@@ -3,6 +3,7 @@
 from .router import (
     is_image_generation_request,
     is_image_enhancement_request,
+    is_same_type_image_request,
     extract_image_payload,
 )
 from .stability_client import StabilityImageClient
@@ -13,5 +14,6 @@ __all__ = [
     "ImageEnhancer",
     "is_image_generation_request",
     "is_image_enhancement_request",
+    "is_same_type_image_request",
     "extract_image_payload",
 ]

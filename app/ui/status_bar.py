@@ -94,6 +94,7 @@ class AppStatusBar(QStatusBar):
 
     def apply_theme(self, theme_name: str) -> None:
         """Update status bar container and model badge styling according to active theme."""
+        self._current_theme = theme_name
         from app.ui.styles import get_theme_palette
         p = get_theme_palette(theme_name)
         self.setStyleSheet(
@@ -135,7 +136,17 @@ class AppStatusBar(QStatusBar):
             transient: If True the message auto-reverts to the idle text after
                        ``_TRANSIENT_DURATION_MS`` milliseconds.
         """
-        bg, fg = _SEVERITY_STYLES[severity]
+        is_dark = str(getattr(self, "_current_theme", "light")).lower() in ("dark", "oled", "neon")
+        if is_dark:
+            _dark_styles = {
+                MessageSeverity.INFO:    ("#1E293B", "#94A3B8"),
+                MessageSeverity.SUCCESS: ("#064E3B", "#34D399"),
+                MessageSeverity.WARNING: ("#78350F", "#FBBF24"),
+                MessageSeverity.ERROR:   ("#7F1D1D", "#F87171"),
+            }
+            bg, fg = _dark_styles.get(severity, ("#1E293B", "#94A3B8"))
+        else:
+            bg, fg = _SEVERITY_STYLES.get(severity, ("#F1F5F9", "#334155"))
         self._msg_label.setText(message)
         self._msg_label.setStyleSheet(
             f"color: {fg}; background-color: {bg}; font-size: 10pt; padding: 0 6px; border-radius: 4px;"

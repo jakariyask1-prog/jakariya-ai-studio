@@ -5,7 +5,7 @@
 ![Version](https://img.shields.io/badge/Version-2.0.0-blue?style=for-the-badge)
 ![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![GUI](https://img.shields.io/badge/GUI-PySide6%20%2F%20Qt6-41CD52?style=for-the-badge&logo=qt&logoColor=white)
-![Tests](https://img.shields.io/badge/Tests-335%20Passed%20(100%25)-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)
+![Tests](https://img.shields.io/badge/Tests-366%20Passed%20(100%25)-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)
 ![Platform](https://img.shields.io/badge/Platform-Windows%20x64-0078D6?style=for-the-badge&logo=windows&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 
@@ -20,20 +20,21 @@
 
 ## 💼 Executive Overview (For Clients & Buyers)
 
-**Jakariya AI Studio** is an enterprise-grade, all-in-one desktop AI workstation designed to eliminate vendor lock-in, maximize productivity, and guarantee total data privacy. Built with high-performance Python and PySide6 (Qt6), it brings together **16 premier cloud and local AI engines**, a dynamic capability-driven Provider Registry, ultra-fast offline models, autonomous multi-turn ReAct agent capabilities, real-time web intelligence, continuous hands-free voice conversations with voice cloning, FLUX.1 ultra-HD image generation, and professional 8-format document publishing into a unified, privacy-first Windows application.
+**Jakariya AI Studio** is an enterprise-grade, all-in-one desktop AI workstation designed to eliminate vendor lock-in, maximize productivity, and guarantee total data privacy. Built with high-performance Python and PySide6 (Qt6), it brings together **16 premier cloud and local AI engines**, a dynamic capability-driven Provider Registry, ultra-fast offline models, autonomous multi-turn ReAct agent capabilities, real-time web intelligence, continuous hands-free voice conversations with voice cloning, FLUX.1 ultra-HD image generation (with same-type companion art synthesis), and professional 8-format document publishing into a unified, privacy-first Windows application.
 
 ### Why Choose Jakariya AI Studio?
 
 | Business Value | How Jakariya AI Studio Delivers |
 | :--- | :--- |
-| **No Vendor Lock-In** | Seamlessly connects to **16 premier AI cloud & local engines**: **Google AI Studio (Gemini 3.8 Flash, 3.6 Flash, 3.5 Flash, Flash Latest, 2.5 Pro)**, **Groq (300+ tokens/sec: GPT-OSS 120B/20B, Qwen 3.8 27B)**, **DeepSeek (R1 Reasoning & V3 via OpenRouter)**, **Anthropic Claude (3.7 & 3.5)**, **Cerebras Wafer-Scale**, **Mistral AI**, **Plugsky AI (Lite, Micro, Pro, Reasoning, DeepSeek Pro)**, **Ollama (100% Offline)**, **Cartesia AI (Sonic)**, **Fish Audio (s2.1-pro)**, **ElevenLabs**, **Hugging Face FLUX.1**, **Stability AI**, **Tavily AI Search**, and **LlamaParse**. |
+| **No Vendor Lock-In** | Seamlessly connects to **16 premier AI cloud & local engines**: **Google AI Studio (Gemini 3.8 Flash, 3.7 Flash, 3.6 Flash, 3.5 Flash, Flash Latest, Pro Latest)**, **Groq (300–800+ tokens/sec: GPT-OSS 120B/20B, Qwen 3.8 27B, ALLAM 2)**, **DeepSeek (V3 & R1 via OpenRouter)**, **Anthropic Claude (3.7 Sonnet & 3.5)**, **Cerebras Wafer-Scale (2000+ t/s)**, **Mistral AI (Codestral 256k & Mistral Small)**, **Plugsky AI (Lite & Micro)**, **Ollama (100% Offline)**, **Cartesia AI (Sonic)**, **Fish Audio (s2.1-pro)**, **ElevenLabs**, **Hugging Face FLUX.1**, **Stability AI**, **Tavily AI Search**, and **LlamaParse**. |
 | **Dynamic Capability Registry** | Built-in `ProviderRegistry` cataloging dynamic functional capabilities (`supports_chat`, `supports_reasoning`, `supports_coding`, `supports_vision`, `supports_image_generation`, `supports_stt`, `supports_tts`, `supports_web_search`) with automated health checks, dynamic model discovery, and failover routing. |
 | **Enterprise Data Privacy & Security** | All conversations, message histories, credentials, and attachments stay strictly on the user's computer. SQLite configured in WAL mode (`%LOCALAPPDATA%\Jakariya AI Studio\`). Sensitive API keys are secured via **Windows Credential Manager (Keyring)**—never stored in plaintext. |
 | **Zero Mandatory Recurring Fees** | Integrated with free, high-quality cloud services out of the box: **Microsoft Edge Neural TTS (Free natural conversational voices)**, **Google Web Speech STT (Free)**, **Pollinations AI (Free image generation)**, and **Ollama (Free local AI)**. Premium API keys are completely optional. |
-| **Hands-Free Live Voice & Voice Cloning** | Features **Continuous Live Mode (⚡ Live)**: speak naturally with the AI like a human assistant. Features active **Barge-In interruption**, dynamic speaker echo attenuation (`0.15`), personal cloned voice IDs, and sub-second responses via Cartesia AI Sonic, Fish Audio, Edge Neural TTS (`en-US-JennyNeural`, `bn-BD-NabanitaNeural`), ElevenLabs, and Google TTS. |
+| **Hands-Free Live Voice & Voice Cloning** | Features **Continuous Live Mode (⚡ Live)**: speak naturally with the AI like a human assistant. Features active **Barge-In interruption**, dynamic speaker echo attenuation (`0.15`), physical hardware device selection (input mic & output speaker), personal cloned voice IDs, and sub-second responses via Cartesia AI Sonic, Fish Audio, Edge Neural TTS (`en-US-JennyNeural`, `bn-BD-NabanitaNeural`), ElevenLabs, and Google TTS. |
 | **Full Bilingual Support** | Native, fluent bilingual interaction in **Bangla (বাংলা)** and **English**, complete with embedded Bengali typography (`NotoSansBengali`) for reports and UI widgets. |
-| **Smart Document Publishing** | Automatically turns AI research into stylized physical files (**PDF**, **Word DOCX**, **Excel XLSX**, **HTML**, **Markdown**, **TXT**, **CSV**, **JSON**) with Claude Desktop-style interactive preview cards and 6 color palettes. |
-| **Ultra-HD Image Studio** | Built-in **FLUX.1-schnell** (via Hugging Face distributed inference), Stability AI SDXL, Pollinations AI, and an offline **Dual-Frequency Separation** portrait enhancer upscaling images 2X locally. |
+| **Smart Document Publishing** | Automatically turns AI research into stylized physical files (**PDF**, **Word DOCX**, **Excel XLSX**, **HTML**, **Markdown**, **TXT**, **CSV**, **JSON**) with Claude Desktop-style interactive preview cards, 1-click Excel export, and 6 color palettes. |
+| **Ultra-HD Image Studio & Same-Type Art** | Built-in **FLUX.1-schnell** (via Hugging Face distributed inference), Stability AI SDXL, Pollinations AI, and innovative **Same-Type / Similar Image Generation** from attached pictures using multi-modal vision prompts, plus an offline **Dual-Frequency Separation** portrait enhancer upscaling images 2X locally. |
+| **Eye-Comfort Modern Themes** | 4 Curated themes: **GPT Light** (Soothing luminous pearl slate `#F8FAFC`), **Modern Dark** (Deep midnight slate `#0F172A`), **Midnight OLED** (Pure black `#000000`), and **Cyberpunk Neon** (`#0B0813`), with theme-adaptive dropdowns, tooltips, and scrollbars. |
 
 ---
 
@@ -41,13 +42,13 @@
 
 ### 🤖 1. Multi-Provider AI Engine & Central Capability Registry
 * **Central Provider & Capability Registry (`ProviderRegistry`)**: System-wide model metadata container managing base URLs, live model catalogs, and granular functional capabilities (`supports_chat`, `supports_reasoning`, `supports_coding`, `supports_vision`, `supports_image_generation`, `supports_stt`, `supports_tts`, `supports_web_search`).
-* **Google AI Studio**: Full support for **Gemini 3.8 Flash (Latest)**, **Gemini 3.6 Flash (High Reasoning)**, **Gemini 3.5 Flash**, **Gemini Flash Latest**, and **Gemini 2.5 Pro**.
-* **Groq Ultra-Fast Inference**: Ultra-low latency LLM generation at **300+ tokens per second** (OpenAI GPT-OSS 120B & 20B, Qwen 3.8 27B, Llama 3.3 70B).
-* **OpenRouter Multi-Gateway**: Universal access to DeepSeek R1, DeepSeek V3, Claude 3.5 Sonnet, GPT-4o, and Qwen 2.5 72B.
+* **Google AI Studio**: Full support for **Gemini 3.8 Flash (Latest Flagship Multimodal)**, **Gemini 3.7 Flash (Hybrid Reasoning & Fast Coding)**, **Gemini 3.6 Flash (Fast Agent & Coding)**, **Gemini 3.5 Flash (Lightweight & Rapid)**, **Gemini Flash Latest**, and **Gemini Pro Latest**. Decommissioned models automatically forward-map to current models.
+* **Groq Ultra-Fast Inference**: Ultra-low latency LLM generation at **300+ to 800+ tokens per second** (**OpenAI GPT-OSS 120B**, **Qwen 3.8 27B**, **GPT-OSS 20B**, **ALLAM 2 7B**, and **Whisper Large v3 Turbo STT**).
+* **OpenRouter Multi-Gateway**: Universal access to DeepSeek V3 (`deepseek/deepseek-chat`), Qwen 2.5 Coder 32B, Meta Llama 3.3 70B, GPT-4o, GPT-4o Mini, and Qwen 2.5 72B.
 * **Anthropic Direct**: Native streaming client for Claude 3.7 Sonnet, Claude 3.5 Sonnet, and Claude 3.5 Haiku.
-* **Cerebras Wafer-Scale Engine**: High-throughput reasoning workloads with wafer-scale chip speed.
-* **Plugsky AI Suite**: Full native support for Plugsky Lite, Micro, Pro, Reasoning, and DeepSeek Pro.
-* **Mistral AI Direct**: Native support for Mistral Large, Mistral Small, Codestral, and Pixtral vision models.
+* **Cerebras Wafer-Scale Engine**: High-throughput reasoning workloads with wafer-scale chip speed (2000+ tokens/sec: GPT-OSS 120B, Qwen 3.8 27B).
+* **Plugsky AI Suite**: Full native support for Plugsky Lite (Fast General Intelligence) and Plugsky Micro (Ultra-Fast Lightweight).
+* **Mistral AI Direct**: Native support for Mistral Codestral (256k context dedicated coding SOTA) and Mistral Small.
 * **Ollama (100% Offline & Private)**: Zero-internet private execution (Llama 3.1/3.2, Qwen 2.5, DeepSeek Coder V2).
 * **Intelligent Failover Dispatcher**: Continuously tracks endpoint health, latency, HTTP 429 rate limits, and quota balance, rerouting queries to user-prioritized backup models seamlessly.
 
@@ -78,13 +79,12 @@
   - Automatically resets permissions back to safe prompting when the task finishes or is cancelled, ensuring zero accidental permissions.
 * **Strict Security Sandbox & AST Guard**: Isolated child process execution, memory safeguards, 8-second execution timeouts, AST security inspection preventing unauthorized file or system access, and prompt injection defense.
 * **Temporal Real-Time Clock**: Injects live system clocks (Local Machine Time & Bangladesh Standard Time - BST / UTC+6) into prompts for pinpoint accuracy on time-sensitive queries.
-* **Document Intelligence**: Deep document analysis powered by LlamaParse and native PDF extractors.
-* **Secure File I/O**: Reads and writes documents safely within dedicated user directories (`Desktop`, `Documents`, `Downloads`).
 
-### 🎙️ 3. Continuous Live Voice Mode, Cloned Voices & Voice Studio
-* **Hands-Free Live Conversation (⚡ Live)**: Continuous multi-turn dialogue loop with automatic Voice Activity Detection (VAD) and configurable silence detection (500–5000ms).
+### 🎙️ 3. Continuous Live Voice Mode, Hardware Selection & Cloned Voices
+* **Hands-Free Live Conversation (⚡ Live)**: Continuous multi-turn dialogue loop with automatic Voice Activity Detection (VAD) and configurable silence detection (1000–1300ms natural conversational pause).
 * **Barge-In Interruption**: Interrupt the AI mid-sentence simply by speaking. The audio player immediately stops speaking and transitions back to listening without UI lag.
 * **Acoustic Feedback Shield**: Automatically attenuates microphone gain to **0.15** during TTS playback to eliminate audio loopbacks.
+* **Hardware Audio Device Selection (NEW)**: Explicitly choose specific physical Microphone inputs and Speaker/Headphone outputs directly in Settings > Voice & Audio using `QMediaDevices`.
 * **Custom Voices Studio & Presets Manager (`AddVoiceDialog`, `voice_presets.py`)**:
   - Interactive custom voice dialog supporting custom voice additions with dynamic provider metadata, preview playback, and sample rate negotiation across Cartesia, Fish Audio, Edge TTS, ElevenLabs, and Google TTS.
   - Built-in Voice Presets catalog with curated conversational personalities (Jenny, Guy, Nabanita, Pradeep, Sonic Clones).
@@ -94,39 +94,37 @@
   - **Speech-to-Text (STT)**: Groq Whisper (`whisper-large-v3-turbo` ultra-low latency ~150-250ms), Google Web Speech (Free, rate-resilient), and ElevenLabs Scribe v2.
   - **Text-to-Speech (TTS)**: Cartesia AI (Sonic ultra-fast voice <1s latency & cloned voices), Fish Audio (Expressive neural `s2.1-pro`), Microsoft Edge Neural TTS (Free natural conversational voices), ElevenLabs Multilingual v2, and Google TTS.
 
-### 🎨 4. Ultra-HD Image Studio & Enhancer
+### 🎨 4. Ultra-HD Image Studio & Same-Type Art Generator
 * **FLUX.1-schnell (Black Forest Labs)**: State-of-the-art text-to-image synthesis via Hugging Face distributed inference providers (`fal-ai`, `together`, `replicate`, `hyperbolic`, `nebius`).
+* **🎨 Same-Type / Similar Image Generation (NEW)**: Attach an image and prompt "Create a similar image in this style" or "এই ছবির মতো আরেকটি ছবি বানাও". Multi-modal vision extracts style, medium, lighting, and composition, synthesizing an aligned prompt to generate high-fidelity companion artwork.
 * **Stability AI**: Photorealistic SDXL image generation.
 * **Pollinations AI**: Free, instant fallback engine with zero-key setup.
 * **Dual-Frequency Image Enhancer**: Offline 2X upscaling and portrait detail sharpening using frequency separation without external GPU servers.
 
-### 📊 5. Smart Document Cards & Multi-Format Exporters
+### 📊 5. Smart Document Cards & 8-Format Exporters
 * **Claude Desktop-Style Preview Cards**: Automatically detects structured reports, data tables, proposals, and roadmaps in chat and renders clickable document cards with title, word count, and estimated page counts.
-* **Document Inspector Dialog**: Interactive preview window with rendered Markdown, source tabs, and 1-click exports.
-* **Physical Exporters (8 Formats)**:
+* **Document Inspector Dialog**: Interactive preview window with rendered Markdown, source tabs, and 1-click physical export buttons:
   - **PDF**: ReportLab styled PDF generation with embedded `NotoSansBengali` fonts for flawless Bengali script rendering without mojibake.
   - **DOCX**: Rich Microsoft Word documents with callout boxes, headers, and colored tables.
-  - **XLSX**: Multi-column Excel spreadsheets with styled header rows and alternating grid shading.
+  - **XLSX (NEW)**: Direct 1-click Excel spreadsheet export with styled header rows and alternating grid shading.
   - **HTML, MD, TXT, CSV, JSON**: Clean UTF-8 files.
 * **6 Curated Palettes**: `vibrant`, `colorful`, `emerald`, `sunset`, `cyber`, `executive`.
+* **Round-Trip Chat Backup & Import**: Full support for exporting conversations to `.json`, `.md`, or `.txt`, and importing them back with automatic heading and role normalization (`### User`, `### Assistant`).
 
-### 🛡️ 6. User Authentication, Cloud Sync & 3-Day Trial System
+### 👁️ 6. 4 Eye-Comfort Themes & Minimizable Settings
+* **4 Eye-Comfort Themes**:
+  - **GPT Light**: Soothing luminous pearl slate (`#F8FAFC`) with soft indigo accents (`#4F46E5`), eliminating screen glare during long working sessions.
+  - **Modern Dark**: Luxurious deep midnight slate (`#0F172A`) matching Linear & Cursor aesthetics.
+  - **Midnight OLED**: Deep power-saving pure black (`#000000`) for OLED and HDR displays.
+  - **Cyberpunk Neon**: Ambient dark violet (`#0B0813`) with electric pink highlights (`#F472B6`).
+* **Theme-Adaptive Dropdowns & Tooltips**: Transparent scrollbars, custom-styled comboboxes, and high-contrast tooltip popups across all light and dark modes.
+* **Minimizable Settings Window**: Native Windows minimize/maximize/close hints, dedicated in-window Minimize button, and collapsible sidebar navigation (60px compact icon mode vs 210px expanded mode).
+
+### 🛡️ 7. User Authentication, Cloud Sync & 3-Day Trial System
 * **Google Firebase Auth REST Integration**: Seamless email/password sign-up, login, and token refresh directly inside the desktop client (`AuthDialog`, `AuthService`).
 * **3-Day Full-Access Free Trial**: New installations receive automatic 3-day unhindered access to all features.
 * **Hardware-Bound Licensing Engine**: Machine UUID fingerprinting and secure license key activation via `LicenseManager` and `UpgradeDialog`.
 * **Cloud Session Sync**: Automatically syncs user credentials and profiles across devices.
-
-### ⚙️ 7. 9-Page Modular Settings Suite & Minimizable Window
-* **Minimizable Settings Window**: Native Windows minimize/maximize/close hints, dedicated in-window Minimize button, and collapsible sidebar navigation (60px compact icon mode vs 210px expanded mode).
-* **General**: Interface localization (English & বাংলা), system startup auto-launcher, and desktop notifications for background tasks.
-* **Appearance**: 4 curated themes (**GPT Light**, **Modern Dark**, **Midnight OLED**, **Cyberpunk Neon**) with real-time live preview (no app restart required), font family, live font scaling (80%–140%), and spacing density.
-* **AI Providers**: Centralized API key management for all **16 providers** (Google, Groq, OpenRouter, Anthropic, Cerebras, Mistral, Plugsky, Ollama, Cartesia, ElevenLabs, Fish Audio, Stability AI, Hugging Face, Tavily, Brave, LlamaParse) with async background connection testing (`QThread`), live status badges, dynamic failover priority ordering, and dual-layer storage (Keyring + `.env`).
-* **AI Models**: Independent task role assignment (Chat, Coding, Reasoning, Vision, Voice, Image, Fallback).
-* **Voice & Audio**: Engine selector, Custom Voices Studio, voice test preview, auto-send toggle, speech response toggle, silence timeout, and VAD sensitivity.
-* **Chat & Persona**: System persona prompts (Assistant, Math Tutor, Code Architect, Custom), memory injection, temperature, and max tokens sliders.
-* **Export Preferences**: Default format selection, paper sizes (A4, Letter, Legal), timestamps toggle.
-* **Advanced**: System log level (INFO, DEBUG, WARNING, ERROR), temporary cache cleanup, orphan file sweep on exit.
-* **About Studio**: Version information (`v2.0.0`), developer credits (**Md. Jakariya Sheikh**), runtime environment specs.
 
 ---
 
@@ -296,8 +294,14 @@ $env:QT_QPA_PLATFORM = "offscreen"
 
 ### Test Coverage Highlights
 
-* **Total Test Cases**: **335 Passed (100% Pass Rate)** across 63 test suites.
+* **Total Test Cases**: **366 Passed (100% Pass Rate)** across 66 test suites.
 * **Subsystems Covered**:
+  - `test_theme_switching.py`: Comprehensive test suite for all 4 eye-comfort theme palettes (Light, Dark, OLED, Neon), theme propagation across SettingsWindow pages, provider cards, comboboxes, and tooltips.
+  - `test_live_conversation_fixes.py`: Cartesia language-voice pairing, Google STT fallback, Groq STT auto-detect, microphone isolation, and barge-in threshold verification.
+  - `test_ui_deep_sanity.py`: Full MainWindow and SettingsWindow lifecycle, 9 settings pages navigation, voice transcribing into input bar, and live mode chat routing.
+  - `test_download_and_smart_docs.py`: Document card generation, preview dialog exports (PDF, DOCX, XLSX), and code block copy/download.
+  - `test_image_generation.py`: Same-type image generation routing, image payload extraction, prompt cleaning, and history markup upgrades.
+  - `test_json_export_import.py`: JSON exporter, conversation round-tripping, and Markdown/TXT header normalization.
   - `test_antigravity_diff_tracker.py` & `test_antigravity_tools.py`: Validates syntax-highlighted unified diff tracker, file editing diff computations, and code change review dialogues.
   - `test_custom_voices_and_tts.py`: Validates custom voices persistence, preset loading, and dynamic sample rate negotiation.
   - `test_latency_fixes.py`: Validates ultra-low latency audio pipeline, Groq Whisper STT, fast FLAC encoding flags, and rapid turn restart (40ms).
@@ -311,12 +315,8 @@ $env:QT_QPA_PLATFORM = "offscreen"
   - `test_separate_voice_and_live_modes.py`: Validates Single-Turn Mic Mode vs Continuous Live Mode lifecycle.
   - `test_live_session_edge_cases.py`: Simulates dropped microphone, device disconnects, and automatic recovery.
   - `test_voice_pipeline.py`: Real-time barge-in interruption and multi-turn state transitions.
-  - `test_fish_audio_tts.py`: Fish Audio REST API integration and quota handling.
   - `test_web_search_detection.py`: Verifies word-boundary regex detection for English and Bengali query terms and Tavily search integration.
-  - `test_smart_document_*.py`: Document classification, page count estimation, and card HTML generation.
   - `test_document_exporters.py`: Physical PDF, Word DOCX, and Excel XLSX file generation with ReportLab unicode fonts.
-  - `test_settings_*.py` & `test_health_and_failover.py`: Dynamic provider priority failover, isolated keyring vault, full 16-provider UI settings cards, UI signal propagation, and theme persistence.
-  - `test_image_enhancer.py` & `test_flux_image_generation.py`: Dual-frequency image separation and distributed inference.
 
 ---
 
@@ -358,11 +358,12 @@ powershell -ExecutionPolicy Bypass -File .\build_all.ps1
 
 The resulting production installer `dist\Jakariya_AI_Studio_Setup_v2.0.0.exe` includes:
 - Start Menu and Desktop shortcuts with high-resolution custom squircle icons.
+- Direct Start Menu shortcuts to User Guide and Documentation.
 - Auto-provisioning of `%LOCALAPPDATA%\Jakariya AI Studio\` user directories.
 - Clean uninstallation with optional user data purge prompt.
 - Bundled FFmpeg binaries, FLAC utilities, and Bengali typography fonts.
 
-### 5. Utility Scripts
+### 5. Maintenance & Helper Scripts
 * `cleanup_locked_temp.bat` / `cleanup_locked_temp.ps1`: Unlocks and deletes permission-locked temporary pytest artifacts and caches.
 * `create_project_rar.bat`: Creates a pristine project backup archive using WinRAR, excluding virtual environments and transient caches.
 
@@ -372,61 +373,61 @@ The resulting production installer `dist\Jakariya_AI_Studio_Setup_v2.0.0.exe` in
 
 ```text
 jakariya ai studio/
-├── main.py                                  # Application entry point & Qt bootstrap
-├── main.spec                                # PyInstaller directory mode specification
-├── Jakariya AI Studio.spec                  # PyInstaller standalone EXE specification
-├── Jakariya_AI_Studio_Setup.iss             # Inno Setup 6 Windows installer script
-├── build_all.ps1                            # Master build automation pipeline
-├── build_exe.bat                            # Double-click single EXE builder
-├── build_exe.ps1                            # PowerShell single EXE builder
-├── cleanup_locked_temp.bat                  # Batch locked temp cleanup tool
-├── cleanup_locked_temp.ps1                  # PowerShell locked temp cleanup tool
-├── create_project_rar.bat                   # One-click clean RAR archive creator
-├── download_ffmpeg.py                       # FFmpeg binary setup script
-├── requirements.txt                         # Production dependencies
-├── pytest.ini                               # Pytest configuration
-├── README.md                                # Master project documentation
-├── USER_GUIDE_PROVIDERS_AND_MODELS_BANGLA.txt # Detailed bilingual model & provider guide
+├── main.py                                     # Application entry point & Qt bootstrap
+├── main.spec                                   # PyInstaller directory mode specification
+├── Jakariya AI Studio.spec                     # PyInstaller standalone EXE specification
+├── Jakariya_AI_Studio_Setup.iss                # Inno Setup 6 Windows installer script
+├── build_all.ps1                               # Master build automation pipeline
+├── build_exe.bat                               # Double-click single EXE builder
+├── build_exe.ps1                               # PowerShell single EXE builder
+├── cleanup_locked_temp.bat                     # Batch locked temp cleanup tool
+├── cleanup_locked_temp.ps1                     # PowerShell locked temp cleanup tool
+├── create_project_rar.bat                      # One-click clean RAR archive creator
+├── download_ffmpeg.py                          # FFmpeg binary setup script
+├── requirements.txt                            # Production dependencies
+├── pytest.ini                                  # Pytest configuration
+├── README.md                                   # Master project documentation
+├── USER_GUIDE_PROVIDERS_AND_MODELS_BANGLA.txt    # Detailed bilingual model & provider guide
 ├── assets/
-│   ├── bin/                                 # ffmpeg.exe, ffprobe.exe, flac-win32.exe
-│   ├── fonts/                               # NotoSansBengali-Regular.ttf, NotoSansBengali-Bold.ttf
-│   ├── icons/                               # High-res squircle logo.ico, logo.png
-│   ├── images/                              # UI assets & creator profile media
-│   ├── logo.ico                             # Windows multi-resolution icon (256x256 down to 16x16)
-│   └── logo.png                             # Master squircle icon (1024x1024)
+│   ├── bin/                                    # ffmpeg.exe, flac-win32.exe
+│   ├── fonts/                                  # NotoSansBengali-Regular.ttf, NotoSansBengali-Bold.ttf
+│   ├── icons/                                  # High-res squircle logo.ico, logo.png
+│   ├── images/                                 # UI assets & creator profile media
+│   ├── logo.ico                                # Windows multi-resolution icon (256x256 down to 16x16)
+│   └── logo.png                                # Master squircle icon (1024x1024)
 ├── app/
-│   ├── agent/                               # Autonomous ReAct agent engine, planner & 12 tools
-│   │   ├── planner/                         # Task decomposition & step-by-step planning
-│   │   ├── task/                            # TaskManager, state tracking, execution tokens
-│   │   ├── tools/                           # 12 Built-in tools (REPL, File I/O, Search, Edit, Shell, Git, Diagnostics, Outline, Web, Exporter)
-│   │   ├── agent_engine.py                  # Core ReAct reasoning & tool execution loop
-│   │   ├── agent_worker.py                  # Background QThread worker, AgentController & Auto-Approval bypass
-│   │   ├── diff_tracker.py                  # Central unified diff and code change tracker (Antigravity-style)
-│   │   └── tool_registry.py                 # Central tool registry with aliases & dynamic discovery
-│   ├── api/                                 # ClaudeClient, TavilyClient, Model catalogs
-│   ├── chat/                                # ChatController, ChatManager, Repository, Worker
-│   ├── database/                            # SQLite manager (WAL mode) & schema migrations (001-003)
-│   ├── export/                              # Exporters (PDF, DOCX, XLSX, HTML, MD, TXT, CSV, JSON)
-│   ├── image_generation/                    # FLUX.1 Inference Client, Stability AI & Image Enhancer
-│   ├── models/                              # ChatMessage, Attachment, Conversation dataclasses
-│   ├── providers/                           # Multi-provider manager & core LLM provider implementations
-│   │   ├── implementations/                 # Google, Groq, OpenRouter, Anthropic, Cerebras, Mistral, Ollama, Plugsky
-│   │   └── manager/                         # ProviderManager instance & automatic failover engine
-│   ├── services/                            # RAG pipeline, document chunker, LlamaParse file parser
-│   ├── settings/                            # ProviderRegistry, ConfigurationService, Keyring Vault, 9 Settings Pages
-│   │   ├── provider_registry.py             # Dynamic Provider & Capability Registry
-│   │   └── ui/                              # 9-page modular settings interface
-│   ├── ui/                                  # PySide6 GUI (MainWindow, ChatArea, InputBar, Header, Sidebar)
-│   │   ├── approval_dialog.py               # Tool approval modal (Deny, Allow Once, ⚡ Allow All)
-│   │   ├── chat_area.py                     # Chat streaming, code blocks, Smart Document Cards
-│   │   ├── document_preview_dialog.py       # Interactive document inspector & exporter dialog
-│   │   ├── code_changes_review_dialog.py    # Visual inline diff review dialog
-│   │   ├── add_voice_dialog.py              # Custom voice designer and preset modal
-│   │   ├── input_bar.py                     # Message input, Agent pill, Live pill, Mic button
-│   │   └── styles.py                        # Themes: GPT Light, Modern Dark, Midnight OLED, Cyberpunk Neon
-│   ├── utils/                               # Paths, document detector, markdown renderer, check_keys
-│   └── voice/                               # Voice engine, STT (Groq Whisper, Google) & TTS, Presets, Cartesia
-└── tests/                                   # 63 test suites containing 335 passing test cases (100%)
+│   ├── agent/                                  # Autonomous ReAct agent engine, planner & 12 tools
+│   │   ├── planner/                            # Task decomposition & step-by-step planning
+│   │   ├── task/                               # TaskManager, state tracking, execution tokens
+│   │   ├── tools/                              # 12 Built-in tools (REPL, File I/O, Search, Edit, Shell, Git, Diagnostics, Outline, Web, Exporter)
+│   │   ├── agent_engine.py                     # Core ReAct reasoning & tool execution loop
+│   │   ├── agent_worker.py                     # Background QThread worker, AgentController & Auto-Approval bypass
+│   │   ├── diff_tracker.py                     # Central unified diff and code change tracker (Antigravity-style)
+│   │   └── tool_registry.py                    # Central tool registry with aliases & dynamic discovery
+│   ├── api/                                    # ClaudeClient, TavilyClient, Model catalogs
+│   ├── chat/                                   # ChatController, ChatManager, Repository, Worker
+│   ├── database/                               # SQLite manager (WAL mode) & schema migrations (001-003)
+│   ├── export/                                 # Exporters (PDF, DOCX, XLSX, HTML, MD, TXT, CSV, JSON) & ImportService
+│   ├── image_generation/                       # FLUX.1 Inference Client, Stability AI, Same-Type Art Router & Enhancer
+│   ├── models/                                 # ChatMessage, Attachment, Conversation dataclasses
+│   ├── providers/                              # Multi-provider manager & core LLM provider implementations
+│   │   ├── implementations/                    # Google, Groq, OpenRouter, Anthropic, Cerebras, Mistral, Ollama, Plugsky
+│   │   └── manager/                            # ProviderManager instance & automatic failover engine
+│   ├── services/                               # RAG pipeline, document chunker, LlamaParse file parser
+│   ├── settings/                               # ProviderRegistry, ConfigurationService, Keyring Vault, 9 Settings Pages
+│   │   ├── provider_registry.py                # Dynamic Provider & Capability Registry
+│   │   └── ui/                                 # 9-page modular settings interface
+│   ├── ui/                                     # PySide6 GUI (MainWindow, ChatArea, InputBar, Header, Sidebar, StatusBar)
+│   │   ├── approval_dialog.py                  # Tool approval modal (Deny, Allow Once, ⚡ Allow All)
+│   │   ├── chat_area.py                        # Chat streaming, code blocks, Smart Document Cards, Bento welcome
+│   │   ├── document_preview_dialog.py          # Interactive document inspector & exporter dialog (PDF, DOCX, XLSX)
+│   │   ├── code_changes_review_dialog.py       # Visual inline diff review dialog
+│   │   ├── add_voice_dialog.py                 # Custom voice designer and preset modal
+│   │   ├── input_bar.py                        # Message input, Agent pill, Live pill, Mic button
+│   │   └── styles.py                           # 4 Eye-Comfort Themes (Light, Dark, OLED, Neon) & unified QSS
+│   ├── utils/                                  # Paths, document detector, markdown renderer, check_keys
+│   └── voice/                                  # Voice engine, STT (Groq Whisper, Google) & TTS, Presets, Cartesia, Devices
+└── tests/                                      # 66 test suites containing 366 passing test cases (100%)
 ```
 
 ---
@@ -453,4 +454,4 @@ copies or substantial portions of the Software.
 
 * **Architect & Developer**: **Md. Jakariya Sheikh**  
 * **Project**: **Jakariya AI Studio (v2.0.0)**  
-* **Status**: **100% Production Ready & Verified (335/335 Tests Green)**
+* **Status**: **100% Production Ready & Verified (366/366 Tests Green)**

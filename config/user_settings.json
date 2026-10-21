@@ -17,31 +17,31 @@
         "google_ai_studio": {
             "name": "Google AI Studio (Gemini)",
             "enabled": true,
-            "api_key": "",
+            "api_key": "__keyring__",
             "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
-            "status": "not_configured",
+            "status": "active",
             "priority": 1
         },
         "openrouter": {
             "name": "OpenRouter (Unified Multi-Model Gateway)",
             "enabled": true,
-            "api_key": "",
+            "api_key": "__keyring__",
             "base_url": "https://openrouter.ai/api/v1",
-            "status": "not_configured",
+            "status": "active",
             "priority": 2
         },
         "groq": {
             "name": "Groq (Ultra High-Speed Llama & Mixtral)",
-            "enabled": false,
-            "api_key": "",
+            "enabled": true,
+            "api_key": "__keyring__",
             "base_url": "https://api.groq.com/openai/v1",
-            "status": "not_configured",
+            "status": "active",
             "priority": 1
         },
         "cerebras": {
             "name": "Cerebras (Wafer-Scale AI Engine)",
             "enabled": false,
-            "api_key": "",
+            "api_key": "__keyring__",
             "base_url": "https://api.cerebras.ai/v1",
             "status": "not_configured",
             "priority": 1
@@ -49,7 +49,7 @@
         "anthropic": {
             "name": "Anthropic (Claude)",
             "enabled": false,
-            "api_key": "",
+            "api_key": "__keyring__",
             "base_url": "https://api.anthropic.com/v1",
             "status": "not_configured",
             "priority": 1
@@ -65,7 +65,7 @@
         "plugsky": {
             "name": "Plugsky AI",
             "enabled": false,
-            "api_key": "",
+            "api_key": "__keyring__",
             "base_url": "https://api.plugsky.com/v1",
             "status": "not_configured",
             "priority": 1
@@ -73,9 +73,9 @@
         "tavily": {
             "name": "Tavily (Real-Time Web Search)",
             "enabled": true,
-            "api_key": "",
+            "api_key": "__keyring__",
             "base_url": "https://api.tavily.com",
-            "status": "not_configured",
+            "status": "active",
             "priority": 1
         },
         "brave_search": {
@@ -89,7 +89,7 @@
         "stability_ai": {
             "name": "Stability AI (Image Generation)",
             "enabled": false,
-            "api_key": "",
+            "api_key": "__keyring__",
             "base_url": "https://api.stability.ai/v1",
             "status": "not_configured",
             "priority": 1
@@ -105,7 +105,7 @@
         "fish_audio": {
             "name": "Fish Audio (Expressive Neural Voice)",
             "enabled": false,
-            "api_key": "",
+            "api_key": "__keyring__",
             "base_url": "https://api.fish.audio/v1",
             "status": "not_configured",
             "priority": 1
@@ -113,7 +113,7 @@
         "mistral": {
             "name": "Mistral AI (Codestral & Mistral Large)",
             "enabled": false,
-            "api_key": "",
+            "api_key": "__keyring__",
             "base_url": "https://api.mistral.ai/v1",
             "status": "not_configured",
             "priority": 1
@@ -121,7 +121,7 @@
         "elevenlabs": {
             "name": "ElevenLabs (Voice Cloning & TTS)",
             "enabled": false,
-            "api_key": "",
+            "api_key": "__keyring__",
             "base_url": "https://api.elevenlabs.io/v1",
             "status": "not_configured",
             "priority": 1
@@ -129,7 +129,7 @@
         "llamaparse": {
             "name": "LlamaParse (Advanced PDF & Doc Parser)",
             "enabled": false,
-            "api_key": "",
+            "api_key": "__keyring__",
             "base_url": "https://api.cloud.llamaindex.ai/api/v1",
             "status": "not_configured",
             "priority": 1
@@ -137,30 +137,33 @@
         "huggingface": {
             "name": "Hugging Face (Inference & Hub Models)",
             "enabled": false,
-            "api_key": "",
+            "api_key": "__keyring__",
             "base_url": "https://api-inference.huggingface.co",
             "status": "not_configured",
             "priority": 1
         }
     },
     "models": {
-        "chat_model": "google/gemini-3.6-flash",
-        "coding_model": "plugsky-lite",
-        "reasoning_model": "openai/gpt-4o-mini",
-        "vision_model": "google/gemini-3.6-flash",
+        "chat_model": "google/gemini-3.8-flash",
+        "coding_model": "qwen/qwen-2.5-coder-32b-instruct",
+        "reasoning_model": "google/gemini-3.7-flash",
+        "vision_model": "google/gemini-3.8-flash",
         "voice_model": "cartesia",
         "image_model": "google/gemini-3.5-flash",
         "fallback_model": "google/gemini-3.6-flash"
     },
     "voice": {
         "stt_provider_id": "groq_stt",
-        "tts_provider_id": "cartesia",
-        "voice_id": "2c8d7dfb-ca84-4888-9600-8d8c54022dba",
+        "tts_provider_id": "edge_neural_tts",
+        "voice_id": "bn-BD-NabanitaNeural",
+        "custom_voices": [],
         "auto_send": true,
         "voice_response": true,
-        "silence_timeout_ms": 550,
+        "silence_timeout_ms": 1300,
         "vad_threshold": 0.012,
-        "language": "bn"
+        "language": "auto",
+        "input_device_index": null,
+        "output_device_index": 0
     },
     "chat": {
         "system_persona": "default",
@@ -183,7 +186,7 @@
     },
     "about": {
         "app_name": "Jakariya AI Studio",
-        "version": "1.0.0",
+        "version": "2.0.0",
         "creator": "Md. Jakariya Sheikh"
     }
 }

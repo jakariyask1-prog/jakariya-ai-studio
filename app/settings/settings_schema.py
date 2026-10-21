@@ -89,28 +89,32 @@ class AppearanceSettings:
 
 @dataclass
 class VoiceSettingsSchema:
-    stt_provider_id: str = "google_stt"
-    tts_provider_id: str = "edge_neural_tts"
-    voice_id: str = "bn-BD-NabanitaNeural"
+    stt_provider_id: str = "groq_stt"
+    tts_provider_id: str = "cartesia"
+    voice_id: str = "2c8d7dfb-ca84-4888-9600-8d8c54022dba"
     custom_voices: list[dict[str, Any]] = field(default_factory=list)
     auto_send: bool = True
     voice_response: bool = True
-    silence_timeout_ms: int = 1300
-    vad_threshold: float = 0.020  # Aligned with VoiceSettings default
-    language: str = "bn"
+    silence_timeout_ms: int = 1000
+    vad_threshold: float = 0.012  # Aligned with VoiceSettings default
+    language: str = "auto"
+    input_device_index: int | None = None
+    output_device_index: int | None = None
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> VoiceSettingsSchema:
         return cls(
-            stt_provider_id=str(data.get("stt_provider_id", "google_stt")),
-            tts_provider_id=str(data.get("tts_provider_id", "edge_neural_tts")),
-            voice_id=str(data.get("voice_id", "bn-BD-NabanitaNeural")),
+            stt_provider_id=str(data.get("stt_provider_id", "groq_stt")),
+            tts_provider_id=str(data.get("tts_provider_id", "cartesia")),
+            voice_id=str(data.get("voice_id", "2c8d7dfb-ca84-4888-9600-8d8c54022dba")),
             custom_voices=list(data.get("custom_voices", [])),
             auto_send=bool(data.get("auto_send", True)),
             voice_response=bool(data.get("voice_response", True)),
-            silence_timeout_ms=int(data.get("silence_timeout_ms", 1300)),
-            vad_threshold=float(data.get("vad_threshold", 0.008)),
-            language=str(data.get("language", "bn")),
+            silence_timeout_ms=int(data.get("silence_timeout_ms", 1000)),
+            vad_threshold=float(data.get("vad_threshold", 0.012)),
+            language=str(data.get("language", "auto")),
+            input_device_index=data.get("input_device_index"),
+            output_device_index=data.get("output_device_index"),
         )
 
 
@@ -170,14 +174,14 @@ class AdvancedSettingsSchema:
 @dataclass
 class AboutSettingsSchema:
     app_name: str = "Jakariya AI Studio"
-    version: str = "1.0.0"
+    version: str = "2.0.0"
     creator: str = "Md. Jakariya Sheikh"
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> AboutSettingsSchema:
         return cls(
             app_name=str(data.get("app_name", "Jakariya AI Studio")),
-            version=str(data.get("version", "1.0.0")),
+            version=str(data.get("version", "2.0.0")),
             creator=str(data.get("creator", "Md. Jakariya Sheikh")),
         )
 
@@ -185,8 +189,8 @@ class AboutSettingsSchema:
 @dataclass
 class AppSettingsSchema:
     """Master configuration container for all application setting sections."""
-    schema_version: str = "1.0.0"
-    app_version: str = "1.0.0"
+    schema_version: str = "2.0.0"
+    app_version: str = "2.0.0"
     general: GeneralSettings = field(default_factory=GeneralSettings)
     appearance: AppearanceSettings = field(default_factory=AppearanceSettings)
     providers: dict[str, ProviderConfig] = field(default_factory=dict)

@@ -30,11 +30,13 @@ class MistralProvider(BaseProvider):
             supports_vision=True,
         )
 
+    MODEL_ALIASES = {}
+
     def get_supported_models(self) -> List[ModelInfo]:
         return [
-            ModelInfo("mistral-large-latest", "Mistral Large", self.provider_id, context_window=128000, max_output_tokens=8192, supports_reasoning=True),
-            ModelInfo("mistral-small-latest", "Mistral Small", self.provider_id, context_window=128000, max_output_tokens=8192),
-            ModelInfo("codestral-latest", "Codestral (Mistral Coding)", self.provider_id, context_window=256000, max_output_tokens=8192),
+            ModelInfo("codestral-latest", "Codestral (Mistral 256K Coding SOTA)", self.provider_id, context_window=256000, max_output_tokens=8192),
+            ModelInfo("mistral-large-latest", "Mistral Large (Reasoning & Complex Tasks)", self.provider_id, context_window=128000, max_output_tokens=8192, supports_reasoning=True),
+            ModelInfo("mistral-small-latest", "Mistral Small (Fast Reasoning)", self.provider_id, context_window=128000, max_output_tokens=8192),
             ModelInfo("pixtral-large-latest", "Pixtral Large Vision", self.provider_id, context_window=128000, max_output_tokens=8192, supports_vision=True),
         ]
 
@@ -58,8 +60,8 @@ class MistralProvider(BaseProvider):
 
     def _format_model_name(self, model: str) -> str:
         if model.startswith("mistral/"):
-            return model[len("mistral/"):]
-        return model
+            model = model[len("mistral/"):]
+        return self.MODEL_ALIASES.get(model, model)
 
     def _format_messages(self, request: ChatRequest) -> list:
         msgs = []
@@ -106,6 +108,29 @@ class MistralProvider(BaseProvider):
                 total_tokens=getattr(usage, "total_tokens", 0) if usage else 0,
             )
         except Exception as exc:
+            err_msg = str(exc).lower()
+            if ("tier_not_allowed" in err_msg or "403" in err_msg or "invalid_model" in err_msg) and model_id != "codestral-latest":
+                try:
+                    res = client.chat.completions.create(
+                        model="codestral-latest",
+                        messages=messages,
+                        temperature=request.temperature,
+                        max_tokens=request.max_tokens,
+                        stream=False,
+                    )
+                    choice = res.choices[0].message
+                    content = choice.content or ""
+                    usage = getattr(res, "usage", None)
+                    return ChatResponse(
+                        content=content,
+                        model="codestral-latest",
+                        provider_id=self.provider_id,
+                        prompt_tokens=getattr(usage, "prompt_tokens", 0) if usage else 0,
+                        completion_tokens=getattr(usage, "completion_tokens", 0) if usage else 0,
+                        total_tokens=getattr(usage, "total_tokens", 0) if usage else 0,
+                    )
+                except Exception:
+                    pass
             self._handle_exception(exc)
 
     def chat_stream(self, request: ChatRequest) -> Generator[StreamChunk, None, None]:
@@ -120,6 +145,23 @@ class MistralProvider(BaseProvider):
                 max_tokens=request.max_tokens,
                 stream=True,
             )
+        except Exception as exc:
+            err_msg = str(exc).lower()
+            if ("tier_not_allowed" in err_msg or "403" in err_msg or "invalid_model" in err_msg) and model_id != "codestral-latest":
+                try:
+                    res = client.chat.completions.create(
+                        model="codestral-latest",
+                        messages=messages,
+                        temperature=request.temperature,
+                        max_tokens=request.max_tokens,
+                        stream=True,
+                    )
+                except Exception:
+                    self._handle_exception(exc)
+            else:
+                self._handle_exception(exc)
+
+        try:
             for chunk in res:
                 if chunk.choices:
                     delta = chunk.choices[0].delta

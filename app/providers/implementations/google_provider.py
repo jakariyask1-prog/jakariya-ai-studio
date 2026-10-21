@@ -42,29 +42,23 @@ class GoogleAIStudioProvider(BaseProvider):
         )
 
     MODEL_ALIASES = {
-        "gemini-3.8-flash": "gemini-2.0-flash",
-        "gemini-3.6-flash": "gemini-2.0-flash",
-        "gemini-3.5-flash": "gemini-1.5-flash",
-        "gemini-flash-latest": "gemini-2.0-flash",
-        "gemini-3-flash": "gemini-2.0-flash",
-        "gemini-2.5-pro": "gemini-2.5-pro",
-        "gemini-2.5-flash": "gemini-2.0-flash",
-        "gemini-2.0-flash": "gemini-2.0-flash",
-        "gemini-2.0-flash-thinking-exp": "gemini-2.0-flash-thinking-exp",
-        "gemini-1.5-pro": "gemini-1.5-pro",
-        "gemini-1.5-flash": "gemini-1.5-flash",
+        # Legacy/decommissioned models mapped forward to active current models
+        "gemini-2.0-flash": "gemini-3.8-flash",
+        "gemini-2.5-flash": "gemini-3.8-flash",
+        "gemini-2.0-flash-thinking-exp": "gemini-3.7-flash",
+        "gemini-1.5-pro": "gemini-pro-latest",
+        "gemini-1.5-flash": "gemini-3.5-flash",
+        "gemini-3-flash": "gemini-3.8-flash",
     }
 
     def get_supported_models(self) -> List[ModelInfo]:
         return [
-            ModelInfo("google/gemini-2.5-pro", "Gemini 2.5 Pro (State-of-the-Art Coding)", self.provider_id, context_window=2000000, max_output_tokens=8192, supports_vision=True),
-            ModelInfo("google/gemini-2.0-flash", "Gemini 2.0 Flash (Fast Agent & Coding)", self.provider_id, context_window=1000000, max_output_tokens=8192, supports_vision=True),
-            ModelInfo("google/gemini-2.0-flash-thinking-exp", "Gemini 2.0 Flash Thinking (Deep Reasoning & Coding)", self.provider_id, context_window=1000000, max_output_tokens=8192, supports_vision=True, supports_reasoning=True),
-            ModelInfo("google/gemini-1.5-pro", "Gemini 1.5 Pro (Massive 2M Context Code Review)", self.provider_id, context_window=2000000, max_output_tokens=8192, supports_vision=True),
-            ModelInfo("google/gemini-1.5-flash", "Gemini 1.5 Flash (Lightweight & Rapid)", self.provider_id, context_window=1000000, max_output_tokens=8192, supports_vision=True),
-            # Compatibility aliases for existing configs
-            ModelInfo("google/gemini-3.8-flash", "Gemini 3.8 Flash (Auto -> 2.0 Flash)", self.provider_id, context_window=1000000, max_output_tokens=8192, supports_vision=True),
-            ModelInfo("google/gemini-3.6-flash", "Gemini 3.6 Flash (Auto -> 2.0 Flash)", self.provider_id, context_window=1000000, max_output_tokens=8192, supports_vision=True),
+            ModelInfo("google/gemini-3.8-flash", "Gemini 3.8 Flash (Latest Flagship Multimodal)", self.provider_id, context_window=1000000, max_output_tokens=8192, supports_vision=True),
+            ModelInfo("google/gemini-3.7-flash", "Gemini 3.7 Flash (Hybrid Reasoning & Fast Coding)", self.provider_id, context_window=1000000, max_output_tokens=8192, supports_vision=True, supports_reasoning=True),
+            ModelInfo("google/gemini-3.6-flash", "Gemini 3.6 Flash (Fast Agent & Software Architecture)", self.provider_id, context_window=1000000, max_output_tokens=8192, supports_vision=True),
+            ModelInfo("google/gemini-3.5-flash", "Gemini 3.5 Flash (Lightweight & Rapid)", self.provider_id, context_window=1000000, max_output_tokens=8192, supports_vision=True),
+            ModelInfo("google/gemini-flash-latest", "Gemini Flash (Auto Latest Stable Flash)", self.provider_id, context_window=1000000, max_output_tokens=8192, supports_vision=True),
+            ModelInfo("google/gemini-pro-latest", "Gemini Pro (Auto Latest Deep Reasoning)", self.provider_id, context_window=2000000, max_output_tokens=8192, supports_vision=True, supports_reasoning=True),
         ]
 
     def validate_api_key(self) -> bool:
@@ -146,10 +140,10 @@ class GoogleAIStudioProvider(BaseProvider):
             )
         except Exception as exc:
             err_msg = str(exc).lower()
-            if ("not found" in err_msg or "404" in err_msg) and model_id != "gemini-2.0-flash":
+            if ("not found" in err_msg or "404" in err_msg) and model_id != "gemini-3.8-flash":
                 try:
                     res = client.chat.completions.create(
-                        model="gemini-2.0-flash",
+                        model="gemini-3.8-flash",
                         messages=messages,
                         temperature=request.temperature,
                         max_tokens=request.max_tokens,
@@ -162,7 +156,7 @@ class GoogleAIStudioProvider(BaseProvider):
                     return ChatResponse(
                         content=content,
                         reasoning_content=reasoning,
-                        model="google/gemini-2.0-flash",
+                        model="google/gemini-3.8-flash",
                         provider_id=self.provider_id,
                         prompt_tokens=getattr(usage, "prompt_tokens", 0) if usage else 0,
                         completion_tokens=getattr(usage, "completion_tokens", 0) if usage else 0,
@@ -184,6 +178,23 @@ class GoogleAIStudioProvider(BaseProvider):
                 max_tokens=request.max_tokens,
                 stream=True,
             )
+        except Exception as exc:
+            err_msg = str(exc).lower()
+            if ("not found" in err_msg or "404" in err_msg) and model_id != "gemini-3.8-flash":
+                try:
+                    res = client.chat.completions.create(
+                        model="gemini-3.8-flash",
+                        messages=messages,
+                        temperature=request.temperature,
+                        max_tokens=request.max_tokens,
+                        stream=True,
+                    )
+                except Exception:
+                    self._handle_exception(exc)
+            else:
+                self._handle_exception(exc)
+
+        try:
             for chunk in res:
                 if chunk.choices:
                     delta = chunk.choices[0].delta

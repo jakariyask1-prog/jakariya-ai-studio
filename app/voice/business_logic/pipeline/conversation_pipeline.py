@@ -64,13 +64,23 @@ class PipelineWorker(QObject):
                 self.turn_completed.emit()
                 return
 
-            clean_trans = re.sub(r'[^\w\s]', '', transcript).strip().lower()
-            noise_artifacts = {"thank you", "you", "thanks for watching", "music", "blank_audio", "mbc", "amaraorg", "subtitles", "bye"}
+            # Optimize STT transcript cleaning: strip acoustic annotations, bracketed tags, and filter Whisper noise
+            cleaned_transcript = re.sub(r'\[.*?\]|\(.*?\)|[*_~]', ' ', transcript)
+            cleaned_transcript = re.sub(r'\s+', ' ', cleaned_transcript).strip()
+
+            clean_trans = re.sub(r'[^\w\s]', '', cleaned_transcript).strip().lower()
+            noise_artifacts = {
+                "thank you", "thank you very much", "thanks for watching", "you",
+                "music", "blank_audio", "blank audio", "mbc", "amaraorg", "amara org",
+                "subtitles", "bye", "bye bye", "please subscribe", "subscribe",
+                "silence", "applause", "laughter"
+            }
             if not clean_trans or clean_trans in noise_artifacts or len(clean_trans) < 2:
                 logging.debug(f"[PipelineWorker] Ignoring STT ambient noise artifact: '{transcript.strip()}'")
                 self.turn_completed.emit()
                 return
 
+            transcript = cleaned_transcript
             self.transcript_ready.emit(transcript)
 
             # Pure STT Mode: Non-live microphone turns stop after STT transcription
@@ -114,7 +124,7 @@ class PipelineWorker(QObject):
             # pitch artifacts and language confusion.
             # ----------------------------------------------------------------
             SENTENCE_END_RE = re.compile(r'([.!?\n\u0964\u0965]+(?:\s+|$))')
-            FIRST_CHUNK_END_RE = re.compile(r'([.!?,，;:\n\u0964\u0965]+(?:\s+|$))')
+            FIRST_CHUNK_END_RE = re.compile(r'([.!?,，;:—–…\n\u0964\u0965]+(?:\s+|$))')
             MAX_RUNON_WORD_TRIGGER = 14  # Safe threshold for unpunctuated run-on text
 
             LEADING_SILENCE = b"\x00" * 3840   # ~120ms leading silence (WASAPI hardware init)
@@ -140,7 +150,16 @@ class PipelineWorker(QObject):
                 return False
 
             is_first_token = True
-            for chunk in claude.ask_stream(transcript, model=model, history=history, provider_id=provider_id, is_live=is_live):
+            # Cap tokens at 200 for Live Voice Mode: keeps responses short and TTS latency low.
+            live_max_tokens = 200 if is_live else 2048
+            for chunk in claude.ask_stream(
+                transcript,
+                model=model,
+                history=history,
+                provider_id=provider_id,
+                is_live=is_live,
+                max_tokens=live_max_tokens,
+            ):
                 if token and token.is_cancelled:
                     return
                 if is_first_token:
@@ -155,15 +174,18 @@ class PipelineWorker(QObject):
                 sentence_buffer += chunk
 
                 if is_first_audio:
-                    # Snappy first-token playback: Trigger on first clause/comma or after 5+ words
+                    # Snappy first-chunk playback: Trigger on earliest sentence/clause boundary or after 3-5 words
                     match = FIRST_CHUNK_END_RE.search(sentence_buffer)
                     if match:
                         cand = sentence_buffer[:match.end()]
                         cand_words = cand.split()
-                        if len(cand_words) >= 2 or len(cand.strip()) >= 8:
-                            sentence_buffer = sentence_buffer[match.end():]
-                            _emit_tts_chunk(cand, is_first=True)
-                    elif len(sentence_buffer.split()) >= 6:
+                        punct = match.group(1).strip()
+                        is_terminal = any(p in punct for p in ('.', '!', '?', '\n', '\u0964', '\u0965'))
+                        if is_terminal or len(cand_words) >= 2 or len(cand.strip()) >= 5:
+                            if _emit_tts_chunk(cand, is_first=True):
+                                sentence_buffer = sentence_buffer[match.end():]
+                    elif len(sentence_buffer.split()) >= 4:
+                        # Stream immediately upon receiving the first 3-5 words without punctuation
                         last_space = sentence_buffer.rfind(" ")
                         if last_space > 0:
                             cand = sentence_buffer[:last_space + 1]

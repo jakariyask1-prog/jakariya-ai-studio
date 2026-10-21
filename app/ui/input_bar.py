@@ -31,6 +31,7 @@ class MessageInputBox(QPlainTextEdit):
     """
 
     returnPressed = Signal()
+    escapePressed = Signal()
 
     def __init__(self, parent=None, min_height: int = 44, max_height: int = 160):
         super().__init__(parent)
@@ -80,6 +81,10 @@ class MessageInputBox(QPlainTextEdit):
         self.adjust_height()
 
     def keyPressEvent(self, event):
+        if event.key() == Qt.Key.Key_Escape:
+            self.escapePressed.emit()
+            event.accept()
+            return
         if event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
             if not (event.modifiers() & (Qt.KeyboardModifier.ShiftModifier | Qt.KeyboardModifier.ControlModifier | Qt.KeyboardModifier.AltModifier)):
                 self.returnPressed.emit()
@@ -115,6 +120,7 @@ class InputBar(QWidget):
     """
 
     send_requested = Signal(str)
+    cancel_requested = Signal()
     attach_requested = Signal()
     folder_requested = Signal()
     workspace_cleared = Signal()
@@ -126,6 +132,7 @@ class InputBar(QWidget):
         super().__init__()
         self.setMinimumHeight(54)
         self._active_workspace_path = None
+        self._is_generating = False
 
         outer_layout = QVBoxLayout(self)
         outer_layout.setContentsMargins(10, 0, 10, 2)
@@ -198,6 +205,7 @@ class InputBar(QWidget):
         self.message_input = MessageInputBox(min_height=44, max_height=160)
         self.message_input.setPlaceholderText("Message Jakariya AI Studio or choose a suggested prompt...")
         self.message_input.returnPressed.connect(self.send_message)
+        self.message_input.escapePressed.connect(self._on_escape_pressed)
 
         # 3. Autonomous AI Agent Mode Toggle Pill
         self.agent_button = QPushButton("✧ Agent")
@@ -227,7 +235,7 @@ class InputBar(QWidget):
         self.send_button.setFixedSize(34, 34)
         self.send_button.setCursor(Qt.CursorShape.PointingHandCursor)
         self.send_button.setToolTip("Send message (Enter)")
-        self.send_button.clicked.connect(self.send_message)
+        self.send_button.clicked.connect(self._on_send_button_clicked)
 
         # Assemble Capsule Components
         capsule_layout.addWidget(self.attach_button, 0, Qt.AlignmentFlag.AlignBottom)
@@ -276,9 +284,9 @@ class InputBar(QWidget):
         from app.ui.styles import get_theme_palette, get_voice_button_ready_style
         p = get_theme_palette(theme_name)
 
-        send_bg = "#10A37F" if theme_name in ("light", "dark", "oled") else "#F472B6"
-        send_hover = "#0D8A6C" if theme_name in ("light", "dark", "oled") else "#DB2777"
-        checked_pill_bg = "#10A37F" if theme_name in ("light", "dark", "oled") else "#F472B6"
+        send_bg = p.get("accent", "#4F46E5")
+        send_hover = p.get("accent_hover", "#4338CA")
+        checked_pill_bg = p.get("accent", "#4F46E5")
 
         is_dark = theme_name in ("dark", "oled", "neon")
         if hasattr(self, "capsule_shadow"):
@@ -388,18 +396,7 @@ class InputBar(QWidget):
         if not self.voice_button.text() or self.voice_button.text() == "🎙":
             self.voice_button.setStyleSheet(get_voice_button_ready_style(theme_name))
 
-        self.send_button.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {send_bg};
-                color: #FFFFFF;
-                border: none;
-                border-radius: 17px;
-                font-size: 13pt;
-                font-weight: bold;
-            }}
-            QPushButton:hover {{ background-color: {send_hover}; }}
-            QPushButton:disabled {{ background-color: {p['btn_secondary_bg']}; color: {p['placeholder_text']}; }}
-        """)
+        self._update_send_button_style()
 
     # ---------------------------------
 
@@ -532,7 +529,22 @@ class InputBar(QWidget):
             self.voice_button.setText("🔊")
             self.voice_status_label.setText("🔊 Speaking...")
 
+    def _on_send_button_clicked(self) -> None:
+        """Handle send button click: stop generating if running, otherwise send message."""
+        if self._is_generating:
+            self.cancel_requested.emit()
+        else:
+            self.send_message()
+
+    def _on_escape_pressed(self) -> None:
+        """Handle escape key pressed in input box to cancel generation."""
+        if self._is_generating:
+            self.cancel_requested.emit()
+
     def send_message(self):
+        if self._is_generating:
+            self.cancel_requested.emit()
+            return
         message = self.message_input.text().strip()
         if not message:
             return
@@ -540,19 +552,77 @@ class InputBar(QWidget):
         self.message_input.clear()
         self.message_input.setFocus()
 
+    def set_generating(self, generating: bool) -> None:
+        """Toggle generating state: transforms Send button to Stop button when active."""
+        self._is_generating = bool(generating)
+        if self._is_generating:
+            self.message_input.setEnabled(False)
+            self.attach_button.setEnabled(False)
+            self.folder_button.setEnabled(False)
+            self.voice_button.setEnabled(False)
+            self.send_button.setEnabled(True)
+        else:
+            self.message_input.setEnabled(True)
+            self.attach_button.setEnabled(True)
+            self.folder_button.setEnabled(True)
+            self.voice_button.setEnabled(True)
+            self.send_button.setEnabled(True)
+        self._update_send_button_style()
+
+    def is_generating(self) -> bool:
+        """Return True if an AI message or agent task is currently in progress."""
+        return bool(getattr(self, "_is_generating", False))
+
     def enable(self):
-        self.message_input.setEnabled(True)
-        self.send_button.setEnabled(True)
-        self.attach_button.setEnabled(True)
-        self.folder_button.setEnabled(True)
-        self.voice_button.setEnabled(True)
+        """Restore input bar to active and ready state (not generating)."""
+        self.set_generating(False)
 
     def disable(self):
-        self.message_input.setEnabled(False)
-        self.send_button.setEnabled(False)
-        self.attach_button.setEnabled(False)
-        self.folder_button.setEnabled(False)
-        self.voice_button.setEnabled(False)
+        """Put input bar into busy/generating state with active Stop button."""
+        self.set_generating(True)
+
+    def _update_send_button_style(self) -> None:
+        """Update Send button icon, tooltip, and style based on idle vs generating state."""
+        from app.ui.styles import get_theme_palette
+        theme_name = getattr(self, "_theme", "light")
+        p = get_theme_palette(theme_name)
+        send_bg = p.get("accent", "#4F46E5")
+        send_hover = p.get("accent_hover", "#4338CA")
+
+        if getattr(self, "_is_generating", False):
+            self.send_button.setText("⏹")
+            self.send_button.setToolTip("Stop generation / থামান (Esc)")
+            self.send_button.setStyleSheet("""
+                QPushButton {
+                    background-color: #EF4444;
+                    color: #FFFFFF;
+                    border: none;
+                    border-radius: 17px;
+                    font-size: 13pt;
+                    font-weight: bold;
+                }
+                QPushButton:hover {
+                    background-color: #DC2626;
+                }
+                QPushButton:pressed {
+                    background-color: #B91C1C;
+                }
+            """)
+        else:
+            self.send_button.setText("↑")
+            self.send_button.setToolTip("Send message (Enter)")
+            self.send_button.setStyleSheet(f"""
+                QPushButton {{
+                    background-color: {send_bg};
+                    color: #FFFFFF;
+                    border: none;
+                    border-radius: 17px;
+                    font-size: 13pt;
+                    font-weight: bold;
+                }}
+                QPushButton:hover {{ background-color: {send_hover}; }}
+                QPushButton:disabled {{ background-color: {p['btn_secondary_bg']}; color: {p['placeholder_text']}; }}
+            """)
 
     def set_workspace_folder(self, folder_path: str | None) -> None:
         """Set active project workspace folder and show a clearable chip."""

@@ -103,19 +103,27 @@ class CartesiaTTS(TTSProvider):
             }
 
             import uuid
-            effective_voice_id = self._get_voice_id(language=language)
+            # Detect Bengali characters or check language setting
+            has_bengali = any("\u0980" <= ch <= "\u09ff" for ch in clean_text)
+            if has_bengali:
+                lang_code = "bn"
+            elif language and str(language).lower().startswith("bn"):
+                # Settings say bn, but clean_text is purely English/Latin script
+                lang_code = "en"
+            elif language and str(language).lower().startswith("en"):
+                lang_code = "en"
+            else:
+                lang_code = "en"
+
+            effective_voice_id = self._get_voice_id(language=lang_code)
+            if effective_voice_id in (self.DEFAULT_BANGLA_VOICE_ID, self.DEFAULT_ENGLISH_VOICE_ID):
+                effective_voice_id = self.DEFAULT_BANGLA_VOICE_ID if lang_code == "bn" else self.DEFAULT_ENGLISH_VOICE_ID
             try:
                 uuid.UUID(str(effective_voice_id).strip())
             except (ValueError, AttributeError):
                 effective_voice_id = (
-                    self.DEFAULT_ENGLISH_VOICE_ID
-                    if (language and str(language).lower().startswith("en"))
-                    else self.DEFAULT_BANGLA_VOICE_ID
+                    self.DEFAULT_BANGLA_VOICE_ID if lang_code == "bn" else self.DEFAULT_ENGLISH_VOICE_ID
                 )
-
-            # Detect Bengali characters or check language setting
-            has_bengali = any("\u0980" <= ch <= "\u09ff" for ch in clean_text)
-            lang_code = "bn" if (has_bengali or (language and str(language).lower().startswith("bn"))) else "en"
 
             payload = {
                 "model_id": self.model_id,

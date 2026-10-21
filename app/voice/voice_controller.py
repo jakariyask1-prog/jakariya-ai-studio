@@ -140,6 +140,9 @@ class VoiceController(QObject):
             logging.debug(f"[VoiceController] start_listening blocked: state={self._manager.state}")
             return
 
+        self._mic_manager.barge_in_monitoring = False
+        self._mic_manager.set_gain(1.0)
+        self._mic_manager.is_capturing = True
         self._active_interruption_token = InterruptionToken()
         success = self._mic_manager.start_recording()
 
@@ -155,6 +158,9 @@ class VoiceController(QObject):
         """Stop microphone recording and trigger STT -> LLM -> TTS pipeline."""
         if self._manager.state != VoiceState.LISTENING:
             return
+
+        self._mic_manager.is_capturing = False
+        self._mic_manager.barge_in_monitoring = False
 
         if self.is_live_session_active():
             wav_bytes = self._mic_manager.get_wav_and_clear()
@@ -218,6 +224,8 @@ class VoiceController(QObject):
         logging.debug("[VoiceController] interrupt called")
         # Bug Fix #1 (partial): Clear restart guard so interrupted turns can restart cleanly
         self._restart_scheduled = False
+        self._mic_manager.barge_in_monitoring = False
+        self._mic_manager.is_capturing = False
 
         if self._active_interruption_token:
             self._active_interruption_token.cancel()
@@ -297,6 +305,9 @@ class VoiceController(QObject):
         """Actual deferred restart — clears guard flag then starts listening."""
         self._restart_scheduled = False
         if self.is_live_session_active() and not self._is_shutting_down:
+            self._mic_manager.get_wav_and_clear()
+            self._mic_manager.set_gain(1.0)
+            self._mic_manager.is_capturing = True
             self.start_listening()
 
     def _restart_live_after_error(self) -> None:
@@ -308,6 +319,9 @@ class VoiceController(QObject):
                 return
             logging.debug("[VoiceController] Recovering Live Mode after error...")
             self.reset()
+            self._mic_manager.get_wav_and_clear()
+            self._mic_manager.set_gain(1.0)
+            self._mic_manager.is_capturing = True
             self.start_listening()
 
     def shutdown(self) -> None:
@@ -320,6 +334,11 @@ class VoiceController(QObject):
     # Internal Slots / Callbacks
     # ------------------------------------------------------------------
 
+    def _enable_barge_in_monitoring(self) -> None:
+        """Enable conservative barge-in detection after audio playback onset stabilization."""
+        if self._manager.state == VoiceState.SPEAKING:
+            self._mic_manager.barge_in_monitoring = True
+
     def _on_speech_started(self) -> None:
         """Handle user speech detection during AI playback (Barge-in)."""
         if self._manager.state == VoiceState.SPEAKING:
@@ -330,7 +349,6 @@ class VoiceController(QObject):
                 self.reset()
                 QTimer.singleShot(40, self._do_restart_listening)
 
-
     def _on_pipeline_state_changed(self, new_state: VoiceState) -> None:
         if not self.is_live_session_active():
             if self._active_interruption_token and self._active_interruption_token.is_cancelled:
@@ -338,16 +356,24 @@ class VoiceController(QObject):
 
         if new_state == VoiceState.TRANSCRIBING:
             self._manager.on_transcribing_started()
+            self._mic_manager.is_capturing = False
+            self._mic_manager.barge_in_monitoring = False
             if self.is_live_session_active():
                 self._mic_manager.set_gain(0.15)
         elif new_state == VoiceState.THINKING:
             self._manager.on_thinking_started()
+            self._mic_manager.is_capturing = False
+            self._mic_manager.barge_in_monitoring = False
             if self.is_live_session_active():
                 self._mic_manager.set_gain(0.15)
         elif new_state == VoiceState.SPEAKING:
             self._manager.on_speaking_started()
+            self._mic_manager.is_capturing = False
+            self._mic_manager.barge_in_monitoring = False
             if self.is_live_session_active():
                 self._mic_manager.set_gain(0.15)
+                # Wait 800ms before allowing barge-in monitoring to prevent speaker onset click
+                QTimer.singleShot(800, self._enable_barge_in_monitoring)
 
         self.state_changed.emit(self._manager.state)
 
@@ -388,13 +414,12 @@ class VoiceController(QObject):
 
     def _on_playback_finished(self) -> None:
         logging.debug(f"[VoiceController] _on_playback_finished: manager_state={self._manager.state} live={self.is_live_session_active()}")
+        self._mic_manager.barge_in_monitoring = False
 
         if self._manager.state == VoiceState.INTERRUPTED or self.is_live_session_active():
             if self.is_live_session_active() and not self._is_shutting_down:
                 logging.debug("[VoiceController] _on_playback_finished: Live mode active — restarting listening for next turn")
                 self._restart_scheduled = False
-                self._mic_manager.set_gain(1.0)
-                self._mic_manager.get_wav_and_clear()
                 self.reset()
                 self._maybe_restart_listening()
             return

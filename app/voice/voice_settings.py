@@ -42,10 +42,10 @@ class VoiceSettings:
 
     # --- Language / locale -------------------------------------------
 
-    language: str = "en"
+    language: str = "auto"
     """BCP-47 language tag used by both STT and TTS providers.
 
-    Common values: ``"en"`` (English), ``"bn"`` (Bangla).
+    Common values: ``"auto"`` (Auto Detect), ``"en"`` (English), ``"bn"`` (Bangla).
     Providers may support a subset of locales; consult their documentation.
     """
 
@@ -75,8 +75,8 @@ class VoiceSettings:
     and spoken aloud.  When ``False``, only the text is shown.
     """
 
-    silence_timeout_ms: int = 550
-    """Silence duration in milliseconds before auto-sending audio (550ms = snappy and responsive)."""
+    silence_timeout_ms: int = 1300
+    """Silence duration in milliseconds before auto-sending audio (1000ms = natural conversational pause)."""
 
-    vad_threshold: float = 0.020
+    vad_threshold: float = 0.012
     """Voice Activity Detection energy threshold."""

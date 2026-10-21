@@ -27,22 +27,24 @@ class ExportPage(QWidget):
 
     def _init_ui(self) -> None:
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.setSpacing(15)
+        layout.setContentsMargins(16, 12, 16, 8)
+        layout.setSpacing(10)
 
-        title_label = QLabel("Export Preferences")
-        title_label.setStyleSheet("font-size: 18px; font-weight: bold;")
+        # Title & Subtitle Banner
+        title_label = QLabel("📄 Export & Document Generation Preferences")
+        title_label.setStyleSheet("font-size: 18px; font-weight: 700;")
         layout.addWidget(title_label)
 
-        desc_label = QLabel("Configure default conversation export format, document layout, paper size, and metadata inclusion.")
-        desc_label.setStyleSheet("color: #888888; font-size: 12px;")
+        desc_label = QLabel("Configure default conversation export formats, document layout, paper size, and metadata inclusion.")
+        desc_label.setProperty("subtext", "true")
+        desc_label.setWordWrap(True)
         layout.addWidget(desc_label)
 
         # Export Group
         group = QGroupBox("Document Generation Options")
         form_layout = QFormLayout(group)
-        form_layout.setContentsMargins(15, 20, 15, 20)
-        form_layout.setSpacing(15)
+        form_layout.setContentsMargins(14, 12, 14, 12)
+        form_layout.setSpacing(10)
 
         self.format_combo = QComboBox()
         self.format_combo.addItem("PDF Document (.pdf)", "pdf")

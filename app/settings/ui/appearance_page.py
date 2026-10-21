@@ -29,29 +29,30 @@ class AppearancePage(QWidget):
 
     def _init_ui(self) -> None:
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.setSpacing(15)
+        layout.setContentsMargins(16, 12, 16, 8)
+        layout.setSpacing(10)
 
-        # Title
-        title_label = QLabel("Appearance & Themes")
-        title_label.setStyleSheet("font-size: 18px; font-weight: bold;")
+        # Title & Subtitle Banner
+        title_label = QLabel("🎨 Appearance & Themes")
+        title_label.setStyleSheet("font-size: 18px; font-weight: 700;")
         layout.addWidget(title_label)
 
-        desc_label = QLabel("Customize theme palette, font scaling, and message bubble layout density.")
-        desc_label.setStyleSheet("color: #888888; font-size: 12px;")
+        desc_label = QLabel("Customize theme palette, font scaling, and message bubble layout density with instant live preview.")
+        desc_label.setProperty("subtext", "true")
+        desc_label.setWordWrap(True)
         layout.addWidget(desc_label)
 
         # Theme Group Box
         theme_group = QGroupBox("Theme Selection")
         theme_form = QFormLayout(theme_group)
-        theme_form.setContentsMargins(15, 20, 15, 20)
-        theme_form.setSpacing(15)
+        theme_form.setContentsMargins(14, 12, 14, 12)
+        theme_form.setSpacing(10)
 
         self.theme_combo = QComboBox()
-        self.theme_combo.addItem("GPT Light Mode (Default)", "light")
-        self.theme_combo.addItem("Modern Dark Mode", "dark")
-        self.theme_combo.addItem("Midnight OLED (Ultra-Dark)", "oled")
-        self.theme_combo.addItem("Cyberpunk Neon", "neon")
+        self.theme_combo.addItem("✨ Eye-Comfort Light Mode (Default)", "light")
+        self.theme_combo.addItem("🌙 Deep Slate Dark Mode", "dark")
+        self.theme_combo.addItem("🖤 Midnight OLED (Ultra-Dark)", "oled")
+        self.theme_combo.addItem("⚡ Cyberpunk Neon", "neon")
         self.theme_combo.currentIndexChanged.connect(self._on_theme_changed)
         theme_form.addRow("UI Color Theme:", self.theme_combo)
 
@@ -60,8 +61,8 @@ class AppearancePage(QWidget):
         # Font & Scaling Group Box
         font_group = QGroupBox("Typography & Scale")
         font_form = QFormLayout(font_group)
-        font_form.setContentsMargins(15, 20, 15, 20)
-        font_form.setSpacing(15)
+        font_form.setContentsMargins(14, 12, 14, 12)
+        font_form.setSpacing(10)
 
         # Font Family
         self.font_combo = QComboBox()

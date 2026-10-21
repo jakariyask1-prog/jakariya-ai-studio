@@ -56,7 +56,7 @@ class ElevenLabsSTT(STTProvider):
             data = {
                 "model_id": self.model_id,
             }
-            if language:
+            if language and language.strip().lower() != "auto":
                 lang_code = language.strip().lower()
                 if "-" in lang_code:
                     lang_code = lang_code.split("-")[0]

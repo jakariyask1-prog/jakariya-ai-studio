@@ -21,6 +21,7 @@ class ChatController(QObject):
     reply_ready = Signal(str)
     partial = Signal(str)
     error = Signal(str)
+    cancelled = Signal(str)
 
     # Signal sent to the worker thread
     send_request = Signal(object)
@@ -52,6 +53,7 @@ class ChatController(QObject):
         self.worker.finished.connect(self.reply_ready)
         self.worker.partial.connect(self.partial)
         self.worker.failed.connect(self.error)
+        self.worker.cancelled.connect(self.cancelled)
 
         # Start worker thread
         self.worker_thread.start()
@@ -82,6 +84,13 @@ class ChatController(QObject):
                 provider_id=provider_id,
             )
         )
+
+    def cancel(self):
+        """
+        Request immediate cancellation of running request.
+        """
+        if self.worker:
+            self.worker.cancel()
 
     def shutdown(self):
         """

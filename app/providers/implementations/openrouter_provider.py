@@ -32,17 +32,20 @@ class OpenRouterProvider(BaseProvider):
             supports_web_search=True,
         )
 
+    MODEL_ALIASES = {
+        "anthropic/claude-3.7-sonnet": "deepseek/deepseek-chat",
+        "anthropic/claude-3.5-sonnet": "deepseek/deepseek-chat",
+        "deepseek/deepseek-r1": "deepseek/deepseek-chat",
+    }
+
     def get_supported_models(self) -> List[ModelInfo]:
         return [
-            ModelInfo("anthropic/claude-3.7-sonnet", "Claude 3.7 Sonnet (Top-Ranked Coding)", self.provider_id, context_window=200000, max_output_tokens=8192, supports_vision=True),
-            ModelInfo("anthropic/claude-3.5-sonnet", "Claude 3.5 Sonnet (Elite Coding)", self.provider_id, context_window=200000, max_output_tokens=8192, supports_vision=True),
             ModelInfo("deepseek/deepseek-chat", "DeepSeek V3 (SOTA Coding & Value)", self.provider_id, context_window=64000, max_output_tokens=4096),
-            ModelInfo("deepseek/deepseek-r1", "DeepSeek R1 (Complex Reasoning & Debugging)", self.provider_id, context_window=64000, max_output_tokens=8192, supports_reasoning=True),
             ModelInfo("qwen/qwen-2.5-coder-32b-instruct", "Qwen 2.5 Coder 32B (Specialized Coding)", self.provider_id, context_window=32768, max_output_tokens=8192),
             ModelInfo("meta-llama/llama-3.3-70b-instruct", "Llama 3.3 70B Instruct", self.provider_id, context_window=128000, max_output_tokens=4096),
-            ModelInfo("openai/gpt-4o", "GPT-4o", self.provider_id, context_window=128000, max_output_tokens=4096, supports_vision=True),
-            ModelInfo("openai/gpt-4o-mini", "GPT-4o Mini", self.provider_id, context_window=128000, max_output_tokens=4096),
-            ModelInfo("qwen/qwen-2.5-72b-instruct", "Qwen 2.5 72B", self.provider_id, context_window=32768, max_output_tokens=4096),
+            ModelInfo("openai/gpt-4o", "GPT-4o (Vision & Multimodal)", self.provider_id, context_window=128000, max_output_tokens=4096, supports_vision=True),
+            ModelInfo("openai/gpt-4o-mini", "GPT-4o Mini (Fast & Efficient)", self.provider_id, context_window=128000, max_output_tokens=4096),
+            ModelInfo("qwen/qwen-2.5-72b-instruct", "Qwen 2.5 72B Instruct", self.provider_id, context_window=32768, max_output_tokens=4096),
         ]
 
     def validate_api_key(self) -> bool:
@@ -97,8 +100,8 @@ class OpenRouterProvider(BaseProvider):
 
     def _format_model_name(self, model: str) -> str:
         if model.startswith("openrouter/"):
-            return model[len("openrouter/"):]
-        return model
+            model = model[len("openrouter/"):]
+        return self.MODEL_ALIASES.get(model, model)
 
     def chat(self, request: ChatRequest) -> ChatResponse:
         client = self._get_client()

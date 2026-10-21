@@ -11,12 +11,14 @@ from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QFormLayout,
+    QFrame,
     QGroupBox,
     QHBoxLayout,
     QLabel,
     QLineEdit,
     QMessageBox,
     QPushButton,
+    QScrollArea,
     QSlider,
     QVBoxLayout,
     QWidget,
@@ -44,19 +46,44 @@ class VoiceSettingsPage(QWidget):
         self._setup_ui()
 
     def _setup_ui(self) -> None:
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(20)
+        outer_layout = QVBoxLayout(self)
+        outer_layout.setContentsMargins(16, 12, 16, 8)
+        outer_layout.setSpacing(10)
+
+        # Title & Subtitle Banner
+        title_label = QLabel("🎙️ Voice & Audio Settings")
+        title_label.setStyleSheet("font-size: 18px; font-weight: 700;")
+        outer_layout.addWidget(title_label)
+
+        desc_label = QLabel("Configure Speech-to-Text (STT), Text-to-Speech (TTS), custom voice profiles, and microphone sensitivity.")
+        desc_label.setProperty("subtext", "true")
+        desc_label.setWordWrap(True)
+        outer_layout.addWidget(desc_label)
+
+        scroll = QScrollArea()
+        scroll.setObjectName("voiceScrollArea")
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
+        scroll.setStyleSheet("QScrollArea#voiceScrollArea, QScrollArea#voiceScrollArea > QWidget > QWidget { background: transparent; border: none; }")
+
+        container = QWidget()
+        container.setObjectName("voiceContainer")
+        container.setStyleSheet("QWidget#voiceContainer { background: transparent; border: none; }")
+        layout = QVBoxLayout(container)
+        layout.setContentsMargins(0, 4, 10, 4)
+        layout.setSpacing(12)
 
         # Provider & Model Selection Group
         prov_group = QGroupBox("Voice Engines & Voice Selection")
         prov_form = QFormLayout(prov_group)
-        prov_form.setContentsMargins(15, 20, 15, 20)
-        prov_form.setSpacing(15)
+        prov_form.setContentsMargins(14, 12, 14, 12)
+        prov_form.setSpacing(10)
 
         # 1. STT Provider
         self.stt_combo = QComboBox()
-        self.stt_combo.addItem("Google Web Speech STT (Free & Fast)", "google_stt")
+        self.stt_combo.addItem("Groq Whisper Large v3 (Ultra-Fast & Accurate - Recommended)", "groq_stt")
+        self.stt_combo.addItem("Google Web Speech STT (Free)", "google_stt")
+        self.stt_combo.addItem("ElevenLabs Scribe STT", "elevenlabs_stt")
         self.stt_combo.currentIndexChanged.connect(self._on_changed)
         prov_form.addRow("STT Provider:", self.stt_combo)
 
@@ -154,6 +181,7 @@ class VoiceSettingsPage(QWidget):
 
         # 5. Language Selector
         self.lang_combo = QComboBox()
+        self.lang_combo.addItem("🌐 Auto Detect (Bangla & English - Recommended)", "auto")
         self.lang_combo.addItem("বাংলা (Bangla / bn-BD)", "bn")
         self.lang_combo.addItem("English (US / en-US)", "en")
         self.lang_combo.currentIndexChanged.connect(self._on_changed)
@@ -161,11 +189,28 @@ class VoiceSettingsPage(QWidget):
 
         layout.addWidget(prov_group)
 
+        # Hardware Audio Devices Group
+        hw_group = QGroupBox("Audio Input & Output Hardware Devices")
+        hw_form = QFormLayout(hw_group)
+        hw_form.setContentsMargins(14, 12, 14, 12)
+        hw_form.setSpacing(10)
+
+        self.input_device_combo = QComboBox()
+        self.output_device_combo = QComboBox()
+        self._populate_audio_devices()
+        self.input_device_combo.currentIndexChanged.connect(self._on_changed)
+        self.output_device_combo.currentIndexChanged.connect(self._on_changed)
+
+        hw_form.addRow("Microphone (Input):", self.input_device_combo)
+        hw_form.addRow("Speaker (Output):", self.output_device_combo)
+
+        layout.addWidget(hw_group)
+
         # Behavior & Sensitivity Group
         sens_group = QGroupBox("Voice Behavior & VAD Sensitivity")
         sens_form = QFormLayout(sens_group)
-        sens_form.setContentsMargins(15, 20, 15, 20)
-        sens_form.setSpacing(15)
+        sens_form.setContentsMargins(14, 12, 14, 12)
+        sens_form.setSpacing(10)
 
         self.auto_send_check = QCheckBox("Automatically send query when user stops speaking")
         self.auto_send_check.toggled.connect(self._on_changed)
@@ -202,8 +247,46 @@ class VoiceSettingsPage(QWidget):
         layout.addWidget(sens_group)
         layout.addStretch()
 
+        scroll.setWidget(container)
+        outer_layout.addWidget(scroll)
+
         # Initial voice dropdown load
         self._refresh_voice_dropdown()
+
+    # ------------------------------------------------------------------
+    # Audio Devices
+    # ------------------------------------------------------------------
+
+    def _populate_audio_devices(self) -> None:
+        """Populate microphone input and speaker output device dropdowns using QMediaDevices."""
+        self.input_device_combo.blockSignals(True)
+        self.input_device_combo.clear()
+        self.input_device_combo.addItem("Default System Microphone", None)
+
+        self.output_device_combo.blockSignals(True)
+        self.output_device_combo.clear()
+        self.output_device_combo.addItem("Default System Speaker / Headphones", None)
+
+        try:
+            from PySide6.QtMultimedia import QMediaDevices
+            inputs = QMediaDevices.audioInputs()
+            for idx, dev in enumerate(inputs):
+                name = dev.description() or f"Microphone {idx + 1}"
+                if dev.isDefault():
+                    name += " (System Default)"
+                self.input_device_combo.addItem(name, idx)
+
+            outputs = QMediaDevices.audioOutputs()
+            for idx, dev in enumerate(outputs):
+                name = dev.description() or f"Audio Output {idx + 1}"
+                if dev.isDefault():
+                    name += " (System Default)"
+                self.output_device_combo.addItem(name, idx)
+        except Exception as exc:
+            logger.debug("[VoiceSettingsPage] Error enumerating audio devices: %s", exc)
+
+        self.input_device_combo.blockSignals(False)
+        self.output_device_combo.blockSignals(False)
 
     # ------------------------------------------------------------------
     # Voice Dropdown & Custom Voices Management
@@ -476,6 +559,20 @@ class VoiceSettingsPage(QWidget):
         lang_idx = self.lang_combo.findData(settings.language)
         if lang_idx >= 0:
             self.lang_combo.setCurrentIndex(lang_idx)
+        else:
+            self.lang_combo.setCurrentIndex(0)
+
+        in_idx = self.input_device_combo.findData(getattr(settings, "input_device_index", None))
+        if in_idx >= 0:
+            self.input_device_combo.setCurrentIndex(in_idx)
+        else:
+            self.input_device_combo.setCurrentIndex(0)
+
+        out_idx = self.output_device_combo.findData(getattr(settings, "output_device_index", None))
+        if out_idx >= 0:
+            self.output_device_combo.setCurrentIndex(out_idx)
+        else:
+            self.output_device_combo.setCurrentIndex(0)
 
         self.auto_send_check.setChecked(settings.auto_send)
         self.response_voice_check.setChecked(settings.voice_response)
@@ -488,8 +585,10 @@ class VoiceSettingsPage(QWidget):
         self.blockSignals(False)
 
     def get_settings(self) -> VoiceSettingsSchema:
+        in_idx = self.input_device_combo.currentData()
+        out_idx = self.output_device_combo.currentData()
         return VoiceSettingsSchema(
-            stt_provider_id=self.stt_combo.currentData() or "google_stt",
+            stt_provider_id=self.stt_combo.currentData() or "groq_stt",
             tts_provider_id=self.tts_combo.currentData() or "edge_neural_tts",
             voice_id=self.voice_id_edit.text().strip() or "bn-BD-NabanitaNeural",
             custom_voices=list(self._custom_voices),
@@ -497,8 +596,29 @@ class VoiceSettingsPage(QWidget):
             voice_response=self.response_voice_check.isChecked(),
             silence_timeout_ms=self.timeout_slider.value(),
             vad_threshold=self.vad_slider.value() / 1000.0,
-            language=self.lang_combo.currentData() or "bn",
+            language=self.lang_combo.currentData() or "auto",
+            input_device_index=in_idx if in_idx is not None else None,
+            output_device_index=out_idx if out_idx is not None else None,
         )
+
+    def apply_theme(self, theme_name: str) -> None:
+        """Apply active theme styles to voice page buttons and controls."""
+        from app.ui.styles import get_theme_palette
+        p = get_theme_palette(theme_name)
+        accent = p.get("accent", "#4F46E5")
+        accent_hover = p.get("accent_hover", "#4338CA")
+
+        self.btn_add_voice.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {accent};
+                color: #FFFFFF;
+                font-weight: 600;
+                padding: 6px 12px;
+                border: none;
+                border-radius: 6px;
+            }}
+            QPushButton:hover {{ background-color: {accent_hover}; }}
+        """)
 
 
 VoicePage = VoiceSettingsPage

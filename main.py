@@ -174,6 +174,10 @@ def main():
 
     # Load custom application fonts
     load_application_fonts()
+    from PySide6.QtGui import QFont
+    app_font = QFont("Segoe UI Variable", 10)
+    app_font.setStyleHint(QFont.StyleHint.SansSerif)
+    app.setFont(app_font)
 
     # Fail fast if the API key is missing — show a clear dialog before
     # the main window opens instead of crashing on the first message send.

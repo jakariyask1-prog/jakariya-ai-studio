@@ -31,23 +31,17 @@ class GroqProvider(BaseProvider):
         )
 
     MODEL_ALIASES = {
-        "openai/gpt-oss-120b": "llama-3.3-70b-versatile",
-        "openai/gpt-oss-20b": "llama-3.1-8b-instant",
-        "gpt-oss-120b": "llama-3.3-70b-versatile",
-        "gpt-oss-20b": "llama-3.1-8b-instant",
-        "qwen/qwen3.8-27b": "qwen-2.5-coder-32b",
-        "qwen3.8-27b": "qwen-2.5-coder-32b",
+        "gpt-oss-120b": "openai/gpt-oss-120b",
+        "gpt-oss-20b": "openai/gpt-oss-20b",
+        "qwen3.8-27b": "qwen/qwen3.8-27b",
     }
 
     def get_supported_models(self) -> List[ModelInfo]:
         return [
-            ModelInfo("llama-3.3-70b-versatile", "Llama 3.3 70B (Best Groq Coding)", self.provider_id, context_window=128000, max_output_tokens=8192),
-            ModelInfo("qwen-2.5-coder-32b", "Qwen 2.5 Coder 32B (Dedicated Code Model)", self.provider_id, context_window=32768, max_output_tokens=8192),
-            ModelInfo("deepseek-r1-distill-llama-70b", "DeepSeek R1 Distill 70B (Fast Reasoning)", self.provider_id, context_window=128000, max_output_tokens=8192, supports_reasoning=True),
-            ModelInfo("llama-3.1-8b-instant", "Llama 3.1 8B Instant (Ultra-Fast)", self.provider_id, context_window=128000, max_output_tokens=8192),
-            # Compatibility aliases
-            ModelInfo("openai/gpt-oss-120b", "GPT OSS 120B (Auto -> Llama 3.3 70B)", self.provider_id, context_window=128000, max_output_tokens=8192),
-            ModelInfo("qwen/qwen3.8-27b", "Qwen 3.8 27B (Auto -> Qwen 2.5 Coder)", self.provider_id, context_window=32768, max_output_tokens=8192),
+            ModelInfo("openai/gpt-oss-120b", "GPT OSS 120B (High-Performance Reasoning & Coding)", self.provider_id, context_window=128000, max_output_tokens=8192, supports_reasoning=True),
+            ModelInfo("qwen/qwen3.8-27b", "Qwen 3.8 27B (Dedicated Multilingual & Code Engine)", self.provider_id, context_window=32768, max_output_tokens=8192),
+            ModelInfo("openai/gpt-oss-20b", "GPT OSS 20B (Ultra-Fast Lightweight Model)", self.provider_id, context_window=128000, max_output_tokens=8192),
+            ModelInfo("allam-2-7b", "ALLAM 2 7B (Fast Conversational Engine)", self.provider_id, context_window=32768, max_output_tokens=4096),
         ]
 
     def validate_api_key(self) -> bool:
@@ -122,6 +116,31 @@ class GroqProvider(BaseProvider):
                 total_tokens=getattr(usage, "total_tokens", 0) if usage else 0,
             )
         except Exception as exc:
+            err_msg = str(exc).lower()
+            if ("decommissioned" in err_msg or "does not exist" in err_msg or "not found" in err_msg) and model_id != "openai/gpt-oss-120b":
+                try:
+                    res = client.chat.completions.create(
+                        model="openai/gpt-oss-120b",
+                        messages=messages,
+                        temperature=request.temperature,
+                        max_tokens=effective_max_tokens,
+                        stream=False,
+                    )
+                    choice = res.choices[0].message
+                    content = choice.content or ""
+                    reasoning = getattr(choice, "reasoning_content", None) or getattr(choice, "reasoning", None)
+                    usage = getattr(res, "usage", None)
+                    return ChatResponse(
+                        content=content,
+                        reasoning_content=reasoning,
+                        model="openai/gpt-oss-120b",
+                        provider_id=self.provider_id,
+                        prompt_tokens=getattr(usage, "prompt_tokens", 0) if usage else 0,
+                        completion_tokens=getattr(usage, "completion_tokens", 0) if usage else 0,
+                        total_tokens=getattr(usage, "total_tokens", 0) if usage else 0,
+                    )
+                except Exception:
+                    pass
             self._handle_exception(exc)
 
     def chat_stream(self, request: ChatRequest) -> Generator[StreamChunk, None, None]:
@@ -138,6 +157,23 @@ class GroqProvider(BaseProvider):
                 max_tokens=effective_max_tokens,
                 stream=True,
             )
+        except Exception as exc:
+            err_msg = str(exc).lower()
+            if ("decommissioned" in err_msg or "does not exist" in err_msg or "not found" in err_msg) and model_id != "openai/gpt-oss-120b":
+                try:
+                    res = client.chat.completions.create(
+                        model="openai/gpt-oss-120b",
+                        messages=messages,
+                        temperature=request.temperature,
+                        max_tokens=effective_max_tokens,
+                        stream=True,
+                    )
+                except Exception:
+                    self._handle_exception(exc)
+            else:
+                self._handle_exception(exc)
+
+        try:
             for chunk in res:
                 if chunk.choices:
                     delta = chunk.choices[0].delta

@@ -238,25 +238,27 @@ class ProviderCardWidget(QFrame):
         self.priority = 1
         self._test_worker: ConnectionTestWorker | None = None
         self._key_in_vault = False   # True when saved key lives in keyring
+        self._current_theme = "light"
+        self._last_badge_text = "⚪ Not Configured"
+        self._last_badge_style = "neutral"
         self._init_ui()
 
     def _init_ui(self) -> None:
         self.setFrameShape(QFrame.Shape.StyledPanel)
-        # NOTE: No hardcoded dark colors — the parent QDialog stylesheet propagates.
         self.setObjectName("ProviderCard")
         self.setStyleSheet(
-            "ProviderCardWidget#ProviderCard { border-radius: 8px; border: 1px solid palette(mid); }"
+            "ProviderCardWidget#ProviderCard { border-radius: 12px; }"
         )
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(15, 12, 15, 12)
-        layout.setSpacing(10)
+        layout.setContentsMargins(14, 10, 14, 10)
+        layout.setSpacing(8)
 
         # --- Header Row: Provider Name + Enabled Checkbox + Status Badge ---
         header_layout = QHBoxLayout()
 
         self.name_label = QLabel(self.default_name)
-        self.name_label.setStyleSheet("font-size: 15px; font-weight: bold;")
+        self.name_label.setStyleSheet("font-size: 14.5px; font-weight: 700;")
         header_layout.addWidget(self.name_label)
 
         header_layout.addStretch()
@@ -264,8 +266,8 @@ class ProviderCardWidget(QFrame):
         self.status_badge = QLabel("⚪ Not Configured")
         self.status_badge.setObjectName("StatusBadge")
         self.status_badge.setStyleSheet(
-            "color: palette(placeholder-text); font-size: 11px; "
-            "padding: 2px 8px; border-radius: 4px;"
+            "color: #64748B; background-color: #F1F5F9; border: 1px solid #E2E8F0; "
+            "font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 6px;"
         )
         header_layout.addWidget(self.status_badge)
 
@@ -347,6 +349,12 @@ class ProviderCardWidget(QFrame):
 
     def _toggle_eye(self) -> None:
         if self.key_edit.echoMode() == QLineEdit.EchoMode.Password:
+            if not self.key_edit.text().strip():
+                saved_key = self._resolve_test_key()
+                if saved_key:
+                    self.key_edit.blockSignals(True)
+                    self.key_edit.setText(saved_key)
+                    self.key_edit.blockSignals(False)
             self.key_edit.setEchoMode(QLineEdit.EchoMode.Normal)
             self.btn_toggle_eye.setText("🔒")
         else:
@@ -429,15 +437,42 @@ class ProviderCardWidget(QFrame):
         except RuntimeError:
             pass  # Widget was already deleted when dialog closed
 
+    def apply_theme(self, theme_name: str) -> None:
+        """Apply active theme styles to provider card labels and buttons."""
+        self._current_theme = theme_name
+        from app.ui.styles import get_theme_palette
+        p = get_theme_palette(theme_name)
+        accent = p.get("accent", "#4F46E5")
+        accent_hover = p.get("accent_hover", "#4338CA")
+
+        self.name_label.setStyleSheet(f"font-size: 14.5px; font-weight: 700; color: {p['input_text']};")
+        self.btn_test.setStyleSheet(
+            f"QPushButton {{ background-color: {accent}; color: #FFFFFF; font-size: 12px; padding: 4px 12px; border-radius: 5px; border: none; }} "
+            f"QPushButton:hover {{ background-color: {accent_hover}; }}"
+        )
+        self._set_badge(self._last_badge_text, self._last_badge_style)
+
     def _set_badge(self, text: str, style: str = "neutral") -> None:
-        STYLES = {
-            "success": "color: #34D399; background-color: #064E3B;",
-            "error": "color: #F87171; background-color: #7F1D1D;",
-            "warning": "color: #F59E0B; background-color: #7C2D12;",
-            "info": "color: #60A5FA; background-color: #1E3A8A;",
-            "neutral": "color: palette(placeholder-text); background-color: palette(window);",
-        }
-        base_qss = "font-size: 11px; padding: 2px 8px; border-radius: 4px;"
+        self._last_badge_text = text
+        self._last_badge_style = style
+        is_dark = str(getattr(self, "_current_theme", "light")).lower() in ("dark", "oled", "neon")
+        if is_dark:
+            STYLES = {
+                "success": "color: #34D399; background-color: #064E3B; border: 1px solid #059669;",
+                "error": "color: #F87171; background-color: #7F1D1D; border: 1px solid #DC2626;",
+                "warning": "color: #FBBF24; background-color: #78350F; border: 1px solid #D97706;",
+                "info": "color: #60A5FA; background-color: #1E3A8A; border: 1px solid #2563EB;",
+                "neutral": "color: #94A3B8; background-color: #1E293B; border: 1px solid #334155;",
+            }
+        else:
+            STYLES = {
+                "success": "color: #059669; background-color: #D1FAE5; border: 1px solid #A7F3D0;",
+                "error": "color: #DC2626; background-color: #FEE2E2; border: 1px solid #FECACA;",
+                "warning": "color: #D97706; background-color: #FEF3C7; border: 1px solid #FDE68A;",
+                "info": "color: #2563EB; background-color: #DBEAFE; border: 1px solid #BFDBFE;",
+                "neutral": "color: #64748B; background-color: #F1F5F9; border: 1px solid #E2E8F0;",
+            }
+        base_qss = "font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 6px;"
         self.status_badge.setText(text)
         self.status_badge.setStyleSheet(STYLES.get(style, STYLES["neutral"]) + base_qss)
 
@@ -447,6 +482,11 @@ class ProviderCardWidget(QFrame):
 
     def load_config(self, config: ProviderConfig) -> None:
         self.blockSignals(True)
+        self.key_edit.blockSignals(True)
+        self.enable_check.blockSignals(True)
+        self.url_edit.blockSignals(True)
+        self.priority_spin.blockSignals(True)
+
         self.enable_check.setChecked(config.enabled)
         self.url_edit.setText(config.base_url if config.base_url != self.default_base_url else "")
         self.priority_spin.setValue(config.priority if config.priority and config.priority > 0 else 1)
@@ -455,8 +495,13 @@ class ProviderCardWidget(QFrame):
         # Handle keyring sentinel
         if config.api_key == "__keyring__":
             self._key_in_vault = True
-            self.key_edit.clear()
-            self.key_edit.setPlaceholderText("🔒 Key stored in Credential Manager")
+            from app.settings.key_vault import retrieve_api_key
+            vault_k = retrieve_api_key(self.provider_id)
+            if vault_k:
+                self.key_edit.setText(vault_k)
+            else:
+                self.key_edit.clear()
+            self.key_edit.setPlaceholderText("Enter API Key...")
             self._set_badge("🔑 Key in Vault", "info")
         elif config.api_key:
             self._key_in_vault = False
@@ -468,8 +513,8 @@ class ProviderCardWidget(QFrame):
             env_key = SettingsManager.instance().service.get_api_key(self.provider_id)
             if env_key:
                 self._key_in_vault = False
-                self.key_edit.clear()
-                self.key_edit.setPlaceholderText("🔑 Active key loaded from .env")
+                self.key_edit.setText(env_key)
+                self.key_edit.setPlaceholderText("Enter API Key...")
                 self._set_badge("🔑 Key in .env", "info")
             else:
                 self._key_in_vault = False
@@ -480,6 +525,10 @@ class ProviderCardWidget(QFrame):
         if config.status == "active":
             self._set_badge("🟢 Active", "success")
 
+        self.priority_spin.blockSignals(False)
+        self.url_edit.blockSignals(False)
+        self.enable_check.blockSignals(False)
+        self.key_edit.blockSignals(False)
         self.blockSignals(False)
 
     def get_config(self) -> ProviderConfig:
@@ -522,31 +571,35 @@ class ProvidersPage(QWidget):
 
     def _init_ui(self) -> None:
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(20, 20, 20, 20)
-        main_layout.setSpacing(12)
+        main_layout.setContentsMargins(16, 12, 16, 8)
+        main_layout.setSpacing(10)
 
-        # Title
-        title_label = QLabel("AI Providers & API Key Management")
-        title_label.setStyleSheet("font-size: 18px; font-weight: bold;")
-        main_layout.addWidget(title_label)
+        # Title & Subtitle Banner
+        self.title_label = QLabel("🔌 AI Providers & API Credentials")
+        self.title_label.setStyleSheet("font-size: 18px; font-weight: 700;")
+        main_layout.addWidget(self.title_label)
 
         desc_label = QLabel(
-            "API keys are stored securely in Windows Credential Manager — never in plaintext on disk.\n"
-            "Priority controls auto-failover order (lower number = tried first)."
+            "API keys are stored securely in Windows Credential Manager — never written to disk in plaintext.\n"
+            "Failover priority controls fallback order (lower number = attempted first)."
         )
-        desc_label.setStyleSheet("font-size: 12px;")
+        desc_label.setProperty("subtext", "true")
         desc_label.setWordWrap(True)
         main_layout.addWidget(desc_label)
 
         # Scroll Area for Provider Cards
         scroll = QScrollArea()
+        scroll.setObjectName("providersScrollArea")
         scroll.setWidgetResizable(True)
         scroll.setFrameShape(QFrame.Shape.NoFrame)
+        scroll.setStyleSheet("QScrollArea#providersScrollArea, QScrollArea#providersScrollArea > QWidget > QWidget { background: transparent; border: none; }")
 
         container = QWidget()
+        container.setObjectName("providersContainer")
+        container.setStyleSheet("QWidget#providersContainer { background: transparent; border: none; }")
         scroll_layout = QVBoxLayout(container)
-        scroll_layout.setContentsMargins(0, 5, 10, 5)
-        scroll_layout.setSpacing(12)
+        scroll_layout.setContentsMargins(0, 4, 10, 4)
+        scroll_layout.setSpacing(10)
 
         # Provider Card Specs
         provider_specs = [
@@ -576,6 +629,16 @@ class ProvidersPage(QWidget):
 
         scroll.setWidget(container)
         main_layout.addWidget(scroll)
+
+    def apply_theme(self, theme_name: str) -> None:
+        """Propagate active theme to all provider cards and labels."""
+        from app.ui.styles import get_theme_palette
+        p = get_theme_palette(theme_name)
+        if hasattr(self, "title_label"):
+            self.title_label.setStyleSheet(f"font-size: 18px; font-weight: 700; color: {p['input_text']};")
+        for card in self._cards.values():
+            if hasattr(card, "apply_theme") and callable(card.apply_theme):
+                card.apply_theme(theme_name)
 
     def _on_card_changed(self) -> None:
         self.setting_changed.emit("providers", self.get_settings())

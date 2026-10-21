@@ -29,27 +29,32 @@ class ModelsPage(QWidget):
 
     def _init_ui(self) -> None:
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(20, 20, 20, 20)
-        main_layout.setSpacing(12)
+        main_layout.setContentsMargins(16, 12, 16, 8)
+        main_layout.setSpacing(10)
 
-        # Title
-        title_label = QLabel("AI Model Task Role Mapping")
-        title_label.setStyleSheet("font-size: 18px; font-weight: bold;")
-        main_layout.addWidget(title_label)
+        # Title & Subtitle Banner
+        self.title_label = QLabel("🤖 AI Model Task Role Mapping")
+        self.title_label.setStyleSheet("font-size: 18px; font-weight: 700;")
+        main_layout.addWidget(self.title_label)
 
-        desc_label = QLabel("Assign models independently to task roles. Changing providers or models requires no application logic changes.")
-        desc_label.setStyleSheet("color: #888888; font-size: 12px;")
+        desc_label = QLabel("Assign AI models independently to specific tasks. All changes dynamically propagate across the entire studio without restarting.")
+        desc_label.setProperty("subtext", "true")
+        desc_label.setWordWrap(True)
         main_layout.addWidget(desc_label)
 
         # Scroll Area for Task Mapping Groups
         scroll = QScrollArea()
+        scroll.setObjectName("modelsScrollArea")
         scroll.setWidgetResizable(True)
         scroll.setFrameShape(QFrame.Shape.NoFrame)
+        scroll.setStyleSheet("QScrollArea#modelsScrollArea, QScrollArea#modelsScrollArea > QWidget > QWidget { background: transparent; border: none; }")
 
         container = QWidget()
+        container.setObjectName("modelsContainer")
+        container.setStyleSheet("QWidget#modelsContainer { background: transparent; border: none; }")
         scroll_layout = QVBoxLayout(container)
-        scroll_layout.setContentsMargins(0, 5, 10, 5)
-        scroll_layout.setSpacing(15)
+        scroll_layout.setContentsMargins(0, 4, 10, 4)
+        scroll_layout.setSpacing(10)
 
         # Fetch dynamic model list from ProviderRegistry
         registry_models = ProviderRegistry.get_all_models()
@@ -60,21 +65,19 @@ class ModelsPage(QWidget):
                 "chat_model",
                 "💬 General Chat Model",
                 "Default conversational intelligence model for text interactions.",
-                ["google/gemini-2.0-flash", "deepseek/deepseek-chat", "openai/gpt-4o-mini", "plugsky-lite"],
+                ["google/gemini-3.8-flash", "google/gemini-3.6-flash", "deepseek/deepseek-chat", "openai/gpt-4o-mini", "plugsky-lite"],
             ),
             (
                 "coding_model",
                 "💻 Coding & Software Architecture Model",
                 "Specialized model for code generation, debugging, and technical specs.",
                 [
-                    "anthropic/claude-3.7-sonnet",
-                    "anthropic/claude-3.5-sonnet",
-                    "google/gemini-2.5-pro",
-                    "google/gemini-2.0-flash",
-                    "deepseek/deepseek-chat",
                     "qwen/qwen-2.5-coder-32b-instruct",
-                    "llama-3.3-70b-versatile",
+                    "deepseek/deepseek-chat",
+                    "google/gemini-3.8-flash",
+                    "google/gemini-3.6-flash",
                     "codestral-latest",
+                    "openai/gpt-oss-120b",
                     "plugsky-lite",
                 ],
             ),
@@ -83,51 +86,53 @@ class ModelsPage(QWidget):
                 "🧠 Complex Reasoning & Scientific Model",
                 "Deep reasoning model for math, research, logic, and multi-step analytical problems.",
                 [
-                    "deepseek/deepseek-r1",
-                    "google/gemini-2.0-flash-thinking-exp",
-                    "google/gemini-2.5-pro",
-                    "deepseek-r1-distill-llama-70b",
-                    "plugsky-reasoning",
+                    "google/gemini-3.7-flash",
+                    "openai/gpt-oss-120b",
+                    "google/gemini-pro-latest",
+                    "deepseek/deepseek-chat",
+                    "openai/gpt-4o-mini",
                 ],
             ),
             (
                 "vision_model",
                 "👁️ Vision & Multimodal Model",
                 "Model used for analyzing uploaded images, screenshots, and visual documents.",
-                ["openai/gpt-4o", "google/gemini-3.6-flash", "meta-llama/llama-3.2-11b-vision-instruct"],
+                ["google/gemini-3.8-flash", "google/gemini-3.6-flash", "openai/gpt-4o"],
             ),
             (
                 "voice_model",
                 "🎙️ Voice Speech Engine Model",
                 "Primary TTS voice model engine for audio synthesis.",
-                ["edge_neural_tts", "cartesia", "elevenlabs", "fish_audio", "gtts"],
+                ["cartesia", "edge_neural_tts", "elevenlabs", "fish_audio", "gtts"],
             ),
             (
                 "image_model",
                 "🎨 Image Generation Model",
                 "Text-to-Image generation model engine.",
-                ["openai/dall-e-3", "stability-ai/sdxl"],
+                ["google/gemini-3.5-flash", "openai/dall-e-3", "stability-ai/sdxl"],
             ),
             (
                 "fallback_model",
                 "🛡️ Backup / Fallback Model",
                 "Emergency backup model when primary provider endpoints return rate limits or errors.",
-                ["plugsky-lite", "google/gemini-3.6-flash", "deepseek/deepseek-chat"],
+                ["google/gemini-3.6-flash", "plugsky-lite", "deepseek/deepseek-chat"],
             ),
         ]
 
         for role_key, name, desc, defaults in task_specs:
             group = QGroupBox(name)
             group_layout = QVBoxLayout(group)
-            group_layout.setContentsMargins(15, 12, 15, 12)
-            group_layout.setSpacing(8)
+            group_layout.setContentsMargins(14, 10, 14, 10)
+            group_layout.setSpacing(6)
 
             desc_sub = QLabel(desc)
-            desc_sub.setStyleSheet("color: #9CA3AF; font-size: 11px;")
+            desc_sub.setProperty("subtext", "true")
             group_layout.addWidget(desc_sub)
 
             combo = QComboBox()
             combo.setEditable(True)
+            if combo.lineEdit():
+                combo.lineEdit().setPlaceholderText("Select or enter model ID...")
 
             # Combine registry models and defaults uniquely
             combined_models = list(dict.fromkeys(defaults + registry_models))
@@ -143,6 +148,15 @@ class ModelsPage(QWidget):
 
         scroll.setWidget(container)
         main_layout.addWidget(scroll)
+
+    def apply_theme(self, theme_name: str) -> None:
+        """Propagate active theme to models page title and controls."""
+        from app.ui.styles import get_theme_palette, apply_combobox_theme
+        p = get_theme_palette(theme_name)
+        if hasattr(self, "title_label"):
+            self.title_label.setStyleSheet(f"font-size: 18px; font-weight: 700; color: {p['input_text']};")
+        for combo in self._combos.values():
+            apply_combobox_theme(combo, theme_name)
 
     def _on_changed(self) -> None:
         self.setting_changed.emit("models", self.get_settings())

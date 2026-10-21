@@ -35,6 +35,13 @@ def strip_markdown(text: str, language: str = "en") -> str:
         text,
     )
 
+    # Expand single-character hyphenated spelling (e.g. "P-S-Y-C-H-O-L-O-G-I-C-A-L" -> "P, S, Y, C, H, O, L, O, G, I, C, A, L")
+    # so TTS clearly articulates each letter individually without merging into alien words
+    text = re.sub(r"\b[A-Za-z](?:-[A-Za-z])+\b", lambda m: ", ".join(m.group(0).split("-")), text)
+
+    # Remove IPA phonetic symbols/pronunciation guides enclosed in slashes so TTS does not glitch on raw phonetic markers
+    text = re.sub(r"/[\u0250-\u02AF\u02B0-\u02FF\u0300-\u036Fˈˌːˑa-zA-Z\s\.-]+/", " ", text)
+
     # Convert dashes, ellipses, colons into natural comma pauses
     text = text.replace("...", ", ")
     text = text.replace("—", ", ")

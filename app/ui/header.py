@@ -89,7 +89,7 @@ class Header(QWidget):
     def apply_theme(self, theme_name: str) -> None:
         """Update header background and dropdown QSS styles according to theme."""
         self._theme = theme_name
-        from app.ui.styles import get_theme_palette, get_pill_combobox_style
+        from app.ui.styles import get_theme_palette, get_pill_combobox_style, apply_combobox_theme
         p = get_theme_palette(theme_name)
 
         self.setStyleSheet(f"""
@@ -103,6 +103,8 @@ class Header(QWidget):
         combo_qss = get_pill_combobox_style(theme_name)
         self.provider_selector.setStyleSheet(combo_qss)
         self.model_selector.setStyleSheet(combo_qss)
+        apply_combobox_theme(self.provider_selector, theme_name)
+        apply_combobox_theme(self.model_selector, theme_name)
 
         tool_btn_style = f"""
             QToolButton {{

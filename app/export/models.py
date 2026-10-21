@@ -43,10 +43,10 @@ class ExportAttachment:
 class ExportMessage:
     """Message content and attachments prepared for every exporter."""
 
-    id: str
-    role: MessageRole
-    content: str
-    created_at: str
+    id: str = ""
+    role: MessageRole | str = "assistant"
+    content: str = ""
+    created_at: str = ""
     attachments: tuple[ExportAttachment, ...] = ()
 
     @classmethod
@@ -71,10 +71,10 @@ class ExportMessage:
 class ExportConversation:
     """Complete, ordered conversation data consumed by format exporters."""
 
-    id: str
-    title: str
-    created_at: str
-    updated_at: str
+    id: str = ""
+    title: str = ""
+    created_at: str = ""
+    updated_at: str = ""
     messages: tuple[ExportMessage, ...] = ()
     metadata: Mapping[str, str] = field(default_factory=dict)
 

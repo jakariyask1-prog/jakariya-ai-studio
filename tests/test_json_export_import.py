@@ -6,6 +6,8 @@ import pytest
 from app.chat.chat_manager import ChatManager
 from app.chat.chat_repository import ChatRepository
 from app.export.business_logic.json_exporter import JsonExporter
+from app.export.business_logic.markdown_exporter import MarkdownExporter
+from app.export.business_logic.txt_exporter import TxtExporter
 from app.export.export_options import ExportOptions
 from app.export.export_service import ExportService
 from app.export.import_service import ImportService
@@ -72,3 +74,48 @@ def test_import_service_roundtrip(temp_db, tmp_path):
     assert messages[0].content == "What is Python?"
     assert messages[1].role == "assistant"
     assert messages[1].content == "Python is a programming language."
+
+
+def test_import_service_markdown_roundtrip(temp_db, tmp_path):
+    conv = temp_db.create_new_chat(title="Markdown Roundtrip Chat")
+    temp_db.add_user_message("Explain quantum computing", conv.id)
+    temp_db.add_assistant_message("Quantum computing uses qubits.", conv.id)
+
+    registry = ExporterRegistry((MarkdownExporter(),))
+    export_service = ExportService(temp_db, registry)
+    export_path = tmp_path / "roundtrip.md"
+    export_service.export_conversation(export_path, ExportOptions("md"), conv.id)
+
+    import_service = ImportService(temp_db)
+    imported = import_service.import_conversation_file(export_path)
+
+    assert imported.title == "Markdown Roundtrip Chat"
+    messages = temp_db.get_messages(imported.id)
+    assert len(messages) == 2
+    assert messages[0].role == "user"
+    assert messages[0].content == "Explain quantum computing"
+    assert messages[1].role == "assistant"
+    assert messages[1].content == "Quantum computing uses qubits."
+
+
+def test_import_service_txt_roundtrip(temp_db, tmp_path):
+    conv = temp_db.create_new_chat(title="TXT Roundtrip Chat")
+    temp_db.add_user_message("What is machine learning?", conv.id)
+    temp_db.add_assistant_message("ML is a subset of AI.", conv.id)
+
+    registry = ExporterRegistry((TxtExporter(),))
+    export_service = ExportService(temp_db, registry)
+    export_path = tmp_path / "roundtrip.txt"
+    export_service.export_conversation(export_path, ExportOptions("txt"), conv.id)
+
+    import_service = ImportService(temp_db)
+    imported = import_service.import_conversation_file(export_path)
+
+    assert imported.title == "TXT Roundtrip Chat"
+    messages = temp_db.get_messages(imported.id)
+    assert len(messages) == 2
+    assert messages[0].role == "user"
+    assert messages[0].content == "What is machine learning?"
+    assert messages[1].role == "assistant"
+    assert messages[1].content == "ML is a subset of AI."
+

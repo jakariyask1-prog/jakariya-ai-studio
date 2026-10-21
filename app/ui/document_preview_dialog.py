@@ -183,6 +183,15 @@ class DocumentPreviewDialog(QDialog):
         btn_docx.clicked.connect(self._export_docx)
         action_layout.addWidget(btn_docx)
 
+        # -- Export Excel --
+        btn_excel = QPushButton("📊 Export Excel")
+        btn_excel.setFixedHeight(36)
+        btn_excel.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_excel.setToolTip("Export as Excel Spreadsheet (.xlsx)")
+        btn_excel.setStyleSheet(self._action_btn_style("#059669", "#047857"))
+        btn_excel.clicked.connect(self._export_excel)
+        action_layout.addWidget(btn_excel)
+
         action_layout.addStretch(1)
 
         # -- Copy --
@@ -252,6 +261,11 @@ class DocumentPreviewDialog(QDialog):
 
     def _export_pdf(self) -> None:
         """Export document as PDF using the built-in PDF exporter."""
+        from app.licensing.license_manager import LicenseManager
+        if not LicenseManager.instance().is_feature_allowed("styled_pdf_export"):
+            QMessageBox.information(self, "Pro Feature", "PDF এক্সপোর্ট সুবিধাটি Pro এবং ৩ দিনের ফ্রি ট্রায়ালের অন্তর্ভুক্ত।")
+            return
+
         destination, _ = QFileDialog.getSaveFileName(
             self,
             "Export as PDF",
@@ -264,14 +278,19 @@ class DocumentPreviewDialog(QDialog):
         if not dest.suffix:
             dest = dest.with_suffix(".pdf")
         try:
+            from datetime import datetime
             from app.export.business_logic.exporter_registry import build_default_exporter_registry
             from app.export.export_options import ExportOptions
             from app.export.models import ExportConversation, ExportMessage
             registry = build_default_exporter_registry()
             exporter = registry.get("pdf")
+            now_iso = datetime.now().isoformat(timespec="seconds")
             conv = ExportConversation(
+                id="preview-doc",
                 title=self.doc_title,
-                messages=[ExportMessage(role="assistant", content=self.raw_content)],
+                created_at=now_iso,
+                updated_at=now_iso,
+                messages=(ExportMessage(id="msg-1", role="assistant", content=self.raw_content, created_at=now_iso),),
             )
             exporter.export(conv, dest, ExportOptions("pdf"))
             QMessageBox.information(self, "Exported", f"✅ PDF saved to:\n{dest}")
@@ -280,6 +299,11 @@ class DocumentPreviewDialog(QDialog):
 
     def _export_docx(self) -> None:
         """Export document as DOCX using the built-in DOCX exporter."""
+        from app.licensing.license_manager import LicenseManager
+        if not LicenseManager.instance().is_feature_allowed("docx_export"):
+            QMessageBox.information(self, "Pro Feature", "DOCX এক্সপোর্ট সুবিধাটি Pro এবং ৩ দিনের ফ্রি ট্রায়ালের অন্তর্ভুক্ত।")
+            return
+
         destination, _ = QFileDialog.getSaveFileName(
             self,
             "Export as Word Document",
@@ -292,19 +316,62 @@ class DocumentPreviewDialog(QDialog):
         if not dest.suffix:
             dest = dest.with_suffix(".docx")
         try:
+            from datetime import datetime
             from app.export.business_logic.exporter_registry import build_default_exporter_registry
             from app.export.export_options import ExportOptions
             from app.export.models import ExportConversation, ExportMessage
             registry = build_default_exporter_registry()
             exporter = registry.get("docx")
+            now_iso = datetime.now().isoformat(timespec="seconds")
             conv = ExportConversation(
+                id="preview-doc",
                 title=self.doc_title,
-                messages=[ExportMessage(role="assistant", content=self.raw_content)],
+                created_at=now_iso,
+                updated_at=now_iso,
+                messages=(ExportMessage(id="msg-1", role="assistant", content=self.raw_content, created_at=now_iso),),
             )
             exporter.export(conv, dest, ExportOptions("docx"))
             QMessageBox.information(self, "Exported", f"✅ DOCX saved to:\n{dest}")
         except Exception as exc:
             QMessageBox.warning(self, "DOCX Export Failed", f"❌ Could not export DOCX:\n{exc}")
+
+    def _export_excel(self) -> None:
+        """Export document as Excel spreadsheet."""
+        from app.licensing.license_manager import LicenseManager
+        if not LicenseManager.instance().is_feature_allowed("excel_export"):
+            QMessageBox.information(self, "Pro Feature", "Excel এক্সপোর্ট সুবিধাটি Pro এবং ৩ দিনের ফ্রি ট্রায়ালের অন্তর্ভুক্ত।")
+            return
+
+        destination, _ = QFileDialog.getSaveFileName(
+            self,
+            "Export as Excel Spreadsheet",
+            self._safe_filename(".xlsx"),
+            "Excel Files (*.xlsx);;All Files (*.*)",
+        )
+        if not destination:
+            return
+        dest = Path(destination)
+        if not dest.suffix:
+            dest = dest.with_suffix(".xlsx")
+        try:
+            from datetime import datetime
+            from app.export.business_logic.exporter_registry import build_default_exporter_registry
+            from app.export.export_options import ExportOptions
+            from app.export.models import ExportConversation, ExportMessage
+            registry = build_default_exporter_registry()
+            exporter = registry.get("xlsx")
+            now_iso = datetime.now().isoformat(timespec="seconds")
+            conv = ExportConversation(
+                id="preview-doc",
+                title=self.doc_title,
+                created_at=now_iso,
+                updated_at=now_iso,
+                messages=(ExportMessage(id="msg-1", role="assistant", content=self.raw_content, created_at=now_iso),),
+            )
+            exporter.export(conv, dest, ExportOptions("xlsx"))
+            QMessageBox.information(self, "Exported", f"✅ Excel spreadsheet saved to:\n{dest}")
+        except Exception as exc:
+            QMessageBox.warning(self, "Excel Export Failed", f"❌ Could not export Excel spreadsheet:\n{exc}")
 
     def _copy_to_clipboard(self) -> None:
         clipboard = QApplication.clipboard()

@@ -110,10 +110,12 @@ class ChatArea(QWidget):
         self.chat_box.setOpenExternalLinks(False)
         self.chat_box.setTextInteractionFlags(Qt.TextBrowserInteraction)
         self.chat_box.anchorClicked.connect(self._on_anchor_clicked)
-        self.chat_box.setFont(QFont("Noto Sans Bengali", 12.5))
+        font = QFont("Segoe UI Variable", 11)
+        font.setStyleHint(QFont.StyleHint.SansSerif)
+        self.chat_box.setFont(font)
         self.chat_box.setStyleSheet(CHAT_BROWSER_STYLE)
         self.chat_box.document().setDefaultStyleSheet(DOCUMENT_DEFAULT_CSS)
-        self.chat_box.document().setDocumentMargin(3)
+        self.chat_box.document().setDocumentMargin(4)
 
         layout.addWidget(self.chat_box)
 
@@ -872,9 +874,24 @@ class ChatArea(QWidget):
                 f'</div>'
             )
 
+        # --- 2b. Check for Task Cancellation ---
+        cancelled_callout_html = ""
+        if "Task Cancelled" in raw_output:
+            cancel_bg = "#334155" if is_dark else "#F1F5F9"
+            cancel_fg = "#CBD5E1" if is_dark else "#475569"
+            cancel_border = "#475569" if is_dark else "#CBD5E1"
+            cancelled_callout_html = (
+                f'<div style="background-color:{cancel_bg}; border:1px solid {cancel_border}; border-radius:8px; '
+                f'padding:10px 12px; margin-top:8px; margin-bottom:8px;">'
+                f'<span style="font-weight:700; color:{cancel_fg}; font-size:9.5pt;">⏹ Task was stopped by user.</span>'
+                f'</div>'
+            )
+
         # --- 3. Extract clean final answer from raw ReAct output ---
         clean_text = raw_output
-        if "Final Answer:" in clean_text:
+        if "Task Cancelled" in clean_text:
+            clean_text = "*(Task stopped by user)*"
+        elif "Final Answer:" in clean_text:
             clean_text = clean_text.split("Final Answer:", 1)[1].strip()
         elif "Observation: Error" in clean_text or "Observation: Exception" in clean_text:
             lines = []
@@ -906,7 +923,7 @@ class ChatArea(QWidget):
 
         file_cards_html = self._build_file_cards_html(self._agent_file_paths)
 
-        full_body_html = steps_summary_html + error_callout_html + rendered_md + file_cards_html
+        full_body_html = steps_summary_html + error_callout_html + cancelled_callout_html + rendered_md + file_cards_html
 
         if self._stream_block_start_position is not None:
             cursor = self.chat_box.textCursor()
@@ -1183,7 +1200,7 @@ class ChatArea(QWidget):
     # =============================================================
 
     def show_empty_state(self) -> None:
-        """Render an ultra-premium Bento Hero welcome screen with modern starter cards."""
+        """Render an ultra-premium, eye-comfortable Bento welcome screen with modern workflow cards."""
         self.clear_chat(reset_state=True)
         from app.utils.paths import get_resource_path
         from app.ui.styles import get_theme_palette
@@ -1195,42 +1212,50 @@ class ChatArea(QWidget):
         if not logo_path.exists():
             logo_path = get_resource_path("assets", "logo.ico")
         logo_img_tag = (
-            f'<img src="{logo_path.resolve().as_uri()}" width="76" height="76" style="margin-bottom: 12px;"/><br>'
+            f'<img src="{logo_path.resolve().as_uri()}" width="68" height="68" style="margin-bottom: 12px; border-radius: 14px;"/><br>'
             if logo_path.exists()
-            else '<div style="font-size: 42px; margin-bottom: 8px;">✨</div>'
+            else '<div style="font-size: 38px; margin-bottom: 8px;">✨</div>'
         )
 
-        card_bg = p["bg_capsule"] if is_dark else "#FFFFFF"
+        card_bg = "#1E293B" if is_dark else "#FFFFFF"
         card_border = "#334155" if is_dark else "#E2E8F0"
-        badge_bg = "#312E81" if is_dark else "#EEF2FF"
-        badge_text = "#C7D2FE" if is_dark else "#4F46E5"
-        badge_border = "#4338CA" if is_dark else "#C7D2FE"
+        badge_bg = "#1E1B4B" if is_dark else "#EEF2FF"
+        badge_text = "#C7D2FE" if is_dark else "#4338CA"
+        badge_border = "#3730A3" if is_dark else "#C7D2FE"
+
+        # Dedicated pastel icon pill containers for eye-comfort
+        doc_icon_bg = "#1E1B4B" if is_dark else "#EEF2FF"
+        code_icon_bg = "#064E3B" if is_dark else "#ECFDF5"
+        art_icon_bg = "#3B0764" if is_dark else "#FAF5FF"
+        voice_icon_bg = "#451A03" if is_dark else "#FFFBEB"
+
+        subtext_color = "#94A3B8" if is_dark else "#64748B"
 
         welcome_html = f"""
-        <div style="text-align: center; margin-top: 36px; margin-bottom: 24px; font-family: 'Segoe UI Variable', 'Noto Sans Bengali', sans-serif;">
+        <div style="text-align: center; margin-top: 32px; margin-bottom: 24px; font-family: 'Segoe UI Variable', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Inter', 'Noto Sans Bengali', sans-serif;">
             {logo_img_tag}
-            <div style="margin-bottom: 10px;">
-                <span style="background-color: {badge_bg}; color: {badge_text}; border: 1px solid {badge_border}; border-radius: 12px; padding: 4px 12px; font-size: 9.5pt; font-weight: 700; letter-spacing: 0.5px;">
-                    Jakariya AI Studio • Multi-Model & Agentic
+            <div style="margin-bottom: 12px;">
+                <span style="background-color: {badge_bg}; color: {badge_text}; border: 1px solid {badge_border}; border-radius: 14px; padding: 5px 14px; font-size: 9pt; font-weight: 700; letter-spacing: 0.5px;">
+                    ✨ JAKARIYA AI STUDIO • NEXT-GEN MULTI-MODEL AI
                 </span>
             </div>
-            <h1 style="font-size: 26px; font-weight: 800; color: {p['text_chat']}; margin-top: 6px; margin-bottom: 6px; letter-spacing: -0.5px;">
+            <h1 style="font-size: 24px; font-weight: 800; color: {p['text_chat']}; margin-top: 4px; margin-bottom: 8px; letter-spacing: -0.3px;">
                 What would you like to create today?
             </h1>
-            <p style="font-size: 11pt; color: {p['placeholder_text']}; margin-top: 0px; margin-bottom: 28px;">
-                Select a quick workflow below or ask any question to get started
+            <p style="font-size: 10.5pt; color: {subtext_color}; margin-top: 0px; margin-bottom: 26px; line-height: 1.5;">
+                Select a quick workflow below or ask any question to get started with autonomous AI intelligence
             </p>
 
-            <table width="100%" cellspacing="12" cellpadding="0" style="max-width: 680px; margin: 0 auto;">
+            <table width="100%" cellspacing="12" cellpadding="0" style="max-width: 700px; margin: 0 auto;">
                 <tr>
                     <td width="50%">
                         <a href="promptcard:Create%20a%20comprehensive%20business%20proposal%20document%20with%20executive%20summary%2C%20KPI%20data%20tables%2C%20and%20action%20roadmap" style="text-decoration: none;">
-                            <table width="100%" cellspacing="0" cellpadding="14" style="background-color: {card_bg}; border: 1.5px solid {card_border}; border-radius: 14px;">
+                            <table width="100%" cellspacing="0" cellpadding="14" style="background-color: {card_bg}; border: 1px solid {card_border}; border-radius: 14px;">
                                 <tr>
-                                    <td width="36" valign="top" style="font-size: 20pt; padding-right: 8px;">📄</td>
-                                    <td>
-                                        <b style="color: {p['text_chat']}; font-size: 11pt;">Smart Documents & Files</b><br>
-                                        <span style="color: {p['placeholder_text']}; font-size: 9.5pt; line-height: 1.4;">Generate Word, Excel, PDF or clone templates</span>
+                                    <td width="42" valign="middle" align="center" style="background-color: {doc_icon_bg}; border-radius: 10px; font-size: 19pt; padding: 6px;">📄</td>
+                                    <td style="padding-left: 12px;">
+                                        <b style="color: {p['text_chat']}; font-size: 10.5pt; font-weight: 700;">Smart Documents & Files</b><br>
+                                        <span style="color: {subtext_color}; font-size: 9pt; line-height: 1.45;">Generate Word, Excel, PDF or clone templates</span>
                                     </td>
                                 </tr>
                             </table>
@@ -1238,12 +1263,12 @@ class ChatArea(QWidget):
                     </td>
                     <td width="50%">
                         <a href="promptcard:Write%20a%20production-ready%20Python%20script%20with%20unit%20tests%20and%20error%20handling" style="text-decoration: none;">
-                            <table width="100%" cellspacing="0" cellpadding="14" style="background-color: {card_bg}; border: 1.5px solid {card_border}; border-radius: 14px;">
+                            <table width="100%" cellspacing="0" cellpadding="14" style="background-color: {card_bg}; border: 1px solid {card_border}; border-radius: 14px;">
                                 <tr>
-                                    <td width="36" valign="top" style="font-size: 20pt; padding-right: 8px;">⚡</td>
-                                    <td>
-                                        <b style="color: {p['text_chat']}; font-size: 11pt;">Code Engine & Analysis</b><br>
-                                        <span style="color: {p['placeholder_text']}; font-size: 9.5pt; line-height: 1.4;">Python execution, debugging & data analytics</span>
+                                    <td width="42" valign="middle" align="center" style="background-color: {code_icon_bg}; border-radius: 10px; font-size: 19pt; padding: 6px;">⚡</td>
+                                    <td style="padding-left: 12px;">
+                                        <b style="color: {p['text_chat']}; font-size: 10.5pt; font-weight: 700;">Code Engine & Analysis</b><br>
+                                        <span style="color: {subtext_color}; font-size: 9pt; line-height: 1.45;">Python execution, debugging & data analytics</span>
                                     </td>
                                 </tr>
                             </table>
@@ -1253,12 +1278,12 @@ class ChatArea(QWidget):
                 <tr>
                     <td width="50%">
                         <a href="promptcard:Generate%20an%20image%20of%20a%20futuristic%20minimalist%20floating%20workspace%20with%20soft%20ambient%20glow%20and%20hyper-detailed%20reflections" style="text-decoration: none;">
-                            <table width="100%" cellspacing="0" cellpadding="14" style="background-color: {card_bg}; border: 1.5px solid {card_border}; border-radius: 14px;">
+                            <table width="100%" cellspacing="0" cellpadding="14" style="background-color: {card_bg}; border: 1px solid {card_border}; border-radius: 14px;">
                                 <tr>
-                                    <td width="36" valign="top" style="font-size: 20pt; padding-right: 8px;">🎨</td>
-                                    <td>
-                                        <b style="color: {p['text_chat']}; font-size: 11pt;">AI Visual Art & Creation</b><br>
-                                        <span style="color: {p['placeholder_text']}; font-size: 9.5pt; line-height: 1.4;">High-resolution concepts & photorealistic art</span>
+                                    <td width="42" valign="middle" align="center" style="background-color: {art_icon_bg}; border-radius: 10px; font-size: 19pt; padding: 6px;">🎨</td>
+                                    <td style="padding-left: 12px;">
+                                        <b style="color: {p['text_chat']}; font-size: 10.5pt; font-weight: 700;">AI Visual Art & Creation</b><br>
+                                        <span style="color: {subtext_color}; font-size: 9pt; line-height: 1.45;">High-resolution concepts & photorealistic art</span>
                                     </td>
                                 </tr>
                             </table>
@@ -1266,12 +1291,12 @@ class ChatArea(QWidget):
                     </td>
                     <td width="50%">
                         <a href="promptcard:Explain%20the%20core%20architecture%20of%20Transformer%20models%20and%20attention%20mechanisms%20in%20clear%20terms" style="text-decoration: none;">
-                            <table width="100%" cellspacing="0" cellpadding="14" style="background-color: {card_bg}; border: 1.5px solid {card_border}; border-radius: 14px;">
+                            <table width="100%" cellspacing="0" cellpadding="14" style="background-color: {card_bg}; border: 1px solid {card_border}; border-radius: 14px;">
                                 <tr>
-                                    <td width="36" valign="top" style="font-size: 20pt; padding-right: 8px;">🎙️</td>
-                                    <td>
-                                        <b style="color: {p['text_chat']}; font-size: 11pt;">Deep Research & Voice</b><br>
-                                        <span style="color: {p['placeholder_text']}; font-size: 9.5pt; line-height: 1.4;">Continuous voice dialogue & multi-step reasoning</span>
+                                    <td width="42" valign="middle" align="center" style="background-color: {voice_icon_bg}; border-radius: 10px; font-size: 19pt; padding: 6px;">🎙️</td>
+                                    <td style="padding-left: 12px;">
+                                        <b style="color: {p['text_chat']}; font-size: 10.5pt; font-weight: 700;">Deep Research & Voice</b><br>
+                                        <span style="color: {subtext_color}; font-size: 9pt; line-height: 1.45;">Continuous voice dialogue & multi-step reasoning</span>
                                     </td>
                                 </tr>
                             </table>

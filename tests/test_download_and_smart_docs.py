@@ -32,6 +32,7 @@ Add smart document cards, word count, estimated page count, and export buttons.
     assert 'href="docpreview:101"' in card_html
     assert 'href="responseexport:101:pdf"' in card_html
     assert 'href="responseexport:101:docx"' in card_html
+    assert 'href="responseexport:101:xlsx"' in card_html
     assert 'href="responseexport:101:md"' in card_html
     assert 'href="responseexport:101:txt"' in card_html
     assert 'href="messagecopy:101"' in card_html
@@ -72,3 +73,59 @@ def test_export_options_working(tmp_path):
     res_txt = export_manager.export_response(str(txt_dest), ExportOptions("txt"), "Sample Report", sample_content)
     assert txt_dest.exists()
     assert "Sample Report" in txt_dest.read_text(encoding="utf-8")
+
+
+def test_document_preview_dialog_exports(qtbot, tmp_path, monkeypatch):
+    from app.ui.document_preview_dialog import DocumentPreviewDialog
+    from PySide6.QtWidgets import QFileDialog, QMessageBox
+    from app.licensing.license_manager import LicenseManager
+
+    monkeypatch.setattr(LicenseManager, "is_feature_allowed", lambda self, feat: True)
+    monkeypatch.setattr(QMessageBox, "information", lambda *args, **kwargs: QMessageBox.StandardButton.Ok)
+    monkeypatch.setattr(QMessageBox, "warning", lambda *args, **kwargs: QMessageBox.StandardButton.Ok)
+
+    dialog = DocumentPreviewDialog(
+        title="Sample Strategy Report",
+        document_type="Business Report",
+        word_count=120,
+        estimated_pages=1,
+        raw_content="# Strategic Report\n\n| Item | Value |\n|---|---|\n| A | 100 |",
+    )
+    qtbot.addWidget(dialog)
+
+    # Test PDF export from dialog
+    pdf_path = tmp_path / "dialog_export.pdf"
+    monkeypatch.setattr(QFileDialog, "getSaveFileName", lambda *args, **kwargs: (str(pdf_path), "PDF Files (*.pdf)"))
+    dialog._export_pdf()
+    assert pdf_path.exists() and pdf_path.stat().st_size > 0
+
+    # Test DOCX export from dialog
+    docx_path = tmp_path / "dialog_export.docx"
+    monkeypatch.setattr(QFileDialog, "getSaveFileName", lambda *args, **kwargs: (str(docx_path), "Word Documents (*.docx)"))
+    dialog._export_docx()
+    assert docx_path.exists() and docx_path.stat().st_size > 0
+
+    # Test Excel export from dialog
+    xlsx_path = tmp_path / "dialog_export.xlsx"
+    monkeypatch.setattr(QFileDialog, "getSaveFileName", lambda *args, **kwargs: (str(xlsx_path), "Excel Files (*.xlsx)"))
+    dialog._export_excel()
+    assert xlsx_path.exists() and xlsx_path.stat().st_size > 0
+
+    # Test Save As MD from dialog
+    md_path = tmp_path / "dialog_export.md"
+    monkeypatch.setattr(QFileDialog, "getSaveFileName", lambda *args, **kwargs: (str(md_path), "Markdown Files (*.md)"))
+    dialog._save_as(".md", "Markdown Files (*.md)")
+    assert md_path.exists()
+    assert "# Strategic Report" in md_path.read_text(encoding="utf-8")
+
+
+def test_code_download_functionality(tmp_path):
+    from app.export.business_logic.code_exporter import code_file_type, save_code
+
+    py_type = code_file_type("python")
+    assert py_type.extension == ".py"
+    saved = save_code("print('Hello')", tmp_path / "test_code", py_type)
+    assert saved.exists()
+    assert saved.suffix == ".py"
+    assert saved.read_text(encoding="utf-8") == "print('Hello')"
+

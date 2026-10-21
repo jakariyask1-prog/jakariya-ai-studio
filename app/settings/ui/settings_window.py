@@ -7,6 +7,7 @@ import logging
 from PySide6.QtCore import Qt, Signal, QTimer
 from PySide6.QtGui import QKeySequence, QShortcut
 from PySide6.QtWidgets import (
+    QComboBox,
     QDialog,
     QHBoxLayout,
     QLabel,
@@ -37,7 +38,7 @@ class ToastLabel(QLabel):
     def __init__(self, parent: QWidget) -> None:
         super().__init__(parent)
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.setFixedHeight(36)
+        self.setFixedHeight(28)
         self._timer = QTimer(self)
         self._timer.setSingleShot(True)
         self._timer.timeout.connect(self.hide)
@@ -47,7 +48,7 @@ class ToastLabel(QLabel):
         self.setText(f"✅  {message}")
         self.setStyleSheet(
             "background-color: #065F46; color: #D1FAE5; font-weight: 600; "
-            "font-size: 12px; border-radius: 8px; padding: 4px 16px;"
+            "font-size: 11px; border-radius: 6px; padding: 2px 14px;"
         )
         self.show()
         self._timer.start(duration_ms)
@@ -56,7 +57,7 @@ class ToastLabel(QLabel):
         self.setText(f"❌  {message}")
         self.setStyleSheet(
             "background-color: #7F1D1D; color: #FEE2E2; font-weight: 600; "
-            "font-size: 12px; border-radius: 8px; padding: 4px 16px;"
+            "font-size: 11px; border-radius: 6px; padding: 2px 14px;"
         )
         self.show()
         self._timer.start(duration_ms)
@@ -80,8 +81,8 @@ class SettingsWindow(QDialog):
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setWindowTitle("Jakariya AI Studio — Settings & Personalization")
-        self.resize(920, 640)
-        self.setMinimumSize(820, 560)
+        self.resize(880, 520)
+        self.setMinimumSize(800, 480)
 
         # Enable native window minimization, maximization, and top-level controls
         self.setWindowFlags(
@@ -114,12 +115,12 @@ class SettingsWindow(QDialog):
 
     def _init_ui(self) -> None:
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(18, 18, 18, 18)
-        main_layout.setSpacing(12)
+        main_layout.setContentsMargins(16, 14, 16, 12)
+        main_layout.setSpacing(8)
 
         # Central Horizontal Area (Sidebar + Pages)
         center_layout = QHBoxLayout()
-        center_layout.setSpacing(16)
+        center_layout.setSpacing(14)
 
         # 1. Left Sidebar Navigation Container
         self.sidebar_container = QWidget()
@@ -163,7 +164,8 @@ class SettingsWindow(QDialog):
 
         # 2. Right Stacked Widget Area
         self.stacked_widget = QStackedWidget()
-        self.stacked_widget.setStyleSheet("background-color: transparent;")
+        self.stacked_widget.setObjectName("settingsStackedWidget")
+        self.stacked_widget.setStyleSheet("QStackedWidget#settingsStackedWidget { background-color: transparent; border: none; }")
 
         # Instantiate Pages
         self.page_general = GeneralPage()
@@ -209,7 +211,8 @@ class SettingsWindow(QDialog):
 
         # 4. Bottom Action Button Bar
         action_layout = QHBoxLayout()
-        action_layout.setContentsMargins(4, 4, 4, 4)
+        action_layout.setContentsMargins(0, 0, 0, 0)
+        action_layout.setSpacing(8)
 
         self.btn_reset = QPushButton("Reset Defaults")
         self.btn_reset.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -291,51 +294,27 @@ class SettingsWindow(QDialog):
 
     def apply_theme(self, theme_name: str) -> None:
         """Apply active theme styles to SettingsWindow container and child controls."""
-        from app.ui.styles import get_theme_palette
+        from app.ui.styles import get_theme_palette, get_dialog_style
         p = get_theme_palette(theme_name)
-        accent = "#10A37F" if theme_name in ("light", "dark", "oled") else "#F472B6"
+        accent = "#4F46E5" if theme_name in ("light", "dark", "oled") else "#F472B6"
 
-        self.setStyleSheet(f"""
-            QDialog {{
-                background-color: {p['bg_app']};
-                color: {p['input_text']};
-            }}
-            QLabel {{
-                color: {p['input_text']};
-            }}
-            QGroupBox {{
-                font-weight: 700;
-                font-size: 10.5pt;
-                color: {p['input_text']};
-                border: 1px solid {p['combo_border']};
-                border-radius: 10px;
-                margin-top: 12px;
-                padding-top: 16px;
-                background-color: {p['status_bg']};
-            }}
-            QGroupBox::title {{
-                subcontrol-origin: margin;
-                left: 12px;
-                padding: 0 6px;
-                background-color: {p['bg_app']};
-                color: {p['input_text']};
-                border-radius: 4px;
-            }}
-        """)
+        # Apply comprehensive dialog stylesheet across all pages and child widgets
+        self.setStyleSheet(get_dialog_style(theme_name))
 
         self.sidebar.setStyleSheet(f"""
             QListWidget {{
                 font-size: 10.5pt;
+                font-weight: 500;
                 border: 1px solid {p['border_sidebar']};
                 border-radius: 12px;
                 background-color: {p['bg_sidebar']};
                 outline: none;
-                padding: 4px;
+                padding: 6px;
             }}
             QListWidget::item {{
-                padding: 10px 12px;
+                padding: 10px 14px;
                 border-radius: 8px;
-                margin: 2px 0px;
+                margin: 3px 0px;
                 color: {p['btn_secondary_text']};
             }}
             QListWidget::item:hover {{
@@ -345,7 +324,7 @@ class SettingsWindow(QDialog):
             QListWidget::item:selected {{
                 background-color: {p['item_selected']};
                 color: {p['item_selected_text']};
-                font-weight: bold;
+                font-weight: 700;
                 border-left: 3px solid {accent};
             }}
         """)
@@ -357,20 +336,26 @@ class SettingsWindow(QDialog):
                 border: 1px solid {p['btn_secondary_border']};
                 padding: 7px 16px;
                 border-radius: 8px;
+                font-size: 9.5pt;
                 font-weight: 600;
             }}
-            QPushButton:hover {{ background-color: {p['btn_secondary_hover']}; color: {p['input_text']}; }}
+            QPushButton:hover {{ 
+                background-color: {p['btn_secondary_hover']}; 
+                color: {p['input_text']}; 
+                border-color: {accent};
+            }}
         """
         self.btn_reset.setStyleSheet(btn_sec_qss)
         self.btn_cancel.setStyleSheet(btn_sec_qss)
         self.btn_minimize.setStyleSheet(btn_sec_qss)
+        self.btn_apply.setStyleSheet(btn_sec_qss)
 
         toggle_btn_qss = f"""
             QPushButton {{
                 background-color: {p['btn_secondary_bg']};
                 color: {p['btn_secondary_text']};
                 border: 1px solid {p['btn_secondary_border']};
-                padding: 5px 8px;
+                padding: 6px 10px;
                 border-radius: 8px;
                 font-size: 9pt;
                 font-weight: 600;
@@ -378,9 +363,41 @@ class SettingsWindow(QDialog):
             QPushButton:hover {{
                 background-color: {p['btn_secondary_hover']};
                 color: {p['input_text']};
+                border-color: {accent};
             }}
         """
         self.btn_toggle_sidebar.setStyleSheet(toggle_btn_qss)
+
+        # Update Primary Save & Close button dynamically with active theme accent
+        accent_hover = p.get("accent_hover", "#4338CA")
+        self.btn_save_close.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {accent};
+                color: #FFFFFF;
+                font-weight: bold;
+                padding: 7px 20px;
+                border: none;
+                border-radius: 8px;
+            }}
+            QPushButton:hover {{ background-color: {accent_hover}; }}
+        """)
+
+        # Propagate active theme to all stacked child pages
+        for i in range(self.stacked_widget.count()):
+            page = self.stacked_widget.widget(i)
+            if hasattr(page, "apply_theme") and callable(page.apply_theme):
+                try:
+                    page.apply_theme(theme_name)
+                except Exception as err:
+                    logging.debug(f"[SettingsWindow] Failed to apply theme to page {i}: {err}")
+
+        # Ensure all QComboBox controls across all dialog pages have their popup views and palettes synchronized
+        try:
+            from app.ui.styles import apply_combobox_theme
+            for combo in self.findChildren(QComboBox):
+                apply_combobox_theme(combo, theme_name)
+        except Exception as err:
+            logging.debug(f"[SettingsWindow] Failed to synchronize combo themes: {err}")
 
         # Apply Windows 11 native Mica / Acrylic backdrop and dark titlebar to Settings Dialog
         try:

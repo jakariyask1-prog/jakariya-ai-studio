@@ -79,80 +79,86 @@ ERROR_TEXT_COLOR = "#EF4444"
 
 THEME_PALETTES: dict[str, dict[str, str]] = {
     "light": {
-        "bg_app": "#FFFFFF",
-        "bg_sidebar": "#F9F9F9",
-        "border_sidebar": "#E5E5E5",
-        "bg_header": "#FFFFFF",
-        "border_header": "#E5E5E5",
-        "text_header_title": "#0D0D0D",
-        "bg_capsule": "#FFFFFF",
+        "bg_app": "#F8FAFC",              # Soothing luminous pearl slate (prevents screen glare fatigue)
+        "bg_sidebar": "#F1F5F9",          # Soft light slate sidebar
+        "border_sidebar": "#E2E8F0",      # Clean modern border
+        "bg_header": "#FFFFFF",           # Crisp elevated header
+        "border_header": "#E2E8F0",
+        "text_header_title": "#0F172A",   # Deep readable navy-slate
+        "bg_capsule": "#FFFFFF",          # Pure white floating input capsule
         "border_capsule": "#CBD5E1",
-        "border_capsule_focus": "#10A37F",
-        "bg_chat": "#FFFFFF",
-        "text_chat": "#0D0D0D",
-        "user_bubble": "#F4F4F4",
-        "user_text": "#0D0D0D",
-        "assistant_bubble": "#FFFFFF",
-        "assistant_border": "transparent",
-        "assistant_text": "#0D0D0D",
-        "status_bg": "#F9F9F9",
-        "status_border": "#E5E5E5",
-        "status_text": "#6E6E80",
-        "btn_secondary_bg": "#F4F4F4",
-        "btn_secondary_border": "#E5E5E5",
-        "btn_secondary_text": "#202123",
-        "btn_secondary_hover": "#ECECF1",
-        "item_hover": "#ECECF1",
-        "item_selected": "#E5E5E5",
-        "item_selected_text": "#0D0D0D",
-        "item_selected_border": "#10A37F",
-        "combo_bg": "#F4F4F4",
-        "combo_border": "#E5E5E5",
-        "combo_text": "#0D0D0D",
+        "border_capsule_focus": "#4F46E5",# Modern vibrant indigo
+        "bg_chat": "#F8FAFC",             # Eye-comfortable conversation canvas
+        "text_chat": "#0F172A",           # Soft deep charcoal navy (replaces harsh #000000)
+        "user_bubble": "#EEF2FF",         # Modern tinted indigo bubble
+        "user_text": "#1E1B4B",
+        "assistant_bubble": "#FFFFFF",    # Pristine white card for AI responses
+        "assistant_border": "#E2E8F0",    # Gentle subtle boundary
+        "assistant_text": "#0F172A",
+        "status_bg": "#F1F5F9",
+        "status_border": "#E2E8F0",
+        "status_text": "#64748B",         # WCAG AAA accessible slate
+        "btn_secondary_bg": "#FFFFFF",
+        "btn_secondary_border": "#CBD5E1",
+        "btn_secondary_text": "#1E293B",
+        "btn_secondary_hover": "#F1F5F9",
+        "item_hover": "#F1F5F9",
+        "item_selected": "#EEF2FF",
+        "item_selected_text": "#4338CA",
+        "item_selected_border": "#4F46E5",
+        "combo_bg": "#FFFFFF",
+        "combo_border": "#CBD5E1",
+        "combo_text": "#0F172A",
         "combo_popup_bg": "#FFFFFF",
-        "combo_popup_text": "#0D0D0D",
-        "input_text": "#0D0D0D",
-        "placeholder_text": "#64748B",
-        "scroll_handle": "#D9D9E3",
-        "scroll_hover": "#ACACBE",
+        "combo_popup_text": "#0F172A",
+        "input_text": "#0F172A",
+        "placeholder_text": "#94A3B8",
+        "scroll_handle": "#CBD5E1",
+        "scroll_hover": "#94A3B8",
+        "accent": "#4F46E5",
+        "accent_hover": "#4338CA",
+        "accent_text": "#FFFFFF",
     },
     "dark": {
-        "bg_app": "#212121",
-        "bg_sidebar": "#171717",
-        "border_sidebar": "#2F2F2F",
-        "bg_header": "#212121",
-        "border_header": "#2F2F2F",
-        "text_header_title": "#ECECF1",
-        "bg_capsule": "#2F2F2F",
-        "border_capsule": "#3E3E3E",
-        "border_capsule_focus": "#10A37F",
-        "bg_chat": "#212121",
-        "text_chat": "#ECECF1",
-        "user_bubble": "#2F2F2F",
-        "user_text": "#ECECF1",
-        "assistant_bubble": "#212121",
+        "bg_app": "#0F172A",              # Luxurious deep midnight slate (Linear / Cursor aesthetic)
+        "bg_sidebar": "#090D16",          # Ambient dark sidebar
+        "border_sidebar": "#1E293B",
+        "bg_header": "#0F172A",
+        "border_header": "#1E293B",
+        "text_header_title": "#F8FAFC",
+        "bg_capsule": "#1E293B",
+        "border_capsule": "#334155",
+        "border_capsule_focus": "#6366F1",
+        "bg_chat": "#0F172A",
+        "text_chat": "#F1F5F9",
+        "user_bubble": "#1E293B",
+        "user_text": "#F8FAFC",
+        "assistant_bubble": "#0F172A",
         "assistant_border": "transparent",
-        "assistant_text": "#ECECF1",
-        "status_bg": "#171717",
-        "status_border": "#2F2F2F",
-        "status_text": "#8E8EA0",
-        "btn_secondary_bg": "#2F2F2F",
-        "btn_secondary_border": "#3E3E3E",
-        "btn_secondary_text": "#ECECF1",
-        "btn_secondary_hover": "#3E3E3E",
-        "item_hover": "#2F2F2F",
-        "item_selected": "#2F2F2F",
-        "item_selected_text": "#FFFFFF",
-        "item_selected_border": "#10A37F",
-        "combo_bg": "#2F2F2F",
-        "combo_border": "#3E3E3E",
-        "combo_text": "#ECECF1",
-        "combo_popup_bg": "#171717",
-        "combo_popup_text": "#ECECF1",
-        "input_text": "#ECECF1",
+        "assistant_text": "#F1F5F9",
+        "status_bg": "#090D16",
+        "status_border": "#1E293B",
+        "status_text": "#94A3B8",
+        "btn_secondary_bg": "#1E293B",
+        "btn_secondary_border": "#334155",
+        "btn_secondary_text": "#F1F5F9",
+        "btn_secondary_hover": "#26354A",
+        "item_hover": "#1E293B",
+        "item_selected": "#312E81",
+        "item_selected_text": "#EEF2FF",
+        "item_selected_border": "#6366F1",
+        "combo_bg": "#1E293B",
+        "combo_border": "#334155",
+        "combo_text": "#F8FAFC",
+        "combo_popup_bg": "#0F172A",
+        "combo_popup_text": "#F8FAFC",
+        "input_text": "#F8FAFC",
         "placeholder_text": "#94A3B8",
-        "scroll_handle": "#424242",
-        "scroll_hover": "#565656",
+        "scroll_handle": "#334155",
+        "scroll_hover": "#475569",
+        "accent": "#4F46E5",
+        "accent_hover": "#4338CA",
+        "accent_text": "#FFFFFF",
     },
     "oled": {
         "bg_app": "#000000",
@@ -163,7 +169,7 @@ THEME_PALETTES: dict[str, dict[str, str]] = {
         "text_header_title": "#FFFFFF",
         "bg_capsule": "#121212",
         "border_capsule": "#262626",
-        "border_capsule_focus": "#10A37F",
+        "border_capsule_focus": "#4F46E5",
         "bg_chat": "#000000",
         "text_chat": "#FFFFFF",
         "user_bubble": "#1A1A1A",
@@ -181,7 +187,7 @@ THEME_PALETTES: dict[str, dict[str, str]] = {
         "item_hover": "#171717",
         "item_selected": "#171717",
         "item_selected_text": "#FFFFFF",
-        "item_selected_border": "#10A37F",
+        "item_selected_border": "#4F46E5",
         "combo_bg": "#171717",
         "combo_border": "#262626",
         "combo_text": "#FFFFFF",
@@ -191,6 +197,9 @@ THEME_PALETTES: dict[str, dict[str, str]] = {
         "placeholder_text": "#94A3B8",
         "scroll_handle": "#262626",
         "scroll_hover": "#404040",
+        "accent": "#4F46E5",
+        "accent_hover": "#4338CA",
+        "accent_text": "#FFFFFF",
     },
     "neon": {
         "bg_app": "#090D16",
@@ -229,6 +238,9 @@ THEME_PALETTES: dict[str, dict[str, str]] = {
         "placeholder_text": "#94A3B8",
         "scroll_handle": "#334155",
         "scroll_hover": "#475569",
+        "accent": "#F472B6",
+        "accent_hover": "#DB2777",
+        "accent_text": "#FFFFFF",
     }
 }
 
@@ -265,7 +277,7 @@ QComboBox::drop-down {{
     width: 18px;
     border-left: none;
 }}
-QComboBox QAbstractItemView {{
+QComboBox QAbstractItemView, QComboBox QListView {{
     background-color: {p['combo_popup_bg']};
     color: {p['combo_popup_text']};
     border: 1px solid {p['combo_border']};
@@ -275,7 +287,83 @@ QComboBox QAbstractItemView {{
     selection-color: {p['item_selected_text']};
     outline: none;
 }}
+QComboBox QAbstractItemView::item, QComboBox QListView::item {{
+    padding: 6px 10px;
+    border-radius: 6px;
+    color: {p['combo_popup_text']};
+}}
+QComboBox QAbstractItemView::item:selected, QComboBox QListView::item:selected {{
+    background-color: {p['item_selected']};
+    color: {p['item_selected_text']};
+    font-weight: 600;
+}}
 """
+
+
+def apply_combobox_theme(combo, theme_name: str = "light") -> None:
+    """Explicitly synchronize a QComboBox, its inner QLineEdit (if editable),
+    and its drop-down QAbstractItemView / QListView with the active theme palette.
+
+    This prevents Windows OS-level dark theme leakage on Windows 10/11 where
+    top-level popups or container backgrounds cause item views to revert to pitch black (#000000).
+    """
+    if combo is None:
+        return
+    try:
+        from PySide6.QtGui import QPalette, QColor
+    except ImportError:
+        return
+
+    pal = get_theme_palette(theme_name)
+    v = combo.view()
+    if v is not None:
+        v_pal = v.palette()
+        v_pal.setColor(QPalette.ColorRole.Base, QColor(pal["combo_popup_bg"]))
+        v_pal.setColor(QPalette.ColorRole.Window, QColor(pal["combo_popup_bg"]))
+        v_pal.setColor(QPalette.ColorRole.Text, QColor(pal["combo_popup_text"]))
+        v_pal.setColor(QPalette.ColorRole.Highlight, QColor(pal["item_selected"]))
+        v_pal.setColor(QPalette.ColorRole.HighlightedText, QColor(pal["item_selected_text"]))
+        v.setPalette(v_pal)
+        v.setStyleSheet(f"""
+            QAbstractItemView, QListView {{
+                background-color: {pal['combo_popup_bg']};
+                color: {pal['combo_popup_text']};
+                selection-background-color: {pal['item_selected']};
+                selection-color: {pal['item_selected_text']};
+                border: 1px solid {pal['combo_border']};
+                border-radius: 8px;
+                padding: 4px;
+                outline: none;
+            }}
+            QAbstractItemView::item, QListView::item {{
+                padding: 6px 10px;
+                border-radius: 6px;
+                color: {pal['combo_popup_text']};
+            }}
+            QAbstractItemView::item:selected, QListView::item:selected {{
+                background-color: {pal['item_selected']};
+                color: {pal['item_selected_text']};
+                font-weight: 600;
+            }}
+        """)
+
+    if hasattr(combo, "lineEdit") and combo.lineEdit():
+        le = combo.lineEdit()
+        le_pal = le.palette()
+        le_pal.setColor(QPalette.ColorRole.Base, QColor(pal["btn_secondary_bg"]))
+        le_pal.setColor(QPalette.ColorRole.Text, QColor(pal["input_text"]))
+        le.setPalette(le_pal)
+        le.setStyleSheet(f"""
+            QLineEdit {{
+                background-color: {pal['btn_secondary_bg']};
+                color: {pal['input_text']};
+                border: none;
+                padding: 0px 4px;
+                font-size: 10pt;
+                font-weight: 500;
+            }}
+        """)
+
 
 
 def get_chat_browser_style(theme_name: str = "light") -> str:
@@ -285,10 +373,10 @@ QTextBrowser {{
     background-color: {p['bg_chat']};
     color: {p['text_chat']};
     border: none;
-    padding: 8px 12px;
-    font-size: 12.5pt;
-    font-family: 'Segoe UI Variable', 'Noto Sans Bengali', 'Inter', system-ui, sans-serif;
-    selection-background-color: #818CF8;
+    padding: 10px 14px;
+    font-size: 11pt;
+    font-family: 'Segoe UI Variable', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Inter', 'Noto Sans Bengali', system-ui, sans-serif;
+    selection-background-color: #4F46E5;
     selection-color: #FFFFFF;
 }}
 """
@@ -296,22 +384,23 @@ QTextBrowser {{
 
 def get_document_css(theme_name: str = "light") -> str:
     p = get_theme_palette(theme_name)
-    link_color = "#10A37F" if theme_name in ("light", "dark", "oled") else "#F472B6"
-    code_inline_bg = "#EAEAEA" if theme_name == "light" else "#2F2F2F"
+    link_color = "#4F46E5" if theme_name in ("light", "dark", "oled") else "#F472B6"
+    code_inline_bg = "#EEF2FF" if theme_name == "light" else "#1E293B"
     return f"""
 body, p, div, td {{
-    font-size: 12.5pt;
-    line-height: 1.6;
+    font-size: 11pt;
+    line-height: 1.55;
     color: {p['text_chat']};
-    font-family: 'Segoe UI Variable', 'Noto Sans Bengali', 'Inter', system-ui, sans-serif;
+    font-family: 'Segoe UI Variable', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Inter', 'Noto Sans Bengali', system-ui, sans-serif;
 }}
 pre {{
-    background-color: #1E1E1E;
-    color: #D4D4D4;
-    border-radius: 8px;
-    padding: 10px 14px;
+    background-color: #0F172A;
+    color: #F8FAFC;
+    border: 1px solid #1E293B;
+    border-radius: 10px;
+    padding: 12px 16px;
     font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
-    font-size: 10pt;
+    font-size: 9.5pt;
     margin: 8px 0;
 }}
 code {{
@@ -320,7 +409,7 @@ code {{
     color: {p['text_chat']};
     padding: 2px 6px;
     border-radius: 4px;
-    font-size: 10pt;
+    font-size: 9.5pt;
 }}
 pre code {{
     background-color: transparent;
@@ -340,13 +429,20 @@ a:hover {{
 
 def get_global_app_style(theme_name: str = "light") -> str:
     p = get_theme_palette(theme_name)
+    tooltip_bg = "#FFFFFF" if theme_name == "light" else "#0F172A"
+    tooltip_text = "#0F172A" if theme_name == "light" else "#F8FAFC"
+    tooltip_border = "#CBD5E1" if theme_name == "light" else "#334155"
     return f"""
 /* Global Application Font & Base Window Background */
-QMainWindow, QDialog {{
+QMainWindow, QDialog, #centralWidget {{
     background-color: {p['bg_app']};
 }}
 QWidget {{
-    font-family: 'Segoe UI Variable', 'Noto Sans Bengali', 'Inter', system-ui, sans-serif;
+    font-family: 'Segoe UI Variable', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Inter', 'Noto Sans Bengali', system-ui, sans-serif;
+}}
+QScrollArea, QScrollArea > QWidget > QWidget {{
+    background: transparent;
+    background-color: transparent;
 }}
 
 QScrollBar:vertical {{
@@ -401,11 +497,11 @@ QMenu::item:selected {{
     font-weight: 600;
 }}
 
-/* Modern ToolTip */
+/* Modern Theme-Adaptive ToolTip */
 QToolTip {{
-    background-color: #0F172A;
-    color: #F8FAFC;
-    border: none;
+    background-color: {tooltip_bg};
+    color: {tooltip_text};
+    border: 1px solid {tooltip_border};
     border-radius: 6px;
     padding: 6px 10px;
     font-size: 9.5pt;
@@ -539,48 +635,233 @@ QPushButton {
 def get_dialog_style(theme_name: str = "light") -> str:
     """Retrieve theme QSS stylesheet for application dialogs (Settings, Voice, Rename, Approval)."""
     p = get_theme_palette(theme_name)
+    accent = p.get("accent", "#4F46E5")
+    accent_hover = p.get("accent_hover", "#4338CA")
+    card_border = "#E2E8F0" if theme_name == "light" else "#334155"
+    subtext_color = "#64748B" if theme_name == "light" else "#94A3B8"
+    tooltip_bg = "#FFFFFF" if theme_name == "light" else "#0F172A"
+    tooltip_text = "#0F172A" if theme_name == "light" else "#F8FAFC"
+    tooltip_border = "#CBD5E1" if theme_name == "light" else "#334155"
+    
     return f"""
 QDialog {{
     background-color: {p['bg_app']};
     color: {p['input_text']};
-    border-radius: 12px;
+    font-family: 'Segoe UI Variable', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Inter', 'Noto Sans Bengali', system-ui, sans-serif;
+}}
+QWidget {{
+    font-family: 'Segoe UI Variable', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Inter', 'Noto Sans Bengali', system-ui, sans-serif;
+}}
+QScrollArea, QScrollArea > QWidget > QWidget {{
+    background: transparent;
+    background-color: transparent;
+    border: none;
 }}
 QLabel {{
     color: {p['input_text']};
+    font-size: 10pt;
+}}
+QLabel[subtext="true"] {{
+    color: {subtext_color};
+    font-size: 9.5pt;
 }}
 QLineEdit, QTextEdit, QPlainTextEdit {{
     background-color: {p['btn_secondary_bg']};
     color: {p['input_text']};
     border: 1px solid {p['btn_secondary_border']};
     border-radius: 8px;
-    padding: 6px 10px;
+    padding: 7px 12px;
+    font-size: 10pt;
+    selection-background-color: {accent};
+    selection-color: #FFFFFF;
 }}
 QLineEdit:focus, QTextEdit:focus, QPlainTextEdit:focus {{
-    border-color: {p['border_capsule_focus']};
+    border: 1.5px solid {accent};
     background-color: {p['combo_popup_bg']};
+}}
+QLineEdit:disabled, QTextEdit:disabled {{
+    background-color: {p['status_bg']};
+    color: {p['placeholder_text']};
 }}
 QGroupBox {{
     font-weight: 700;
     font-size: 10.5pt;
     color: {p['input_text']};
-    border: 1px solid {p['btn_secondary_border']};
-    border-radius: 10px;
-    margin-top: 12px;
-    padding-top: 16px;
+    border: 1px solid {card_border};
+    border-radius: 12px;
+    margin-top: 14px;
+    padding: 18px 14px 14px 14px;
     background-color: {p['status_bg']};
 }}
 QGroupBox::title {{
     subcontrol-origin: margin;
-    left: 12px;
-    padding: 0 6px;
+    left: 14px;
+    padding: 2px 10px;
     background-color: {p['bg_app']};
     color: {p['input_text']};
-    border-radius: 4px;
+    border: 1px solid {card_border};
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 10pt;
+}}
+QComboBox {{
+    background-color: {p['btn_secondary_bg']};
+    color: {p['input_text']};
+    border: 1px solid {p['btn_secondary_border']};
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 10pt;
+    font-weight: 500;
+    min-height: 24px;
+}}
+QComboBox:hover {{
+    background-color: {p['btn_secondary_hover']};
+    border-color: {accent};
+}}
+QComboBox:focus, QComboBox:on {{
+    border: 1.5px solid {accent};
+}}
+QComboBox::drop-down {{
+    subcontrol-origin: padding;
+    subcontrol-position: top right;
+    width: 24px;
+    border-left: none;
+}}
+QComboBox::down-arrow {{
+    image: none;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 5px solid {p['input_text']};
+    margin-right: 8px;
+}}
+/* CRITICAL FIX: Editable QComboBox (Models Page) inner QLineEdit text visibility */
+QComboBox:editable {{
+    background-color: {p['btn_secondary_bg']};
+    color: {p['input_text']};
+}}
+QComboBox:editable QLineEdit, QComboBox QLineEdit {{
+    background-color: {p['btn_secondary_bg']};
+    color: {p['input_text']};
+    border: none;
+    padding: 0px 4px;
+    font-size: 10pt;
+    font-weight: 500;
+    selection-background-color: {accent};
+    selection-color: #FFFFFF;
+}}
+QComboBox QAbstractItemView, QComboBox QListView {{
+    background-color: {p['combo_popup_bg']};
+    color: {p['combo_popup_text']};
+    border: 1px solid {p['combo_border']};
+    border-radius: 8px;
+    padding: 4px;
+    selection-background-color: {p['item_selected']};
+    selection-color: {p['item_selected_text']};
+    outline: none;
+}}
+QComboBox QAbstractItemView::item, QComboBox QListView::item {{
+    padding: 6px 10px;
+    border-radius: 6px;
+    color: {p['combo_popup_text']};
+}}
+QComboBox QAbstractItemView::item:selected, QComboBox QListView::item:selected {{
+    background-color: {p['item_selected']};
+    color: {p['item_selected_text']};
+    font-weight: 600;
+}}
+QToolTip {{
+    background-color: {tooltip_bg};
+    color: {tooltip_text};
+    border: 1px solid {tooltip_border};
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 9.5pt;
+}}
+QSpinBox {{
+    background-color: {p['btn_secondary_bg']};
+    color: {p['input_text']};
+    border: 1px solid {p['btn_secondary_border']};
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 10pt;
+    font-weight: 500;
+}}
+QSpinBox:focus {{
+    border: 1.5px solid {accent};
+}}
+QSpinBox::up-button, QSpinBox::down-button {{
+    width: 18px;
+    border: none;
+    background: transparent;
+}}
+QSpinBox::up-button:hover, QSpinBox::down-button:hover {{
+    background-color: {p['btn_secondary_hover']};
+}}
+QSlider::groove:horizontal {{
+    height: 6px;
+    background: {p['border_capsule']};
+    border-radius: 3px;
+}}
+QSlider::sub-page:horizontal {{
+    background: {accent};
+    border-radius: 3px;
+}}
+QSlider::handle:horizontal {{
+    background: #FFFFFF;
+    border: 2px solid {accent};
+    width: 16px;
+    margin-top: -5px;
+    margin-bottom: -5px;
+    border-radius: 8px;
+}}
+QSlider::handle:horizontal:hover {{
+    background: {accent};
+    border: 2px solid #FFFFFF;
 }}
 QCheckBox {{
     font-size: 10pt;
     color: {p['input_text']};
     spacing: 8px;
     font-weight: 500;
+}}
+QCheckBox::indicator {{
+    width: 18px;
+    height: 18px;
+    border-radius: 5px;
+    border: 1.5px solid {p['btn_secondary_border']};
+    background-color: {p['btn_secondary_bg']};
+}}
+QCheckBox::indicator:hover {{
+    border-color: {accent};
+}}
+QCheckBox::indicator:checked {{
+    background-color: {accent};
+    border-color: {accent};
+    image: none;
+}}
+QScrollBar:vertical {{
+    border: none;
+    background: transparent;
+    width: 8px;
+    margin: 0px;
+}}
+QScrollBar::handle:vertical {{
+    background: {p['scroll_handle']};
+    min-height: 24px;
+    border-radius: 4px;
+}}
+QScrollBar::handle:vertical:hover {{
+    background: {p['scroll_hover']};
+}}
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
+    height: 0px;
+}}
+QFrame#ProviderCard {{
+    background-color: {p['status_bg']};
+    border: 1px solid {card_border};
+    border-radius: 12px;
+}}
+QFrame#ProviderCard:hover {{
+    border-color: {accent};
 }}
 """

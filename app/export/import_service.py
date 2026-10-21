@@ -108,33 +108,80 @@ class ImportService:
         lines = content.splitlines()
 
         title = path.stem.replace("_", " ").title()
+        start_idx = 0
+        if lines:
+            first_line = lines[0].strip()
+            if first_line.startswith("# "):
+                title = first_line.lstrip("# ").strip()
+                start_idx = 1
+            elif len(lines) > 1 and lines[1].strip() and set(lines[1].strip()) <= {"="}:
+                title = first_line
+                start_idx = 2
+
         messages: List[Tuple[str, str]] = []
 
         current_role: str | None = None
         current_lines: List[str] = []
 
-        role_pattern = re.compile(r"^(User|Assistant|System|Human|Bot|AI):\s*(.*)", re.IGNORECASE)
+        heading_re = re.compile(r"^#{2,4}\s+(User|Assistant|System|Human|Bot|AI|Model)\b", re.IGNORECASE)
+        divider_re = re.compile(r"^---\s*(User|Assistant|System|Human|Bot|AI|Model)(?:\s*\|.*?)?\s*---", re.IGNORECASE)
+        colon_re = re.compile(r"^\*{0,2}(User|Assistant|System|Human|Bot|AI|Model)\*{0,2}:\s*(.*)", re.IGNORECASE)
 
-        for line in lines:
-            match = role_pattern.match(line)
-            if match:
+        metadata_re = re.compile(
+            r"^(?:"
+            r"-\s*\*\*(?:Conversation ID|Created|Updated):\*\*.*"
+            r"|(?:Conversation ID|Created|Updated):\s*.*"
+            r"|\*[0-9]{4}-[0-9]{2}-[0-9]{2}(?:[T\s][^\*]*)?\*"
+            r")$",
+            re.IGNORECASE,
+        )
+
+        for line in lines[start_idx:]:
+            m_head = heading_re.match(line)
+            m_div = divider_re.match(line)
+            m_col = colon_re.match(line)
+
+            matched_role = None
+            first_text = None
+
+            if m_head:
+                matched_role = m_head.group(1).lower()
+            elif m_div:
+                matched_role = m_div.group(1).lower()
+            elif m_col:
+                matched_role = m_col.group(1).lower()
+                first_text = m_col.group(2)
+
+            if matched_role:
                 if current_role and current_lines:
-                    messages.append((current_role, "\n".join(current_lines).strip()))
+                    text = "\n".join(current_lines).strip()
+                    if text:
+                        messages.append((current_role, text))
                     current_lines = []
-                role_str = match.group(1).lower()
-                current_role = "user" if role_str in ("user", "human") else ("assistant" if role_str in ("assistant", "bot", "ai") else "system")
-                first_line_text = match.group(2)
-                if first_line_text:
-                    current_lines.append(first_line_text)
+                current_role = (
+                    "user"
+                    if matched_role in ("user", "human")
+                    else ("assistant" if matched_role in ("assistant", "bot", "ai", "model") else "system")
+                )
+                if first_text:
+                    current_lines.append(first_text)
             else:
-                if current_role:
-                    current_lines.append(line)
-                elif line.strip() and not current_role:
-                    # Default first text to user
+                if current_role is None:
+                    stripped = line.strip()
+                    if not stripped or stripped.startswith("#") or set(stripped) <= {"=", "-"}:
+                        continue
+                    if metadata_re.match(stripped):
+                        continue
                     current_role = "user"
+                    current_lines.append(line)
+                else:
+                    if metadata_re.match(line.strip()):
+                        continue
                     current_lines.append(line)
 
         if current_role and current_lines:
-            messages.append((current_role, "\n".join(current_lines).strip()))
+            text = "\n".join(current_lines).strip()
+            if text:
+                messages.append((current_role, text))
 
         return title, messages

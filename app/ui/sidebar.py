@@ -177,16 +177,16 @@ class Sidebar(QWidget):
         from app.ui.styles import get_theme_palette
         p = get_theme_palette(theme_name)
 
-        new_btn_bg = "#202123" if theme_name == "light" else "#10A37F"
-        new_btn_hover = "#343541" if theme_name == "light" else "#0D8A6C"
+        new_btn_bg = p.get("accent", "#4F46E5")
+        new_btn_hover = p.get("accent_hover", "#4338CA")
 
         self.setStyleSheet(f"""
-            QWidget {{
+            Sidebar {{
                 background-color: {p['bg_sidebar']};
-                color: {p['text_chat']};
-            }}
-            QFrame {{
                 border-right: 1px solid {p['border_sidebar']};
+            }}
+            QWidget {{
+                color: {p['text_chat']};
             }}
         """)
         if hasattr(self, "title_label"):

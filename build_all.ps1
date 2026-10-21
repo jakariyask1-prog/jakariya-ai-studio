@@ -1,4 +1,4 @@
-﻿# ==============================================================================
+# ==============================================================================
 # build_all.ps1  --  Full build pipeline for Jakariya AI Studio
 # Builds:
 #   1. dist\Jakariya AI Studio\   (folder/COLLECT build via main.spec)
@@ -9,7 +9,7 @@
 Set-StrictMode -Off
 $ErrorActionPreference = "Stop"
 
-$proj    = $PSScriptRoot
+$proj    = if ($PSScriptRoot) { $PSScriptRoot } else { (Get-Item .).FullName }
 $venvPy  = Join-Path $proj ".venv\Scripts\python.exe"
 $pyinst  = Join-Path $proj ".venv\Scripts\pyinstaller.exe"
 $iscc    = $null

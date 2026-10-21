@@ -30,17 +30,14 @@ class CerebrasProvider(BaseProvider):
         )
 
     MODEL_ALIASES = {
-        "qwen-3.8-27b": "llama-3.3-70b",
-        "gpt-oss-120b": "llama-3.3-70b",
+        "llama-3.3-70b": "gpt-oss-120b",
+        "llama3.1-8b": "qwen-3.8-27b",
     }
 
     def get_supported_models(self) -> List[ModelInfo]:
         return [
-            ModelInfo("llama-3.3-70b", "Llama 3.3 70B (Wafer-Scale 2000+ t/s Coding)", self.provider_id, context_window=128000, max_output_tokens=8192),
-            ModelInfo("llama3.1-8b", "Llama 3.1 8B (Wafer-Scale Ultra-Fast)", self.provider_id, context_window=128000, max_output_tokens=8192),
-            # Legacy compatibility
-            ModelInfo("qwen-3.8-27b", "Qwen 3.8 27B (Auto -> Llama 3.3 70B)", self.provider_id, context_window=32768, max_output_tokens=8192),
-            ModelInfo("gpt-oss-120b", "GPT OSS 120B (Auto -> Llama 3.3 70B)", self.provider_id, context_window=128000, max_output_tokens=8192),
+            ModelInfo("gpt-oss-120b", "GPT OSS 120B (Wafer-Scale 2000+ t/s Reasoning)", self.provider_id, context_window=128000, max_output_tokens=8192),
+            ModelInfo("qwen-3.8-27b", "Qwen 3.8 27B (Wafer-Scale Ultra-Fast)", self.provider_id, context_window=32768, max_output_tokens=8192),
         ]
 
     def validate_api_key(self) -> bool:

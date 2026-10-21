@@ -28,23 +28,24 @@ class GeneralPage(QWidget):
 
     def _init_ui(self) -> None:
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.setSpacing(15)
+        layout.setContentsMargins(16, 12, 16, 8)
+        layout.setSpacing(10)
 
-        # Title
-        title_label = QLabel("General Settings")
-        title_label.setStyleSheet("font-size: 18px; font-weight: bold;")
+        # Title & Subtitle
+        title_label = QLabel("⚙️ General Preferences")
+        title_label.setStyleSheet("font-size: 18px; font-weight: 700;")
         layout.addWidget(title_label)
 
         desc_label = QLabel("Configure application startup, user profile age, system notifications, and primary UI language.")
-        desc_label.setStyleSheet("color: #888888; font-size: 12px;")
+        desc_label.setProperty("subtext", "true")
+        desc_label.setWordWrap(True)
         layout.addWidget(desc_label)
 
         # Settings Group Box
         group = QGroupBox("Application Preferences")
         form_layout = QFormLayout(group)
-        form_layout.setContentsMargins(15, 20, 15, 20)
-        form_layout.setSpacing(15)
+        form_layout.setContentsMargins(14, 12, 14, 12)
+        form_layout.setSpacing(10)
 
         # Language Combo
         self.lang_combo = QComboBox()

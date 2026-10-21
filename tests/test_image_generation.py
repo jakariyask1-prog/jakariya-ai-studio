@@ -2,8 +2,8 @@ import unittest
 from pathlib import Path
 from unittest.mock import Mock
 
-from app.chat.worker import ClaudeWorker
-from app.image_generation.router import is_image_generation_request
+from app.chat.worker import ClaudeWorker, ChatRequest
+from app.image_generation.router import is_image_generation_request, is_same_type_image_request
 from app.ui.chat_area import ChatArea
 
 
@@ -38,6 +38,36 @@ class ImageGenerationRoutingTests(unittest.TestCase):
 
         self.assertIn('width="460"', upgraded)
         self.assertIn("saveimage:", upgraded)
+
+    def test_same_type_image_requests_are_detected(self):
+        self.assertTrue(is_same_type_image_request("same type image generate"))
+        self.assertTrue(is_same_type_image_request("generate same type image"))
+        self.assertTrue(is_same_type_image_request("create similar image"))
+        self.assertTrue(is_same_type_image_request("make a picture like this"))
+        self.assertTrue(is_same_type_image_request("generate image like this"))
+
+    def test_attached_image_same_type_generation_dispatch(self):
+        worker = ClaudeWorker()
+        worker.image_client = Mock()
+        worker.image_client.generate.return_value = Path.cwd() / "exports" / "similar.png"
+        worker.client = Mock()
+        worker.client.ask.return_value = "A beautiful sunset over the sea with golden reflections"
+        completed_messages: list[str] = []
+        worker.finished.connect(completed_messages.append)
+
+        multimodal_msg = [
+            {"type": "text", "text": "same type image generate"},
+            {"type": "image", "source": {"type": "base64", "media_type": "image/png", "data": "iVBORw0KGgo="}},
+        ]
+
+        worker.process(multimodal_msg)
+
+        worker.image_client.generate.assert_called_once()
+        self.assertEqual(len(completed_messages), 1)
+        self.assertIn("<img src=", completed_messages[0])
+        self.assertIn("saveimage:", completed_messages[0])
+        self.assertIn("Same-Type Generated Image", completed_messages[0])
+
 
 
 if __name__ == "__main__":

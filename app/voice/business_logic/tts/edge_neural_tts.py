@@ -59,8 +59,8 @@ class EdgeNeuralTTS(TTSProvider):
         """Schedule *coro* on the persistent loop and wait for the result."""
         loop = self._ensure_loop()
         future: Future = asyncio.run_coroutine_threadsafe(coro, loop)
-        # 3.5-second timeout guards against network hangs and fast-fails to Google TTS
-        return future.result(timeout=3.5)
+        # 2.0-second timeout guards against network hangs and fast-fails to Google TTS
+        return future.result(timeout=7.0)
 
     # ------------------------------------------------------------------ #
     # Core synthesis                                                       #
@@ -120,8 +120,8 @@ class EdgeNeuralTTS(TTSProvider):
                 mp3_bytes = self._run(self._fetch_audio(clean_text, voice, rate, pitch))
             except Exception as primary_exc:
                 err_str = str(primary_exc)
-                if "403" in err_str or "Handshake" in err_str or "Invalid response status" in err_str:
-                    # Endpoint-level block: skip redundant retry and let fast fallbacks (Google TTS) take over
+                if isinstance(primary_exc, (TimeoutError, asyncio.TimeoutError)) or "403" in err_str or "Handshake" in err_str or "Invalid response status" in err_str:
+                    # Endpoint-level block or timeout: skip redundant retry and let fast fallbacks (Google TTS) take over
                     raise
                 logging.warning(
                     f"[EdgeNeuralTTS] Primary voice '{voice}' failed: {primary_exc} — trying fallback"

@@ -207,9 +207,13 @@ class AgentController(QObject):
         self.dispatch_task.emit(task_description, model, provider_id, history_msgs, max_turns)
 
     def cancel_agent_task(self):
-        """Cancel current task execution."""
-        if hasattr(self.worker, "agent_engine"):
+        """Cancel current task execution and unblock pending tool approvals."""
+        if hasattr(self.worker, "agent_engine") and self.worker.agent_engine:
             self.worker.agent_engine.cancel()
+        with _registry_lock:
+            for entry in _approval_registry.values():
+                entry["result"] = [False]
+                entry["event"].set()
 
     def shutdown(self):
         """Stop worker thread safely."""

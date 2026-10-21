@@ -439,6 +439,20 @@ hiddenimports = [
     'regex',
     'tabulate',
     'tqdm',
+    'charset_normalizer',
+    'docstring_parser',
+    'h11',
+    'idna',
+    'jiter',
+    'mdurl',
+    'typing_extensions',
+    'typing_inspection',
+    'annotated_types',
+    'attrs',
+    'distro',
+    'et_xmlfile',
+    'more_itertools',
+    'packaging',
 ]
 
 # Collect submodules

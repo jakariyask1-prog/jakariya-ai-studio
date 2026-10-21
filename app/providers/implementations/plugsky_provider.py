@@ -30,13 +30,16 @@ class PlugskyProvider(BaseProvider):
             supports_vision=True,
         )
 
+    MODEL_ALIASES = {
+        "plugsky-pro": "plugsky-lite",
+        "plugsky-reasoning": "plugsky-lite",
+        "plugsky-deepseek-pro": "plugsky-lite",
+    }
+
     def get_supported_models(self) -> List[ModelInfo]:
         return [
-            ModelInfo("plugsky-lite", "Plugsky Lite (Free)", self.provider_id, context_window=128000, max_output_tokens=8192),
-            ModelInfo("plugsky-micro", "Plugsky Micro (Free)", self.provider_id, context_window=128000, max_output_tokens=8192),
-            ModelInfo("plugsky-pro", "Plugsky Pro (Paid)", self.provider_id, context_window=128000, max_output_tokens=8192),
-            ModelInfo("plugsky-reasoning", "Plugsky Reasoning", self.provider_id, context_window=128000, max_output_tokens=8192, supports_reasoning=True),
-            ModelInfo("plugsky-deepseek-pro", "Plugsky DeepSeek Pro", self.provider_id, context_window=128000, max_output_tokens=8192),
+            ModelInfo("plugsky-lite", "Plugsky Lite (Fast General AI)", self.provider_id, context_window=128000, max_output_tokens=8192),
+            ModelInfo("plugsky-micro", "Plugsky Micro (Ultra-Fast Lightweight)", self.provider_id, context_window=128000, max_output_tokens=8192),
         ]
 
     def validate_api_key(self) -> bool:
@@ -52,6 +55,8 @@ class PlugskyProvider(BaseProvider):
             self._client = OpenAI(
                 api_key=current_key,
                 base_url=current_url,
+                timeout=25.0,
+                max_retries=1,
             )
             self._last_key = current_key
             self._last_url = current_url
@@ -78,12 +83,18 @@ class PlugskyProvider(BaseProvider):
                     texts.append("[Attached Image]")
         return "\n".join(texts)
 
+    def _format_model_name(self, model: str) -> str:
+        if model.startswith("plugsky/"):
+            model = model[len("plugsky/"):]
+        return self.MODEL_ALIASES.get(model, model)
+
     def chat(self, request: ChatRequest) -> ChatResponse:
         client = self._get_client()
         messages = self._format_messages(request)
+        model_id = self._format_model_name(request.model)
         try:
             res = client.chat.completions.create(
-                model=request.model,
+                model=model_id,
                 messages=messages,
                 temperature=request.temperature,
                 max_tokens=request.max_tokens,
@@ -108,9 +119,10 @@ class PlugskyProvider(BaseProvider):
     def chat_stream(self, request: ChatRequest) -> Generator[StreamChunk, None, None]:
         client = self._get_client()
         messages = self._format_messages(request)
+        model_id = self._format_model_name(request.model)
         try:
             res = client.chat.completions.create(
-                model=request.model,
+                model=model_id,
                 messages=messages,
                 temperature=request.temperature,
                 max_tokens=request.max_tokens,

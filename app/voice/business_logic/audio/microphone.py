@@ -56,17 +56,42 @@ class MicrophoneManager(QObject):
         self._speech_started_flag: bool = False
         self._speech_consecutive_chunks: int = 0
         self._recording_start_time: float = 0.0
+        self._is_capturing: bool = True
+        self._barge_in_monitoring: bool = False
         
         self._silence_timer = QTimer(self)
         self._silence_timer.setSingleShot(True)
         self._silence_timer.timeout.connect(self._on_silence_timeout)
-        self.silence_timeout_ms: int = 550   # 550ms silence → rapid responsive turn detection
+        self.silence_timeout_ms: int = 1000  # 1000ms natural silence pause for conversational speech
         self.vad_threshold: float = 0.012    # Responsive VAD threshold to pick up normal human voice
 
     @property
     def is_recording(self) -> bool:
         """Return ``True`` if microphone capture is currently active."""
         return self._is_recording
+
+    @property
+    def is_capturing(self) -> bool:
+        """Return ``True`` if incoming PCM audio is actively being buffered for speech recognition."""
+        return self._is_capturing
+
+    @is_capturing.setter
+    def is_capturing(self, enabled: bool) -> None:
+        self._is_capturing = bool(enabled)
+        if not self._is_capturing:
+            self._speech_started_flag = False
+            self._speech_consecutive_chunks = 0
+            self._silence_timer.stop()
+
+    @property
+    def barge_in_monitoring(self) -> bool:
+        """Return ``True`` if barge-in monitoring is active during AI playback."""
+        return self._barge_in_monitoring
+
+    @barge_in_monitoring.setter
+    def barge_in_monitoring(self, enabled: bool) -> None:
+        self._barge_in_monitoring = bool(enabled)
+        self._speech_consecutive_chunks = 0
 
     @property
     def current_stream(self) -> AudioStream:
@@ -146,6 +171,8 @@ class MicrophoneManager(QObject):
     def start_recording(self, sample_rate: int = 16000) -> bool:
         logging.debug(f"[MicrophoneManager] start_recording called: is_recording={self._is_recording}")
         self._gain = 1.0  # Reset gain back to 1.0 for new recording
+        self._is_capturing = True
+        self._barge_in_monitoring = False
         if self._is_recording:
             self._audio_stream.clear()
             self._speech_started_flag = False
@@ -163,6 +190,8 @@ class MicrophoneManager(QObject):
         audio_format = AudioFormat(sample_rate=sample_rate, channels=1, bits_per_sample=16)
         self._audio_stream = AudioStream(audio_format)
         self._is_recording = True
+        self._is_capturing = True
+        self._barge_in_monitoring = False
         self._speech_started_flag = False
         self._speech_consecutive_chunks = 0
         self._recording_start_time = time.time()
@@ -221,6 +250,8 @@ class MicrophoneManager(QObject):
             return self._audio_stream.get_wav_bytes()
 
         self._is_recording = False
+        self._is_capturing = False
+        self._barge_in_monitoring = False
         self._speech_started_flag = False
         self._speech_consecutive_chunks = 0
         self._silence_timer.stop()
@@ -248,6 +279,23 @@ class MicrophoneManager(QObject):
         return self._audio_stream.get_raw_bytes()
 
     def process_pcm_chunk(self, pcm_bytes: bytes) -> float:
+        # If not actively capturing for STT (e.g. AI is speaking or thinking), isolate buffer
+        if not self._is_capturing:
+            level = self._audio_stream._level_meter.update(pcm_bytes)
+            self.level_updated.emit(level)
+
+            # Barge-in monitoring: Only triggers on genuine, loud user speech (>0.12 RMS for ~600ms)
+            # This completely prevents laptop speaker output from triggering false barge-in.
+            if self._barge_in_monitoring:
+                if level > 0.12:
+                    self._speech_consecutive_chunks += 1
+                    if self._speech_consecutive_chunks >= 6:
+                        self._speech_consecutive_chunks = 0
+                        self.speech_started.emit()
+                else:
+                    self._speech_consecutive_chunks = max(0, self._speech_consecutive_chunks - 1)
+            return level
+
         chunk = self._audio_stream.append(pcm_bytes)
         self.audio_chunk_captured.emit(pcm_bytes)
         self.level_updated.emit(chunk.rms_level)
@@ -257,10 +305,8 @@ class MicrophoneManager(QObject):
         if elapsed < 0.04:
             return chunk.rms_level
 
-        # Robust VAD Logic
-        # Require 2 consecutive chunks for normal speech (instead of 4), and higher threshold (0.035) & 4 chunks during AI playback (gain < 1.0)
-        effective_threshold = self.vad_threshold if self._gain >= 0.9 else 0.035
-        min_consecutive_chunks = 2 if self._gain >= 0.9 else 4
+        effective_threshold = self.vad_threshold
+        min_consecutive_chunks = 2
 
         if chunk.rms_level > effective_threshold:
             self._speech_consecutive_chunks += 1

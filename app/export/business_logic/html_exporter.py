@@ -42,9 +42,9 @@ class HtmlExporter(BaseExporter):
         if options.include_metadata:
             parts.append(
                 '<p class="meta">'
-                f"Conversation ID: {html.escape(conversation.id)}<br>"
-                f"Created: {html.escape(conversation.created_at)}<br>"
-                f"Updated: {html.escape(conversation.updated_at)}</p>"
+                f"Conversation ID: {html.escape(str(conversation.id or ''))}<br>"
+                f"Created: {html.escape(str(conversation.created_at or ''))}<br>"
+                f"Updated: {html.escape(str(conversation.updated_at or ''))}</p>"
             )
         for message in conversation.messages:
             parts.append(self._render_message(message, options))

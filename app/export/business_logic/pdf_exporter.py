@@ -55,7 +55,7 @@ class PdfExporter(BaseExporter):
         role_str = str(getattr(message.role, "value", message.role)).capitalize()
         story = [] if options.content_only else [Paragraph(role_str, styles["role"])]
         if options.include_timestamps:
-            story.append(Paragraph(html.escape(message.created_at), styles["timestamp"]))
+            story.append(Paragraph(html.escape(str(message.created_at or "")), styles["timestamp"]))
         for block in parse_markdown_blocks(message.content):
             if block.kind == "code":
                 story.append(Preformatted(block.text, styles["code"]))

@@ -9,7 +9,7 @@ from typing import Any
 
 _IMAGE_REQUEST_PATTERNS = (
     # Action verb + target (e.g. "create a flower image", "draw a cat", "generate image of flower")
-    r"\b(?:generate|generat|gnerate|create|crete|crate|creete|make|mak|draw|draww|design|desing|produce|render|paint|sketch)\b.{0,80}\b(?:image|picture|photo|pic|illustration|artwork|poster|logo|wallpaper|flower|cat|dog|car|landscape)\b",
+    r"\b(?:generate|generat|gnerate|create|crete|crate|creete|make|mak|draw|draww|design|desing|produce|render|paint|sketch)\b.{0,80}\b(?:image|picture|photo|pic|illustration|artwork|painting|drawing|portrait|poster|logo|wallpaper|flower|cat|dog|car|landscape)\b",
     r"\b(?:give|show|send|draw|generate|create)\s+me\s+(?:an?\s+)?(?:image|picture|photo|pic|drawing)\b",
     # Target noun + verb (e.g. "flower image please crete", "cat picture generate")
     r"\b(?:image|picture|photo|pic)\b.{0,40}\b(?:generate|generat|gnerate|create|crete|crate|make|draw|design)\b",
@@ -37,6 +37,7 @@ _SAME_TYPE_IMAGE_PATTERNS = (
     r"\b(?:image|picture|photo|pic)\b.{0,30}\b(?:like\s+this|same\s+type|similar)\b",
     r"\b(?:generate|create|make|produce)\b.{0,30}\b(?:same|similar)\b.{0,30}\b(?:image|picture|photo|pic)\b",
     r"(?:এই\s*ছবির\s*মতো|সেইম\s*টাইপ\s*ছবি|একই\s*রকম\s*ছবি|এই\s*ধরণের\s*ছবি|এই\s*টাইপের\s*ছবি)",
+    r"(?:এই\s*(?:ধরণের|টাইপের|রকমের|স্টাইলের)\s*(?:একটা|একটি|আরেকটা|আরেকটি)?\s*(?:ছবি|পিকচার|ফটো|ইমেজ))",
     r"(?:মতো|একই\s*রকম|সেইম\s*টাইপ)\s*(?:ছবি|পিকচার|ফটো|ইমেজ)\s*(?:বানাও|তৈরি\s*করো|দাও|আঁকো|জেনারেট\s*করো)",
 )
 

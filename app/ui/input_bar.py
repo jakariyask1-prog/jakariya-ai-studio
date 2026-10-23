@@ -473,13 +473,21 @@ class InputBar(QWidget):
             self.voice_status_label.setStyleSheet("color: #DC2626; font-weight: 600; padding: 2px 6px;")
             self.voice_status_label.setVisible(True)
 
+        # Live mode owns microphone control continuously; the standalone mic
+        # button must not become active again because of an incoming state
+        # update from the voice controller.
+        if getattr(self, "_operation", None) == "live":
+            self.voice_button.setEnabled(False)
+
     def is_agent_mode_active(self) -> bool:
         """Return True if user enabled Autonomous AI Agent Mode."""
         return self.agent_button.isChecked()
 
     def set_live_mode(self, active: bool) -> None:
         """Update Live button visual state."""
+        self.live_button.blockSignals(True)
         self.live_button.setChecked(active)
+        self.live_button.blockSignals(False)
         if active:
             self.live_button.setText("🛑 Stop Live")
             self.live_button.setToolTip("Stop Live Conversation")
@@ -489,6 +497,8 @@ class InputBar(QWidget):
         else:
             self.live_button.setText("◉ Live" if not self._is_compact else "◉")
             self.live_button.setToolTip("Start Live Conversation (continuous voice mode)")
+            if self.voice_status_label.text() == "Live Conversation Active":
+                self.voice_status_label.setVisible(False)
 
     def _animate_thinking(self):
         """Animates the thinking label with dots."""
@@ -554,19 +564,32 @@ class InputBar(QWidget):
 
     def set_generating(self, generating: bool) -> None:
         """Toggle generating state: transforms Send button to Stop button when active."""
-        self._is_generating = bool(generating)
-        if self._is_generating:
-            self.message_input.setEnabled(False)
-            self.attach_button.setEnabled(False)
-            self.folder_button.setEnabled(False)
-            self.voice_button.setEnabled(False)
-            self.send_button.setEnabled(True)
-        else:
-            self.message_input.setEnabled(True)
-            self.attach_button.setEnabled(True)
-            self.folder_button.setEnabled(True)
-            self.voice_button.setEnabled(True)
-            self.send_button.setEnabled(True)
+        self.set_operation_state("chat" if generating else None)
+
+    def set_operation_state(self, operation: str | None) -> None:
+        """Lock controls for the one operation currently owning the chat surface.
+
+        ``operation`` is controlled by :class:`MainWindow`, rather than by the
+        checked state of the Agent or Live buttons.  This prevents a mode
+        toggle during a running request from changing cancellation behaviour
+        or creating a second stream in the same chat area.
+        """
+        if operation not in (None, "chat", "agent", "live"):
+            raise ValueError(f"Unsupported input operation: {operation}")
+
+        self._operation = operation
+        self._is_generating = operation in ("chat", "agent")
+        idle = operation is None
+
+        self.message_input.setEnabled(idle)
+        self.attach_button.setEnabled(idle)
+        self.folder_button.setEnabled(idle)
+        self.voice_button.setEnabled(idle)
+        self.agent_button.setEnabled(idle)
+        # Live remains clickable only while it is active, so it can always
+        # serve as the explicit Stop Live control.
+        self.live_button.setEnabled(idle or operation == "live")
+        self.send_button.setEnabled(operation != "live")
         self._update_send_button_style()
 
     def is_generating(self) -> bool:

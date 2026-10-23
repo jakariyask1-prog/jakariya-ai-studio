@@ -6,7 +6,7 @@ anti-clock-tampering checks, and License Key activation.
 
 from __future__ import annotations
 
-import hashlib
+import base64
 import json
 import logging
 import os
@@ -14,11 +14,20 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Dict, Optional, Tuple
 
+from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+
 from app.auth.auth_service import AuthService, _get_auth_dir
 
 logger = logging.getLogger(__name__)
 
 TRIAL_DURATION_HOURS = 72  # 3 days = 72 hours
+
+# This is an Ed25519 *public* key. It can safely be bundled with the app and
+# verifies licenses issued by the private signing key kept in Credential
+# Manager on the publisher's machine. A key prefix is never proof of payment.
+LICENSE_PUBLIC_KEY_B64 = "vcnmyotPS9Lb7oFBawc0sjycEdlfgGboXXA7yj5epNE="
+LICENSE_TOKEN_PREFIX = "JAK-LIC-"
 
 # Features that remain 100% free forever after the 3-day trial ends
 FREE_FEATURES = {
@@ -47,6 +56,51 @@ PREMIUM_FEATURES = {
     "docx_export",
     "excel_export",
 }
+
+
+def _decode_token_segment(value: str) -> bytes:
+    """Decode one URL-safe base64 license token segment strictly."""
+    padding = "=" * (-len(value) % 4)
+    return base64.b64decode(value + padding, altchars=b"-_", validate=True)
+
+
+def verify_license_token(token: str) -> Tuple[Optional[dict], str]:
+    """Verify a publisher-signed, account-bound offline license token."""
+    clean_token = (token or "").strip()
+    if not clean_token.startswith(LICENSE_TOKEN_PREFIX):
+        return None, "লাইসেন্স কি-এর ফরম্যাট সঠিক নয়।"
+
+    try:
+        encoded_payload, encoded_signature = clean_token[len(LICENSE_TOKEN_PREFIX):].split(".", 1)
+        payload_bytes = _decode_token_segment(encoded_payload)
+        signature = _decode_token_segment(encoded_signature)
+        public_key = Ed25519PublicKey.from_public_bytes(base64.b64decode(LICENSE_PUBLIC_KEY_B64))
+        public_key.verify(signature, payload_bytes)
+        payload = json.loads(payload_bytes.decode("utf-8"))
+    except (ValueError, TypeError, UnicodeDecodeError, json.JSONDecodeError, InvalidSignature):
+        return None, "লাইসেন্স কি-এর স্বাক্ষর যাচাই ব্যর্থ হয়েছে।"
+
+    if not isinstance(payload, dict):
+        return None, "লাইসেন্সের তথ্য সঠিক নয়।"
+
+    required_fields = ("license_id", "email", "plan", "issued_at")
+    if any(not isinstance(payload.get(field), str) or not payload[field].strip() for field in required_fields):
+        return None, "লাইসেন্সের প্রয়োজনীয় তথ্য নেই।"
+    if payload["plan"] not in {"pro", "vip"}:
+        return None, "লাইসেন্স প্ল্যান সঠিক নয়।"
+
+    expires_at = payload.get("expires_at")
+    if expires_at is not None:
+        if not isinstance(expires_at, str) or not expires_at:
+            return None, "লাইসেন্সের মেয়াদের তথ্য সঠিক নয়।"
+        try:
+            expires = datetime.fromisoformat(expires_at)
+            if expires.tzinfo is None or datetime.now(timezone.utc) >= expires.astimezone(timezone.utc):
+                return None, "লাইসেন্সের মেয়াদ শেষ হয়েছে।"
+        except ValueError:
+            return None, "লাইসেন্সের মেয়াদের তথ্য সঠিক নয়।"
+
+    return payload, ""
 
 
 class LicenseManager:
@@ -110,6 +164,30 @@ class LicenseManager:
                 pass
         return self._device_trial_start or datetime.now(timezone.utc)
 
+    def _get_verified_premium_data(self) -> Optional[Dict[str, str]]:
+        """Return premium data only when its signed license is still valid."""
+        user = self._auth.current_user
+        stored_license = ""
+        expected_email = ""
+        if user:
+            stored_license = user.license_key
+            expected_email = user.email.strip().lower()
+        else:
+            db = self._auth._read_users_db()
+            device_license = db.get("device_license") or {}
+            stored_license = str(device_license.get("license_key", ""))
+            expected_email = str(device_license.get("email", "")).strip().lower()
+
+        claims, error = verify_license_token(stored_license)
+        if claims is None:
+            if stored_license:
+                logger.warning("[LicenseManager] Ignoring invalid stored license: %s", error)
+            return None
+        if not expected_email or claims["email"].strip().lower() != expected_email:
+            logger.warning("[LicenseManager] Ignoring license bound to a different account.")
+            return None
+        return {"expires_at": claims["expires_at"], "plan": claims["plan"]}
+
     def get_plan_status(self) -> Dict[str, any]:
         """Return the current user plan status, remaining trial time, and UI badges."""
         now = datetime.now(timezone.utc)
@@ -120,19 +198,7 @@ class LicenseManager:
 
         self._last_active_time = now
 
-        user = self._auth.current_user
-        premium_data = None
-        if user and user.is_premium:
-            premium_data = {
-                "expires_at": user.premium_expires_at,
-            }
-        elif not user:
-            db = self._auth._read_users_db()
-            dev_lic = db.get("device_license")
-            if dev_lic and dev_lic.get("is_premium"):
-                premium_data = {
-                    "expires_at": dev_lic.get("premium_expires_at", ""),
-                }
+        premium_data = self._get_verified_premium_data()
 
         if premium_data:
             # Check expiry if date is set
@@ -219,58 +285,29 @@ class LicenseManager:
         return False
 
     def activate_license_key(self, key_str: str) -> Tuple[bool, str]:
-        """Activate a Pro License Key (e.g. JAK-PRO-XXXX-XXXX-XXXX)."""
-        clean_key = key_str.strip().upper()
-        if not clean_key or len(clean_key) < 12:
+        """Activate a publisher-signed and account-bound Pro license."""
+        clean_key = key_str.strip()
+        if not clean_key:
             return False, "ভুল বা অকার্যকর লাইসেন্স কি। কি-টি সঠিকভাবে লিখুন।"
 
-        # Format verification: must start with JAK-PRO or JAK-VIP
-        valid = False
-        duration_days = 365  # Default 1 year
-
-        if clean_key.startswith("JAK-PRO-") or clean_key.startswith("JAK-VIP-"):
-            valid = True
-            if "LIFETIME" in clean_key or clean_key.endswith("-LIFE"):
-                duration_days = None
-            elif "MONTH" in clean_key or clean_key.endswith("-30"):
-                duration_days = 30
-
-        if not valid:
-            # Check internal cryptographic signature hash
-            try:
-                parts = clean_key.split("-")
-                if len(parts) >= 2:
-                    expected_prefix = "JAK-" + hashlib.sha256(parts[1].encode()).hexdigest()[:4].upper()
-                    if clean_key.startswith(expected_prefix):
-                        valid = True
-            except Exception:
-                pass
-
-        if not valid:
-            return False, "লাইসেন্স কি ভ্যালিডেশন ব্যর্থ হয়েছে। সঠিক কি প্রবেশ করান।"
-
-        now = datetime.now(timezone.utc)
-        exp_iso = (now + timedelta(days=duration_days)).isoformat() if duration_days else ""
-
-        # Update logged in user or save locally
         user = self._auth.current_user
-        if user:
-            self._auth.update_profile(
-                is_premium=True,
-                license_key=clean_key,
-                premium_expires_at=exp_iso,
-            )
-        else:
-            # Save device license state
-            db = self._auth._read_users_db()
-            db["device_license"] = {
-                "is_premium": True,
-                "license_key": clean_key,
-                "premium_expires_at": exp_iso,
-            }
-            self._auth._write_users_db(db)
+        if user is None:
+            return False, "লাইসেন্স সক্রিয় করতে আগে আপনার অ্যাকাউন্টে লগইন করুন।"
+
+        claims, error = verify_license_token(clean_key)
+        if claims is None:
+            return False, error
+        if claims["email"].strip().lower() != user.email.strip().lower():
+            return False, "এই লাইসেন্স কি অন্য একটি অ্যাকাউন্টের জন্য ইস্যু করা হয়েছে।"
+
+        exp_iso = claims["expires_at"] or ""
+        self._auth.update_profile(
+            is_premium=True,
+            license_key=clean_key,
+            premium_expires_at=exp_iso,
+        )
 
         self._save_device_state()
-        logger.info("[LicenseManager] Pro license activated successfully: %s", clean_key)
-        plan_desc = "১ বছরের" if duration_days == 365 else ("১ মাসের" if duration_days == 30 else "আজীবন (Lifetime)")
+        logger.info("[LicenseManager] Signed license activated: %s", claims["license_id"])
+        plan_desc = "আজীবন (Lifetime)" if not exp_iso else "প্রিমিয়াম"
         return True, f"🎉 অভিনন্দন! আপনার {plan_desc} প্রিমিয়াম মেম্বারশিপ সক্রিয় হয়েছে।"

@@ -677,19 +677,28 @@ class ChatArea(QWidget):
         cursor.movePosition(QTextCursor.MoveOperation.End)
         self._stream_block_start_position = cursor.position()
 
-        initial_html = """
+        active_theme = getattr(self, "theme", "light")
+        is_dark = str(active_theme).lower() in ("dark", "oled", "neon")
+        card_bg = "#1E293B" if is_dark else "#F8FAFC"
+        title_color = "#F8FAFC" if is_dark else "#0F172A"
+        step_color = "#E2E8F0" if is_dark else "#334155"
+        tool_badge_bg = "#312E81" if is_dark else "#EEF2FF"
+        tool_badge_fg = "#C7D2FE" if is_dark else "#4F46E5"
+        tool_badge_border = "#4338CA" if is_dark else "#C7D2FE"
+
+        initial_html = f"""
         <table width="100%" cellspacing="0" cellpadding="0" style="margin-top:8px;"><tr>
             <td width="100%">
                 <table width="100%" cellspacing="0" cellpadding="12" style="
-                    background-color: #F8FAFC;
+                    background-color: {card_bg};
                     border: 1px solid #6366F1;
                     border-radius: 14px;">
                     <tr><td width="100%">
                         <div style="margin-bottom:8px;">
-                            <span style="background-color:#EEF2FF; color:#4F46E5; border:1px solid #C7D2FE; border-radius:6px; padding:3px 10px; font-weight:700; font-size:10pt;">ReAct Agent</span>
-                            <b style="color:#0F172A; font-size:11pt; margin-left:6px;">Executing Task...</b>
+                            <span style="background-color:{tool_badge_bg}; color:{tool_badge_fg}; border:1px solid {tool_badge_border}; border-radius:6px; padding:3px 10px; font-weight:700; font-size:10pt;">ReAct Agent</span>
+                            <b style="color:{title_color}; font-size:11pt; margin-left:6px;">Executing Task...</b>
                         </div>
-                        <div id="agent_steps" style="font-size:9.5pt; color:#334155; line-height:1.4;">
+                        <div id="agent_steps" style="font-size:9.5pt; color:{step_color}; line-height:1.4;">
                             • 🧠 Initializing task execution plan...
                         </div>
                     </td></tr>
@@ -719,12 +728,28 @@ class ChatArea(QWidget):
         tool_badge_border = "#4338CA" if is_dark else "#C7D2FE"
 
         safe_msg = html_lib.escape(message.strip())
+        diff_added_bg = "#064E3B" if is_dark else "#DCFCE7"
+        diff_added_fg = "#6EE7B7" if is_dark else "#15803D"
+        diff_added_border = "#047857" if is_dark else "#86EFAC"
+
+        diff_removed_bg = "#450A0A" if is_dark else "#FEE2E2"
+        diff_removed_fg = "#FCA5A5" if is_dark else "#DC2626"
+        diff_removed_border = "#7F1D1D" if is_dark else "#FCA5A5"
+
+        folder_badge_bg = "#1E293B" if is_dark else "#F1F5F9"
+        folder_badge_fg = "#94A3B8" if is_dark else "#475569"
+        folder_badge_border = "#334155" if is_dark else "#CBD5E1"
+
         if "Error" in safe_msg or "Exception" in safe_msg or "declined" in safe_msg or "failed" in safe_msg.lower():
             clean_err = safe_msg.replace("Observation: Error -", "").replace("Observation:", "").strip()
+            err_badge_bg = "#450A0A" if is_dark else "#FEE2E2"
+            err_badge_fg = "#FCA5A5" if is_dark else "#DC2626"
+            err_badge_border = "#7F1D1D" if is_dark else "#FCA5A5"
+            err_reason_color = "#F87171" if is_dark else "#B91C1C"
             step_item = (
-                f'• <span style="background-color:#FEE2E2; color:#DC2626; border:1px solid #FCA5A5; '
+                f'• <span style="background-color:{err_badge_bg}; color:{err_badge_fg}; border:1px solid {err_badge_border}; '
                 f'border-radius:6px; padding:2px 6px; font-weight:700; font-size:8.5pt;">❌ Failed</span> '
-                f'<span style="color:#B91C1C; font-weight:600;">Reason: {clean_err}</span>'
+                f'<span style="color:{err_reason_color}; font-weight:600;">Reason: {clean_err}</span>'
             )
         elif is_tool or tool_name:
             badge_name = html_lib.escape(tool_name if tool_name else "tool")
@@ -741,14 +766,14 @@ class ChatArea(QWidget):
                 added = diff_match.group(1)
                 removed = diff_match.group(2)
                 if added and added != "0":
-                    diff_badges += f'<span style="background-color:#DCFCE7; color:#15803D; border:1px solid #86EFAC; border-radius:4px; padding:1px 6px; font-weight:700; font-size:8.5pt;">+{added}</span> '
+                    diff_badges += f'<span style="background-color:{diff_added_bg}; color:{diff_added_fg}; border:1px solid {diff_added_border}; border-radius:4px; padding:1px 6px; font-weight:700; font-size:8.5pt;">+{added}</span> '
                 if removed and removed != "0":
-                    diff_badges += f'<span style="background-color:#FEE2E2; color:#DC2626; border:1px solid #FCA5A5; border-radius:4px; padding:1px 6px; font-weight:700; font-size:8.5pt;">-{removed}</span> '
+                    diff_badges += f'<span style="background-color:{diff_removed_bg}; color:{diff_removed_fg}; border:1px solid {diff_removed_border}; border-radius:4px; padding:1px 6px; font-weight:700; font-size:8.5pt;">-{removed}</span> '
 
             folder_badge = ""
             if folder_match:
                 fldr = folder_match.group(1) or folder_match.group(2)
-                folder_badge = f'<span style="background-color:#F1F5F9; color:#475569; border:1px solid #CBD5E1; border-radius:4px; padding:1px 6px; font-weight:500; font-size:8.5pt;">📁 {fldr}</span> '
+                folder_badge = f'<span style="background-color:{folder_badge_bg}; color:{folder_badge_fg}; border:1px solid {folder_badge_border}; border-radius:4px; padding:1px 6px; font-weight:500; font-size:8.5pt;">📁 {fldr}</span> '
 
             # Register live file for real-time Antigravity live file changes card
             if file_match and (diff_match or tool_name in ("edit_file", "write_file")):
@@ -804,15 +829,15 @@ class ChatArea(QWidget):
                     rem_n = info["lines_removed"]
                     diff_str = ""
                     if add_n:
-                        diff_str += f'<span style="background-color:#DCFCE7; color:#15803D; border:1px solid #86EFAC; border-radius:4px; padding:1px 5px; font-weight:700; font-size:8pt;">+{add_n}</span> '
+                        diff_str += f'<span style="background-color:{diff_added_bg}; color:{diff_added_fg}; border:1px solid {diff_added_border}; border-radius:4px; padding:1px 5px; font-weight:700; font-size:8pt;">+{add_n}</span> '
                     if rem_n:
-                        diff_str += f'<span style="background-color:#FEE2E2; color:#DC2626; border:1px solid #FCA5A5; border-radius:4px; padding:1px 5px; font-weight:700; font-size:8pt;">-{rem_n}</span> '
+                        diff_str += f'<span style="background-color:{diff_removed_bg}; color:{diff_removed_fg}; border:1px solid {diff_removed_border}; border-radius:4px; padding:1px 5px; font-weight:700; font-size:8pt;">-{rem_n}</span> '
                     act_badge = f'<span style="background-color:{"#312E81" if is_dark else "#EEF2FF"}; color:{"#C7D2FE" if is_dark else "#4F46E5"}; border-radius:4px; padding:1px 5px; font-weight:600; font-size:8pt;">{info["action"].capitalize()}</span>'
                     file_items.append(
                         f'<div style="margin:2px 4px 2px 0; display:inline-block; '
                         f'background:{"#0F172A" if is_dark else "#FFFFFF"}; border:1px solid {"#334155" if is_dark else "#CBD5E1"}; '
                         f'border-radius:6px; padding:3px 8px; font-size:8.5pt;">'
-                        f'📄 <b>{html_lib.escape(fn)}</b> <span style="color:#64748B;">({html_lib.escape(fld_name)})</span> {diff_str}{act_badge}'
+                        f'📄 <b style="color:{"#F8FAFC" if is_dark else "#0F172A"};">{html_lib.escape(fn)}</b> <span style="color:{"#94A3B8" if is_dark else "#64748B"};">({html_lib.escape(fld_name)})</span> {diff_str}{act_badge}'
                         f'</div>'
                     )
                 live_files_joined = "".join(file_items)
@@ -925,6 +950,21 @@ class ChatArea(QWidget):
                 if not stripped.startswith(("Thought:", "Action:", "Action Input:", "Observation:")) and not stripped.startswith("```"):
                     lines.append(line)
             clean_text = "\n".join(lines).strip()
+        else:
+            lines = []
+            for line in clean_text.split("\n"):
+                stripped = line.strip()
+                if stripped.startswith(("Action:", "Action Input:", "Observation:")):
+                    continue
+                if stripped.startswith("Thought:"):
+                    thought_body = stripped[8:].strip()
+                    if thought_body:
+                        lines.append(thought_body)
+                else:
+                    lines.append(line)
+            extracted = "\n".join(lines).strip()
+            if extracted:
+                clean_text = extracted
 
         if not clean_text and error_callout_html:
             clean_text = "Tool execution encountered an error."

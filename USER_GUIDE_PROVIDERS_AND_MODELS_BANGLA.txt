@@ -205,7 +205,19 @@ MD, TXT, CSV, JSON), and 4 curated eye-comfort theme palettes.
   - The studio immediately halts audio playback, silences the speaker, and listens to your new query.
   - Acoustic Loopback Shield: Microphone gain is dynamically attenuated to `0.15` during playback, 
     preventing speaker sound from triggering false barge-in loops.
-* Audio Hardware Devices (NEW in v2.0.0):
+* Bilingual Speech Normalization & Pronunciation Engine (NEW):
+  - Automatically cleans transcripts and speech inputs (`speech_normalizer.py`).
+  - Expands spelled-out letter sequences and acronyms (e.g. "A-P-I" -> "A, P, I").
+  - Translates and expands currency and mathematical symbols (`৳` ➔ "টাকা", `$` ➔ "ডলার", 
+    `°C` ➔ "ডিগ্রি সেলসিয়াস", `%` ➔ "শতাংশ") for smooth, natural phonetic vocalization.
+  - Dynamically transliterates common English loanwords into Bengali phonetics so neural voices 
+    (`bn-BD-NabanitaNeural`, `bn-BD-PradeepNeural`, and Cartesia Sonic) articulate them fluently.
+* Concurrency Locking & Session Isolation (NEW):
+  - While a Live session or Agent task is running, opposing mode buttons are securely locked, 
+    preventing state drift, conflicting requests, or cancellation hijacks.
+  - Live conversation audio and transcripts are strictly pinned to their originating chat ID, 
+    preventing message leakage into other chat tabs.
+* Audio Hardware Devices:
   - Navigate to **Settings > Voice & Audio > Audio Input & Output Hardware Devices**.
   - Explicitly select your desired physical Microphone (Input) and Speaker/Headphones (Output).
 * Natural Conversational Pause:
@@ -221,7 +233,12 @@ MD, TXT, CSV, JSON), and 4 curated eye-comfort theme palettes.
 * বার্জ-ইন (Barge-In) ইন্টারাপশন: এআই কথা বলার সময় আপনি কথা শুরু করলেই এআই সাথে সাথে থেমে যাবে এবং 
   আপনার নতুন কথা মনোযোগ দিয়ে শুনবে। ল্যাপটপ বা স্পিকারের শব্দের কারণে যেন নিজে নিজে না থেমে যায়, সেজন্য 
   স্পিকারের শব্দ ফিল্টার করার জন্য আধুনিক অ্যাকোস্টিক শিল্ড যুক্ত আছে।
-* হার্ডওয়্যার অডিও ডিভাইস নির্বাচন (নতুন ফিচার): Settings > Voice & Audio পেজ থেকে আপনার পছন্দমতো 
+* দ্বিভাষিক স্পিচ নরমালাইজেশন ও স্বাভাবিক উচ্চারণ (নতুন ফিচার): স্পেলিং ও সংক্ষেপিত রূপ যেমন "AI, API", 
+  টাকার চিহ্ন (৳, $), শতকরা (%), তাপমাত্রা (°C) স্বয়ংক্রিয়ভাবে বাংলায় রূপান্তর করে পড়া হয়, যাতে ভয়েস 
+  রোবটিক না হয়ে মানুষের মতো সাবলীল শোনায়।
+* সেশন লক ও নিরাপত্তা: লাইভ বা এজেন্ট চলাকালীন ইনপুট বাটনে সুরক্ষিত লক থাকে যেন কোনো ত্রুটি বা কনফ্লিক্ট না ঘটে, 
+  এবং লাইভ কথোপকথনের প্রতিটি কথা নির্দিষ্ট চ্যাটের ভেতরেই সুরক্ষিতভাবে সংরক্ষিত হয়।
+* হার্ডওয়্যার অডিও ডিভাইস নির্বাচন: Settings > Voice & Audio পেজ থেকে আপনার পছন্দমতো 
   মাইক্রোফোন এবং হেডফোন/স্পিকার সরাসরি ড্রপডাউন থেকে সিলেক্ট করে নিতে পারবেন।
 
 ================================================================================
@@ -320,10 +337,27 @@ MD, TXT, CSV, JSON), and 4 curated eye-comfort theme palettes.
   - Data directory: `%LOCALAPPDATA%\Jakariya AI Studio\`
 * Hardware Keyring Encryption:
   - All API keys are encrypted via Windows Credential Manager (`keyring`), never stored in plaintext.
+* Ed25519 Cryptographic Licensing & Anti-Tampering Engine (NEW):
+  - Pro & VIP licenses utilize asymmetric Ed25519 digital signatures (`JAK-LIC-...`).
+  - Cryptographic verification runs 100% offline using the embedded publisher public key, 
+    eliminating telemetry and avoiding phone-home dependencies.
+  - Features anti-clock-tampering protection, safeguarding the 72-hour trial against system 
+    clock rollback attempts.
 * 3-Day Pro Trial & Free Access:
   - New installations receive an automatic 72-hour full-access Pro trial with unlimited exports.
   - When the trial ends, all free engines (Edge TTS, Google STT, Pollinations AI, Ollama, Plugsky Free) 
     continue working forever without any mandatory charges.
+* Rigorous Automated Quality Assurance:
+  - Backed by an automated test suite of **422 tests (100% passing)** covering auth, licensing, 
+    voice pipelines, provider failover, and agent tool execution.
+
+[বাংলা]
+* শতভাগ লোকাল প্রাইভেসি: আপনার সব চ্যাট হিস্ট্রি, ডাটাবেস এবং ফাইল শুধুমাত্র আপনার কম্পিউটারে সুরক্ষিত থাকে।
+* উইন্ডোজ ক্রেডেনশিয়াল এনক্রিপশন: সব এপিআই কি উইন্ডোজ কি-রিং দিয়ে এনক্রিপ্ট করে সেভ থাকে।
+* Ed25519 ক্রিপ্টোগ্রাফিক লাইসেন্স ভেরিফিকেশন: প্রো লাইসেন্স কি অফলাইনে ডিজিটাল সিগনেচারের মাধ্যমে যাচাই হয়। 
+  কোনো থার্ড-পার্টি সার্ভারে ডাটা পাঠায় না এবং ঘড়ির সময় পরিবর্তনের মাধ্যমে ট্রায়াল জালিয়াতি রোধ করে।
+* ৩-দিনের ফ্রি ট্রায়াল ও আজীবন ফ্রি সুবিধা: ইনস্টল করলেই ৩ দিনের ফুল প্রো ট্রায়াল পাওয়া যায়। ট্রায়াল শেষ হলেও 
+  ফ্রি মডেলগুলো (Edge TTS, Google STT, Pollinations AI, Ollama) আজীবন সম্পূর্ণ বিনামূল্যে ব্যবহার করা যায়।
 
 ================================================================================
 9. QUICK START & SETUP GUIDE / দ্রুত চালু ও সেটআপ গাইড

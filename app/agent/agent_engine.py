@@ -657,6 +657,17 @@ class AIAgentEngine:
                         context_mgr.add_user_message(nudge)
                         continue
 
+                # If tools were executed in previous turns and model finished without 'Final Answer:',
+                # nudge the model once to provide the complete answer, code review, and report in chat
+                if turn > 0 and (generated_files or file_changes) and "final_answer_nudge" not in _nudge_given:
+                    _nudge_given.add("final_answer_nudge")
+                    nudge = (
+                        "Observation: [SYSTEM DIRECTIVE] Tool execution completed. Please now provide your complete, detailed answer, "
+                        "code explanation, and summary of changes to the user starting with 'Final Answer:'."
+                    )
+                    context_mgr.add_user_message(nudge)
+                    continue
+
                 # No tool call + no pending nudge → task is DONE, exit immediately
                 logger.info(
                     "[AIAgentEngine] ✅ Task complete (direct answer) on turn %d → returning immediately.", turn + 1

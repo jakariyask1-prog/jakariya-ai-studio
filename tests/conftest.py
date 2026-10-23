@@ -69,6 +69,17 @@ def clean_keyring_fixture():
         _in_memory_keyring.passwords.clear()
 
 
+@pytest.fixture(autouse=True)
+def reset_provider_manager_fixture():
+    """Ensure singleton ProviderManager is clean after each test."""
+    yield
+    try:
+        from app.providers.manager.provider_manager import ProviderManager
+        ProviderManager.reset_instance()
+    except Exception:
+        pass
+
+
 @pytest.fixture(scope="session")
 def qapp():
     """Ensure a singleton QApplication exists across test execution."""

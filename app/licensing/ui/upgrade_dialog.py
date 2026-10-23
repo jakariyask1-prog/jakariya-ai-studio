@@ -132,7 +132,7 @@ class UpgradeDialog(QDialog):
 
         input_row = QHBoxLayout()
         self.key_input = QLineEdit()
-        self.key_input.setPlaceholderText("JAK-PRO-XXXX-XXXX-XXXX")
+        self.key_input.setPlaceholderText("JAK-LIC-<signed-license>")
         self.key_input.setFixedHeight(40)
 
         btn_activate = QPushButton("সক্রিয় করুন (Activate)")

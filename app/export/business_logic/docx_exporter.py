@@ -52,7 +52,7 @@ class DocxExporter(BaseExporter):
             role_str = str(getattr(message.role, "value", message.role)).capitalize()
             document.add_heading(role_str, level=1)
         if options.include_timestamps:
-            timestamp = document.add_paragraph(message.created_at)
+            timestamp = document.add_paragraph(str(message.created_at or ""))
             timestamp.paragraph_format.space_after = Pt(7)
             for run in timestamp.runs:
                 run.italic = True

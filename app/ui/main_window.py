@@ -4,7 +4,7 @@ import sqlite3
 import sys
 from dataclasses import dataclass
 
-from PySide6.QtCore import Slot, QPropertyAnimation, QEasingCurve
+from PySide6.QtCore import Slot, QPropertyAnimation, QEasingCurve, QTimer, Qt
 from PySide6.QtWidgets import (
     QMainWindow,
     QMessageBox,
@@ -177,6 +177,10 @@ class MainWindow(QMainWindow):
         self.chat_manager = ChatManager()
         self.chat_manager.initialize()
         self._pending_message: PendingMessage | None = None
+        # Exactly one operation may own the chat surface at a time.  Button
+        # checked states are preferences, not runtime state.
+        self._active_operation: str | None = None  # None | chat | agent | live
+        self._live_conversation_id: str | None = None
         self._chat_search_query = ""
         self.file_service = FileService()
         self.pending_uploads: list[UploadedFile] = []
@@ -260,8 +264,8 @@ class MainWindow(QMainWindow):
         # Select initial voice language and connect update signal
         self.voice_controller.state_changed.connect(self.on_voice_state_changed)
         self.voice_controller.transcript_ready.connect(self.on_voice_transcript_ready)
-        self.voice_controller.response_started.connect(self.chat_area.start_assistant_stream)
-        self.voice_controller.partial_token.connect(self.chat_area.append_assistant_stream)
+        self.voice_controller.response_started.connect(self._on_live_response_started)
+        self.voice_controller.partial_token.connect(self._on_live_partial_token)
         self.voice_controller.response_ready.connect(self.on_voice_response_ready)
         self.voice_controller.audio_ready.connect(self.on_voice_audio_ready)
         self.voice_controller.error_occurred.connect(self.on_voice_error)
@@ -435,12 +439,55 @@ class MainWindow(QMainWindow):
         self._app_status_bar.show_info(message)
         self._app_status_bar.set_idle_message(message)
 
+    def _set_active_operation(self, operation: str | None) -> None:
+        """Synchronize interaction locks with the operation owning the chat UI."""
+        if operation not in (None, "chat", "agent", "live"):
+            raise ValueError(f"Unsupported operation: {operation}")
+
+        self._active_operation = operation
+        self.input_bar.set_operation_state(operation)
+        idle = operation is None
+        # Prevent chat changes, deletion, or model changes from redirecting an
+        # in-flight request or a continuous live session.
+        self.sidebar.setEnabled(idle)
+        self.header.provider_selector.setEnabled(idle)
+        self.header.model_selector.setEnabled(idle)
+
+    def _release_text_operation(self) -> None:
+        """Release a completed or failed standard-chat/agent operation only."""
+        if self._active_operation in ("chat", "agent"):
+            self._set_active_operation(None)
+
+    def _stop_live_session(self, status_message: str = "Live Conversation stopped") -> None:
+        """Stop Live mode and restore the regular chat controls consistently."""
+        if self.voice_controller.is_live_session_active():
+            self.voice_controller.stop_live_session()
+        self._live_conversation_id = None
+        self._set_active_operation(None)
+        self.input_bar.set_live_mode(False)
+        self._app_status_bar.show_info(status_message)
+
 
 
     # --------------------------------------------------
 
     def send_message(self, message: str):
         """Display a user turn and send it with only this chat's history."""
+        if self._active_operation is not None:
+            self._app_status_bar.show_warning("Please wait or stop the current operation first.")
+            return
+
+        is_agent_request = self.input_bar.is_agent_mode_active()
+        if is_agent_request:
+            from app.licensing.license_manager import LicenseManager
+            if not LicenseManager.instance().is_feature_allowed("unlimited_agent"):
+                # InputBar clears its editor after signal delivery. Restore the
+                # draft on the next event-loop turn so an access check never
+                # creates a ghost turn or loses the user's prompt.
+                QTimer.singleShot(0, lambda text=message: self.input_bar.message_input.setText(text))
+                self.open_upgrade_window("Autonomous ReAct Agent সুবিধাটি Pro এবং ৩ দিনের ফ্রি ট্রায়ালের অন্তর্ভুক্ত।")
+                return
+
         conversation = self.chat_manager.get_active_chat()
         attachments = list(self.pending_uploads)
         history = self.chat_manager.get_api_messages(conversation.id)
@@ -452,15 +499,8 @@ class MainWindow(QMainWindow):
         )
         self.chat_area.append_user_message(message, attachments)
 
-        self.input_bar.disable()
-
-        if self.input_bar.is_agent_mode_active():
-            from app.licensing.license_manager import LicenseManager
-            if not LicenseManager.instance().is_feature_allowed("unlimited_agent"):
-                self.input_bar.enable()
-                self.open_upgrade_window("Autonomous ReAct Agent সুবিধাটি Pro এবং ৩ দিনের ফ্রি ট্রায়ালের অন্তর্ভুক্ত।")
-                return
-
+        if is_agent_request:
+            self._set_active_operation("agent")
             from app.providers.models.chat_request import MessageContent
             history_msgs = [MessageContent(role=m["role"], content=m["content"]) for m in history]
             self._app_status_bar.show_info("Autonomous ReAct Agent executing... (Click ⏹ or press Esc to cancel)")
@@ -478,6 +518,7 @@ class MainWindow(QMainWindow):
             self.input_bar.clear_attachments()
             return
 
+        self._set_active_operation("chat")
         self.controller.send_message(
             prompt_with_files,
             history,
@@ -675,8 +716,8 @@ class MainWindow(QMainWindow):
 
     def create_new_chat(self):
         """Create a fresh conversation and prepare the UI for its first message."""
-        if self.input_bar.is_generating():
-            self._app_status_bar.show_warning("Please wait or cancel the current response.")
+        if self._active_operation is not None:
+            self._app_status_bar.show_warning("Please wait or stop the current operation.")
             return
 
         conversation = self.chat_manager.create_new_chat()
@@ -693,8 +734,8 @@ class MainWindow(QMainWindow):
 
     def switch_chat(self, conversation_id: str):
         """Select a chat and replace the displayed conversation history."""
-        if self.input_bar.is_generating():
-            self._app_status_bar.show_warning("Please wait or cancel the current response.")
+        if self._active_operation is not None:
+            self._app_status_bar.show_warning("Please wait or stop the current operation.")
             return
 
         conversation = self.chat_manager.select_chat(conversation_id)
@@ -852,8 +893,8 @@ class MainWindow(QMainWindow):
 
     def rename_chat(self, conversation_id: str):
         """Prompt for and persist a new title for a sidebar conversation."""
-        if self.input_bar.is_generating():
-            self._app_status_bar.show_warning("Please wait or cancel the current response.")
+        if self._active_operation is not None:
+            self._app_status_bar.show_warning("Please wait or stop the current operation.")
             return
 
         try:
@@ -882,8 +923,8 @@ class MainWindow(QMainWindow):
 
     def delete_chat(self, conversation_id: str):
         """Confirm and delete a conversation, then refresh the visible state."""
-        if self.input_bar.is_generating():
-            self._app_status_bar.show_warning("Please wait or cancel the current response.")
+        if self._active_operation is not None:
+            self._app_status_bar.show_warning("Please wait or stop the current operation.")
             return
 
         try:
@@ -931,8 +972,8 @@ class MainWindow(QMainWindow):
         if not conversation_ids:
             return
 
-        if self.input_bar.is_generating():
-            self._app_status_bar.show_warning("Please wait or cancel the current response.")
+        if self._active_operation is not None:
+            self._app_status_bar.show_warning("Please wait or stop the current operation.")
             return
 
         count = len(conversation_ids)
@@ -978,7 +1019,7 @@ class MainWindow(QMainWindow):
         pending_message = self._pending_message
         if pending_message is None:
             self.chat_area.cancel_assistant_stream()
-            self.input_bar.enable()
+            self._release_text_operation()
             return
 
         saved_user_message_id: str | None = None
@@ -1001,7 +1042,7 @@ class MainWindow(QMainWindow):
             self.chat_area.cancel_assistant_stream()
             self.load_active_chat()
             self.chat_area.append_error(f"Could not save AI response: {error}")
-            self.input_bar.enable()
+            self._release_text_operation()
             self.input_bar.focus_input()
             self._app_status_bar.show_error("Database error")
             self._pending_message = None
@@ -1017,7 +1058,7 @@ class MainWindow(QMainWindow):
             # Do NOT reload from database as that wipes the live agent timeline!
         self.refresh_sidebar()
 
-        self.input_bar.enable()
+        self._release_text_operation()
 
         self.input_bar.focus_input()
 
@@ -1027,7 +1068,7 @@ class MainWindow(QMainWindow):
     # --------------------------------------------------
 
     def on_error(self, message: str):
-        if not self.input_bar.is_generating():
+        if self._active_operation not in ("chat", "agent"):
             return
         logger.error(f"[MainWindow] AI Response Error: {message}")
         self.chat_area.cancel_assistant_stream()
@@ -1035,29 +1076,31 @@ class MainWindow(QMainWindow):
             self.file_service.discard_files(self._pending_message.attachments)
         self.chat_area.append_error(message)
 
-        self.input_bar.enable()
+        self._release_text_operation()
 
         self._app_status_bar.show_error(f"Error: {message[:50]}")
         self._pending_message = None
 
     def cancel_current_task(self):
         """Cancel ongoing AI response generation or ReAct Agent execution."""
-        if not self.input_bar.is_generating():
+        operation = self._active_operation
+        if operation is None:
             return
 
         logger.info("[MainWindow] User requested cancellation of active AI task.")
         self._app_status_bar.show_info("Cancelling task...")
 
-        # 1. Cancel Agent task if Agent mode is active
-        if hasattr(self, "agent_controller") and self.agent_controller:
+        if operation == "live":
+            self._stop_live_session()
+            return
+
+        if operation == "agent":
             self.agent_controller.cancel_agent_task()
+            self.chat_area.update_agent_progress("🛑 Task cancellation requested by user...", is_tool=False)
+            return
 
-        # 2. Cancel standard LLM streaming worker
-        if hasattr(self, "controller") and self.controller:
+        if operation == "chat":
             self.controller.cancel()
-
-        # 3. Handle standard streaming chat cancellation immediately on UI thread
-        if not self.input_bar.is_agent_mode_active():
             partial_text = getattr(self.chat_area, "_stream_raw_text", "").strip()
             if partial_text and self._pending_message is not None:
                 stopped_msg = f"{partial_text}\n\n*(Generation stopped by user)*"
@@ -1067,12 +1110,10 @@ class MainWindow(QMainWindow):
                 if self._pending_message is not None:
                     self.file_service.discard_files(self._pending_message.attachments)
                     self._pending_message = None
-                self.input_bar.enable()
+                self._release_text_operation()
                 self.input_bar.focus_input()
                 self.update_status_bar("Ready")
                 self._app_status_bar.show_info("Generation stopped")
-        else:
-            self.chat_area.update_agent_progress("🛑 Task cancellation requested by user...", is_tool=False)
 
     def on_cancelled(self, partial_text: str = ""):
         """Handle cancellation completion signal from chat worker."""
@@ -1085,24 +1126,22 @@ class MainWindow(QMainWindow):
                 self.chat_area.cancel_assistant_stream()
                 self.file_service.discard_files(self._pending_message.attachments)
                 self._pending_message = None
-                self.input_bar.enable()
+                self._release_text_operation()
                 self.input_bar.focus_input()
                 self.update_status_bar("Ready")
                 self._app_status_bar.show_info("Generation stopped")
         else:
-            self.input_bar.enable()
+            self._release_text_operation()
             self.update_status_bar("Ready")
 
     def keyPressEvent(self, event):
         """Global key shortcuts for MainWindow, including Escape to stop generation or live voice."""
         if event.key() == Qt.Key.Key_Escape:
-            if hasattr(self, "voice_controller") and self.voice_controller.is_live_session_active():
-                self.voice_controller.stop_live_session()
-                self.input_bar.set_live_mode(False)
-                self._app_status_bar.show_info("Live Conversation stopped")
+            if self._active_operation == "live" or (hasattr(self, "voice_controller") and self.voice_controller.is_live_session_active()):
+                self._stop_live_session("Live Conversation stopped")
                 event.accept()
                 return
-            if self.input_bar.is_generating():
+            if self._active_operation is not None or self.input_bar.is_generating():
                 self.cancel_current_task()
                 event.accept()
                 return
@@ -1128,9 +1167,14 @@ class MainWindow(QMainWindow):
             cleaned_lines = []
             for line in clean_output.split("\n"):
                 s = line.strip()
-                if s.startswith(("Thought:", "Action:", "Action Input:", "Observation:")):
+                if s.startswith(("Action:", "Action Input:", "Observation:")):
                     continue
-                cleaned_lines.append(line)
+                if s.startswith("Thought:"):
+                    thought_body = s[8:].strip()
+                    if thought_body:
+                        cleaned_lines.append(thought_body)
+                else:
+                    cleaned_lines.append(line)
             clean_output = "\n".join(cleaned_lines).strip()
 
         if not clean_output:
@@ -1290,10 +1334,22 @@ class MainWindow(QMainWindow):
     def _get_voice_history(self) -> list:
         """Return the current conversation history for the voice pipeline."""
         try:
-            conversation = self.chat_manager.get_active_chat()
-            return self.chat_manager.get_api_messages(conversation.id)
+            target_chat_id = self._live_conversation_id or self.chat_manager.get_active_chat().id
+            return self.chat_manager.get_api_messages(target_chat_id)
         except Exception:
             return []
+
+    def _on_live_response_started(self) -> int:
+        target_chat_id = self._live_conversation_id or self.chat_manager.get_active_chat().id
+        if self.chat_manager.get_active_chat().id != target_chat_id:
+            return -1
+        return self.chat_area.start_assistant_stream()
+
+    def _on_live_partial_token(self, chunk: str) -> None:
+        target_chat_id = self._live_conversation_id or self.chat_manager.get_active_chat().id
+        if self.chat_manager.get_active_chat().id != target_chat_id:
+            return
+        self.chat_area.append_assistant_stream(chunk)
 
     def on_voice_button_clicked(self):
         """Handle user click on the microphone button based on current VoiceState."""
@@ -1310,32 +1366,37 @@ class MainWindow(QMainWindow):
 
     def on_live_button_clicked(self):
         """Toggle the continuous Live Conversation mode on or off."""
-        if self.voice_controller.is_live_session_active():
-            self.voice_controller.stop_live_session()
-            self.input_bar.set_live_mode(False)
-            self._app_status_bar.show_info("Live Conversation stopped")
-        else:
-            from app.licensing.license_manager import LicenseManager
-            active_tts = getattr(self.voice_controller.settings, "tts_provider_id", "")
-            clean_tts = active_tts.replace("_tts", "")
-            if clean_tts in ("cartesia", "elevenlabs", "fish_audio"):
-                from app.settings.settings_manager import SettingsManager
-                has_own_key = bool(SettingsManager.instance().service.get_api_key(clean_tts))
-                if not has_own_key and not LicenseManager.instance().is_feature_allowed("cartesia_voice"):
-                    self.open_upgrade_window("Cartesia / ElevenLabs লাইভ ভয়েস সুবিধাটি Pro এবং ৩ দিনের ফ্রি ট্রায়ালের অন্তর্ভুক্ত।")
-                    return
+        if self.voice_controller.is_live_session_active() or self._active_operation == "live":
+            self._stop_live_session("Live Conversation stopped")
+            return
 
-            conversation = self.chat_manager.get_active_chat()
-            self._live_history_conversation_id = conversation.id
-            if self.voice_controller.state in (VoiceState.ERROR, VoiceState.INTERRUPTED):
-                self.voice_controller.reset()
-            self.voice_controller.start_live_session()
-            if self.voice_controller.is_live_session_active():
-                self.input_bar.set_live_mode(True)
-                self._app_status_bar.show_success("Live Conversation started — speak now!")
-            else:
+        if self._active_operation in ("chat", "agent"):
+            self.input_bar.set_live_mode(False)
+            self._app_status_bar.show_warning("Please wait or stop the current operation first.")
+            return
+
+        from app.licensing.license_manager import LicenseManager
+        active_tts = getattr(self.voice_controller.settings, "tts_provider_id", "")
+        clean_tts = active_tts.replace("_tts", "")
+        if clean_tts in ("cartesia", "elevenlabs", "fish_audio"):
+            from app.settings.settings_manager import SettingsManager
+            has_own_key = bool(SettingsManager.instance().service.get_api_key(clean_tts))
+            if not has_own_key and not LicenseManager.instance().is_feature_allowed("cartesia_voice"):
                 self.input_bar.set_live_mode(False)
-                self._app_status_bar.show_error("Could not start Live Conversation. Please check microphone.")
+                self.open_upgrade_window("Cartesia / ElevenLabs লাইভ ভয়েস সুবিধাটি Pro এবং ৩ দিনের ফ্রি ট্রায়ালের অন্তর্ভুক্ত।")
+                return
+
+        conversation = self.chat_manager.get_active_chat()
+        self._live_conversation_id = conversation.id
+        if self.voice_controller.state in (VoiceState.ERROR, VoiceState.INTERRUPTED):
+            self.voice_controller.reset()
+        self.voice_controller.start_live_session()
+        if self.voice_controller.is_live_session_active():
+            self._set_active_operation("live")
+            self.input_bar.set_live_mode(True)
+            self._app_status_bar.show_success("Live Conversation started — speak now!")
+        else:
+            self._stop_live_session("Could not start Live Conversation. Please check microphone.")
 
     def on_voice_state_changed(self, state: VoiceState):
         """Update window status bar text when VoiceState changes."""
@@ -1375,10 +1436,11 @@ class MainWindow(QMainWindow):
 
         if self.voice_controller.is_live_session_active():
             self.input_bar.clear()
-            conversation = self.chat_manager.get_active_chat()
+            target_chat_id = self._live_conversation_id or self.chat_manager.get_active_chat().id
             try:
-                self.chat_manager.add_user_message(transcript, conversation.id)
-                self.chat_area.append_user_message(transcript)
+                self.chat_manager.add_user_message(transcript, target_chat_id)
+                if self.chat_manager.get_active_chat().id == target_chat_id:
+                    self.chat_area.append_user_message(transcript)
                 self.refresh_sidebar()
             except Exception:
                 logger.exception("Failed to add user message during voice transcript processing.")
@@ -1396,17 +1458,19 @@ class MainWindow(QMainWindow):
         """Persist AI response when voice turn completes."""
         if not response_text:
             return
-        conversation = self.chat_manager.get_active_chat()
+        target_chat_id = self._live_conversation_id or self.chat_manager.get_active_chat().id
         try:
-            self.chat_manager.add_assistant_message(response_text, conversation.id)
+            self.chat_manager.add_assistant_message(response_text, target_chat_id)
         except Exception:
             logger.exception("Failed to add assistant message during voice response processing.")
 
         if self.voice_controller.is_live_session_active():
-            self.chat_area.end_assistant_stream(response_text)
+            if self.chat_manager.get_active_chat().id == target_chat_id:
+                self.chat_area.end_assistant_stream(response_text)
             self.refresh_sidebar()
         else:
-            self.load_active_chat()
+            if self.chat_manager.get_active_chat().id == target_chat_id:
+                self.load_active_chat()
         self.input_bar.clear()
 
     def on_voice_audio_ready(self, audio_bytes: bytes):
@@ -1417,7 +1481,9 @@ class MainWindow(QMainWindow):
     def on_voice_error(self, error_msg: str):
         """Show voice error message on status bar."""
         self._app_status_bar.show_error(f"Voice Error: {error_msg}")
-        if not self.voice_controller.is_live_session_active():
+        if self._active_operation == "live" or self.voice_controller.is_live_session_active():
+            self._stop_live_session(f"Voice Error: {error_msg}")
+        else:
             self.input_bar.set_live_mode(False)
 
     # --------------------------------------------------

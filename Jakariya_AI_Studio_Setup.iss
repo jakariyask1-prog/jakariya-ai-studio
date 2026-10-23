@@ -65,8 +65,9 @@ Source: "dist\Jakariya AI Studio\*"; DestDir: "{app}"; Flags: ignoreversion recu
 Source: "dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 #endif
 
-; Environment Configuration Template (Preserved if present on upgrade)
-Source: ".env"; DestDir: "{app}"; Flags: onlyifdoesntexist uninsneveruninstall skipifsourcedoesntexist
+; Safe environment template only. Never package a developer's real .env or API keys.
+Source: ".env.example"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+Source: ".env.example"; DestDir: "{app}"; DestName: ".env"; Flags: onlyifdoesntexist uninsneveruninstall skipifsourcedoesntexist
 
 ; Documentation, User Guides & Client Presentation
 Source: "README.md"; DestDir: "{app}\docs"; Flags: ignoreversion skipifsourcedoesntexist

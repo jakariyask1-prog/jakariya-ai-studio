@@ -48,6 +48,9 @@ class TestSystemIntegration(unittest.TestCase):
         self.mgr.register_provider(IntegrationMockProvider("anthropic"), priority=3)
         self.mgr.register_provider(IntegrationMockProvider("groq"), priority=4)
 
+    def tearDown(self):
+        ProviderManager.reset_instance()
+
     def test_claude_client_provider_resolution(self):
         client = ClaudeClient()
 

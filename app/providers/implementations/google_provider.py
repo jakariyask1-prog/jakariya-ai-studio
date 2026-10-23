@@ -74,6 +74,8 @@ class GoogleAIStudioProvider(BaseProvider):
             self._client = OpenAI(
                 api_key=current_key,
                 base_url=current_url,
+                timeout=15.0,
+                max_retries=1,
             )
             self._last_key = current_key
             self._last_url = current_url
@@ -140,10 +142,10 @@ class GoogleAIStudioProvider(BaseProvider):
             )
         except Exception as exc:
             err_msg = str(exc).lower()
-            if ("not found" in err_msg or "404" in err_msg) and model_id != "gemini-3.8-flash":
+            if any(k in err_msg for k in ("not found", "404", "503", "unavailable", "high demand", "overloaded", "spikes in demand")) and model_id != "gemini-3.6-flash":
                 try:
                     res = client.chat.completions.create(
-                        model="gemini-3.8-flash",
+                        model="gemini-3.6-flash",
                         messages=messages,
                         temperature=request.temperature,
                         max_tokens=request.max_tokens,
@@ -156,7 +158,7 @@ class GoogleAIStudioProvider(BaseProvider):
                     return ChatResponse(
                         content=content,
                         reasoning_content=reasoning,
-                        model="google/gemini-3.8-flash",
+                        model="google/gemini-3.6-flash",
                         provider_id=self.provider_id,
                         prompt_tokens=getattr(usage, "prompt_tokens", 0) if usage else 0,
                         completion_tokens=getattr(usage, "completion_tokens", 0) if usage else 0,
@@ -180,10 +182,10 @@ class GoogleAIStudioProvider(BaseProvider):
             )
         except Exception as exc:
             err_msg = str(exc).lower()
-            if ("not found" in err_msg or "404" in err_msg) and model_id != "gemini-3.8-flash":
+            if any(k in err_msg for k in ("not found", "404", "503", "unavailable", "high demand", "overloaded", "spikes in demand")) and model_id != "gemini-3.6-flash":
                 try:
                     res = client.chat.completions.create(
-                        model="gemini-3.8-flash",
+                        model="gemini-3.6-flash",
                         messages=messages,
                         temperature=request.temperature,
                         max_tokens=request.max_tokens,

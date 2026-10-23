@@ -5,7 +5,7 @@
 ![Version](https://img.shields.io/badge/Version-2.0.0-blue?style=for-the-badge)
 ![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![GUI](https://img.shields.io/badge/GUI-PySide6%20%2F%20Qt6-41CD52?style=for-the-badge&logo=qt&logoColor=white)
-![Tests](https://img.shields.io/badge/Tests-366%20Passed%20(100%25)-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)
+![Tests](https://img.shields.io/badge/Tests-422%20Passed%20(100%25)-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)
 ![Platform](https://img.shields.io/badge/Platform-Windows%20x64-0078D6?style=for-the-badge&logo=windows&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 
@@ -28,9 +28,9 @@
 | :--- | :--- |
 | **No Vendor Lock-In** | Seamlessly connects to **16 premier AI cloud & local engines**: **Google AI Studio (Gemini 3.8 Flash, 3.7 Flash, 3.6 Flash, 3.5 Flash, Flash Latest, Pro Latest)**, **Groq (300–800+ tokens/sec: GPT-OSS 120B/20B, Qwen 3.8 27B, ALLAM 2)**, **DeepSeek (V3 & R1 via OpenRouter)**, **Anthropic Claude (3.7 Sonnet & 3.5)**, **Cerebras Wafer-Scale (2000+ t/s)**, **Mistral AI (Codestral 256k & Mistral Small)**, **Plugsky AI (Lite & Micro)**, **Ollama (100% Offline)**, **Cartesia AI (Sonic)**, **Fish Audio (s2.1-pro)**, **ElevenLabs**, **Hugging Face FLUX.1**, **Stability AI**, **Tavily AI Search**, and **LlamaParse**. |
 | **Dynamic Capability Registry** | Built-in `ProviderRegistry` cataloging dynamic functional capabilities (`supports_chat`, `supports_reasoning`, `supports_coding`, `supports_vision`, `supports_image_generation`, `supports_stt`, `supports_tts`, `supports_web_search`) with automated health checks, dynamic model discovery, and failover routing. |
-| **Enterprise Data Privacy & Security** | All conversations, message histories, credentials, and attachments stay strictly on the user's computer. SQLite configured in WAL mode (`%LOCALAPPDATA%\Jakariya AI Studio\`). Sensitive API keys are secured via **Windows Credential Manager (Keyring)**—never stored in plaintext. |
+| **Enterprise Data Privacy & Security** | All conversations, message histories, credentials, and attachments stay strictly on the user's computer. SQLite configured in WAL mode (`%LOCALAPPDATA%\Jakariya AI Studio\`). Sensitive API keys are secured via **Windows Credential Manager (Keyring)**—never stored in plaintext. Pro licensing is secured offline via **asymmetric Ed25519 digital signatures** with anti-clock-tampering protection and zero telemetry. |
 | **Zero Mandatory Recurring Fees** | Integrated with free, high-quality cloud services out of the box: **Microsoft Edge Neural TTS (Free natural conversational voices)**, **Google Web Speech STT (Free)**, **Pollinations AI (Free image generation)**, and **Ollama (Free local AI)**. Premium API keys are completely optional. |
-| **Hands-Free Live Voice & Voice Cloning** | Features **Continuous Live Mode (⚡ Live)**: speak naturally with the AI like a human assistant. Features active **Barge-In interruption**, dynamic speaker echo attenuation (`0.15`), physical hardware device selection (input mic & output speaker), personal cloned voice IDs, and sub-second responses via Cartesia AI Sonic, Fish Audio, Edge Neural TTS (`en-US-JennyNeural`, `bn-BD-NabanitaNeural`), ElevenLabs, and Google TTS. |
+| **Hands-Free Live Voice & Voice Cloning** | Features **Continuous Live Mode (⚡ Live)**: speak naturally with the AI like a human assistant. Features active **Barge-In interruption**, dynamic speaker echo attenuation (`0.15`), physical hardware device selection (input mic & output speaker), personal cloned voice IDs, **bilingual speech normalization** (`speech_normalizer.py`), and sub-second responses via Cartesia AI Sonic, Fish Audio, Edge Neural TTS (`en-US-JennyNeural`, `bn-BD-NabanitaNeural`), ElevenLabs, and Google TTS. |
 | **Full Bilingual Support** | Native, fluent bilingual interaction in **Bangla (বাংলা)** and **English**, complete with embedded Bengali typography (`NotoSansBengali`) for reports and UI widgets. |
 | **Smart Document Publishing** | Automatically turns AI research into stylized physical files (**PDF**, **Word DOCX**, **Excel XLSX**, **HTML**, **Markdown**, **TXT**, **CSV**, **JSON**) with Claude Desktop-style interactive preview cards, 1-click Excel export, and 6 color palettes. |
 | **Ultra-HD Image Studio & Same-Type Art** | Built-in **FLUX.1-schnell** (via Hugging Face distributed inference), Stability AI SDXL, Pollinations AI, and innovative **Same-Type / Similar Image Generation** from attached pictures using multi-modal vision prompts, plus an offline **Dual-Frequency Separation** portrait enhancer upscaling images 2X locally. |
@@ -84,7 +84,15 @@
 * **Hands-Free Live Conversation (⚡ Live)**: Continuous multi-turn dialogue loop with automatic Voice Activity Detection (VAD) and configurable silence detection (1000–1300ms natural conversational pause).
 * **Barge-In Interruption**: Interrupt the AI mid-sentence simply by speaking. The audio player immediately stops speaking and transitions back to listening without UI lag.
 * **Acoustic Feedback Shield**: Automatically attenuates microphone gain to **0.15** during TTS playback to eliminate audio loopbacks.
-* **Hardware Audio Device Selection (NEW)**: Explicitly choose specific physical Microphone inputs and Speaker/Headphone outputs directly in Settings > Voice & Audio using `QMediaDevices`.
+* **Bilingual Speech Normalization & Pronunciation Engine (`speech_normalizer.py`)**:
+  - Automatically cleans transcripts and speech inputs, correcting common Whisper and Google STT phonetic confusions.
+  - Expands spelled-out letter sequences and acronyms (e.g. "A-P-I" -> "A, P, I").
+  - Translates and expands currency and mathematical symbols (`৳` ➔ "টাকা", `$` ➔ "ডলার", `°C` ➔ "ডিগ্রি সেলসিয়াস", `%` ➔ "শতাংশ") for smooth, natural phonetic vocalization.
+  - Dynamically transliterates common English loanwords into Bengali phonetics so neural voices (`bn-BD-NabanitaNeural`, `bn-BD-PradeepNeural`, and Cartesia Sonic) articulate them fluently.
+* **Operation Concurrency Locking & Chat Session Isolation**:
+  - Mutual-exclusion state lock on InputBar controls during active operations, preventing button drift, double-submission race conditions, or accidental cancellation hijacks.
+  - Live conversation audio and transcripts are strictly pinned to their originating chat ID, preventing message leakage into other chat tabs.
+* **Hardware Audio Device Selection**: Explicitly choose specific physical Microphone inputs and Speaker/Headphone outputs directly in Settings > Voice & Audio using `QMediaDevices`.
 * **Custom Voices Studio & Presets Manager (`AddVoiceDialog`, `voice_presets.py`)**:
   - Interactive custom voice dialog supporting custom voice additions with dynamic provider metadata, preview playback, and sample rate negotiation across Cartesia, Fish Audio, Edge TTS, ElevenLabs, and Google TTS.
   - Built-in Voice Presets catalog with curated conversational personalities (Jenny, Guy, Nabanita, Pradeep, Sonic Clones).
@@ -294,8 +302,10 @@ $env:QT_QPA_PLATFORM = "offscreen"
 
 ### Test Coverage Highlights
 
-* **Total Test Cases**: **366 Passed (100% Pass Rate)** across 66 test suites.
+* **Total Test Cases**: **422 Passed (100% Pass Rate)** across 72 test suites.
 * **Subsystems Covered**:
+  - `test_six_issues_fixes.py`: Comprehensive regression suite covering input control operation state locks, originating chat pinning for live dialogues, license permission guards, uncheck resets on blocked live mode, and dark/neon badge styling.
+  - `test_bilingual_speech_intelligence.py`: Bengali phonetic STT normalization, acronym expansion, currency and symbol vocalization, and English loanword transliteration.
   - `test_theme_switching.py`: Comprehensive test suite for all 4 eye-comfort theme palettes (Light, Dark, OLED, Neon), theme propagation across SettingsWindow pages, provider cards, comboboxes, and tooltips.
   - `test_live_conversation_fixes.py`: Cartesia language-voice pairing, Google STT fallback, Groq STT auto-detect, microphone isolation, and barge-in threshold verification.
   - `test_ui_deep_sanity.py`: Full MainWindow and SettingsWindow lifecycle, 9 settings pages navigation, voice transcribing into input bar, and live mode chat routing.
@@ -427,7 +437,7 @@ jakariya ai studio/
 │   │   └── styles.py                           # 4 Eye-Comfort Themes (Light, Dark, OLED, Neon) & unified QSS
 │   ├── utils/                                  # Paths, document detector, markdown renderer, check_keys
 │   └── voice/                                  # Voice engine, STT (Groq Whisper, Google) & TTS, Presets, Cartesia, Devices
-└── tests/                                      # 66 test suites containing 366 passing test cases (100%)
+└── tests/                                      # 72 test suites containing 422 passing test cases (100%)
 ```
 
 ---
@@ -454,4 +464,4 @@ copies or substantial portions of the Software.
 
 * **Architect & Developer**: **Md. Jakariya Sheikh**  
 * **Project**: **Jakariya AI Studio (v2.0.0)**  
-* **Status**: **100% Production Ready & Verified (366/366 Tests Green)**
+* **Status**: **100% Production Ready & Verified (422/422 Tests Green)**

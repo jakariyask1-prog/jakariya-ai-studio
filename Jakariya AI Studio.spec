@@ -36,7 +36,7 @@ plugins_dir = os.path.join(pyside6_dir, "plugins")
 # Core Data Files & Selective Assets
 datas = []
 for data_target, dest in [
-    ('.env', '.'),
+    ('.env.example', '.'),
     ('config', 'config'),
     ('prompt', 'prompt'),
     ('README.md', '.'),
@@ -94,6 +94,7 @@ package_data_targets = [
     'markdown_it',
     'pypdf',
     'pydantic',
+    'cryptography',
 ]
 
 for pkg in package_data_targets:
@@ -205,6 +206,11 @@ hiddenimports = [
     'app.auth.ui.auth_dialog',
     'app.licensing.license_manager',
     'app.licensing.ui.upgrade_dialog',
+    'cryptography',
+    'cryptography.exceptions',
+    'cryptography.hazmat.primitives.asymmetric.ed25519',
+    'cryptography.hazmat.primitives.asymmetric',
+    'cryptography.hazmat.primitives',
 
     # Provider implementations
     'app.providers.base.base_provider',
@@ -229,6 +235,7 @@ hiddenimports = [
     # Voice & Audio
     'app.voice.utils.patch_speech',
     'app.voice.utils.audio_utils',
+    'app.voice.utils.speech_normalizer',
     'app.voice.utils.device_manager',
     'app.voice.business_logic.tts.tts_provider',
     'app.voice.business_logic.tts.tts_registry',

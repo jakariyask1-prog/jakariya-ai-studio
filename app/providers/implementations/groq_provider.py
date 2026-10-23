@@ -57,6 +57,8 @@ class GroqProvider(BaseProvider):
             self._client = OpenAI(
                 api_key=current_key,
                 base_url=current_url,
+                timeout=15.0,
+                max_retries=1,
             )
             self._last_key = current_key
             self._last_url = current_url
@@ -117,7 +119,7 @@ class GroqProvider(BaseProvider):
             )
         except Exception as exc:
             err_msg = str(exc).lower()
-            if ("decommissioned" in err_msg or "does not exist" in err_msg or "not found" in err_msg) and model_id != "openai/gpt-oss-120b":
+            if any(k in err_msg for k in ("decommissioned", "does not exist", "not found", "context_length_exceeded", "reduce the length")) and model_id != "openai/gpt-oss-120b":
                 try:
                     res = client.chat.completions.create(
                         model="openai/gpt-oss-120b",
@@ -159,7 +161,7 @@ class GroqProvider(BaseProvider):
             )
         except Exception as exc:
             err_msg = str(exc).lower()
-            if ("decommissioned" in err_msg or "does not exist" in err_msg or "not found" in err_msg) and model_id != "openai/gpt-oss-120b":
+            if any(k in err_msg for k in ("decommissioned", "does not exist", "not found", "context_length_exceeded", "reduce the length")) and model_id != "openai/gpt-oss-120b":
                 try:
                     res = client.chat.completions.create(
                         model="openai/gpt-oss-120b",

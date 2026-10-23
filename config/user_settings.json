@@ -10,7 +10,7 @@
     "appearance": {
         "theme": "light",
         "font_family": "Segoe UI",
-        "font_scale": 1.0,
+        "font_scale": 1.12,
         "message_density": "comfortable"
     },
     "providers": {
@@ -144,24 +144,24 @@
         }
     },
     "models": {
-        "chat_model": "google/gemini-3.8-flash",
+        "chat_model": "google/gemini-3.6-flash",
         "coding_model": "qwen/qwen-2.5-coder-32b-instruct",
         "reasoning_model": "google/gemini-3.7-flash",
-        "vision_model": "google/gemini-3.8-flash",
+        "vision_model": "google/gemini-3.6-flash",
         "voice_model": "cartesia",
         "image_model": "google/gemini-3.5-flash",
         "fallback_model": "google/gemini-3.6-flash"
     },
     "voice": {
         "stt_provider_id": "groq_stt",
-        "tts_provider_id": "edge_neural_tts",
-        "voice_id": "bn-BD-NabanitaNeural",
+        "tts_provider_id": "cartesia",
+        "voice_id": "2c8d7dfb-ca84-4888-9600-8d8c54022dba",
         "custom_voices": [],
         "auto_send": true,
         "voice_response": true,
-        "silence_timeout_ms": 1032,
+        "silence_timeout_ms": 525,
         "vad_threshold": 0.012,
-        "language": "auto",
+        "language": "bn",
         "input_device_index": null,
         "output_device_index": 0
     },

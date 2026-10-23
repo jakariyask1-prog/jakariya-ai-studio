@@ -1,12 +1,16 @@
 """Comprehensive Unit Tests for User Authentication and 3-Day Trial / Freemium System."""
 
+import base64
 import json
 import secrets
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 import pytest
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 from app.auth.auth_service import AuthService, _hash_password, _verify_password
+from app.licensing import license_manager as license_module
 from app.licensing.license_manager import LicenseManager, TRIAL_DURATION_HOURS, FREE_FEATURES, PREMIUM_FEATURES
 
 
@@ -31,6 +35,33 @@ def isolated_auth_and_license(tmp_path: Path):
 
     AuthService.reset_instance()
     LicenseManager.reset_instance()
+
+
+@pytest.fixture
+def signed_license(monkeypatch):
+    """Issue test-only licenses using an isolated Ed25519 key pair."""
+    private_key = Ed25519PrivateKey.generate()
+    public_key = private_key.public_key().public_bytes(
+        encoding=serialization.Encoding.Raw,
+        format=serialization.PublicFormat.Raw,
+    )
+    monkeypatch.setattr(license_module, "LICENSE_PUBLIC_KEY_B64", base64.b64encode(public_key).decode("ascii"))
+
+    def issue(email: str, *, plan: str = "pro", days: int = 365, lifetime: bool = False) -> str:
+        now = datetime.now(timezone.utc)
+        payload = {
+            "license_id": f"test-{secrets.token_hex(8)}",
+            "email": email.lower(),
+            "plan": plan,
+            "issued_at": now.isoformat(),
+            "expires_at": None if lifetime else (now + timedelta(days=days)).isoformat(),
+        }
+        payload_bytes = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        signature = private_key.sign(payload_bytes)
+        encode = lambda value: base64.urlsafe_b64encode(value).decode("ascii").rstrip("=")
+        return f"JAK-LIC-{encode(payload_bytes)}.{encode(signature)}"
+
+    return issue
 
 
 def test_password_hashing_and_verification():
@@ -158,7 +189,7 @@ def test_trial_expiry_falls_back_to_free_version(isolated_auth_and_license):
     assert lic_mgr.is_feature_allowed("excel_export") is False
 
 
-def test_license_key_activation_unlocks_pro_permanently(isolated_auth_and_license):
+def test_license_key_activation_unlocks_pro_permanently(isolated_auth_and_license, signed_license):
     import secrets
     auth_svc, lic_mgr = isolated_auth_and_license
 
@@ -174,13 +205,18 @@ def test_license_key_activation_unlocks_pro_permanently(isolated_auth_and_licens
     # Attempt invalid key
     ok, err = lic_mgr.activate_license_key("INVALID-KEY-123")
     assert ok is False
-    assert "ব্যর্থ" in err or "অকার্যকর" in err
+    assert "ফরম্যাট" in err or "স্বাক্ষর" in err
 
-    # Activate valid 1-year Pro key
-    ok, msg = lic_mgr.activate_license_key("JAK-PRO-2026-X89B-VALID")
+    # A familiar-looking prefix cannot unlock Premium without a signature.
+    ok, err = lic_mgr.activate_license_key("JAK-PRO-2026-X89B-VALID")
+    assert ok is False
+    assert "ফরম্যাট" in err or "স্বাক্ষর" in err
+
+    # Activate a valid one-year signed Pro license.
+    ok, msg = lic_mgr.activate_license_key(signed_license(auth_svc.current_user.email))
     assert ok is True
     assert "অভিনন্দন" in msg
-    assert "১ বছরের" in msg
+    assert "প্রিমিয়াম" in msg
 
     status = lic_mgr.get_plan_status()
     assert status["tier"] == "premium"
@@ -192,15 +228,17 @@ def test_license_key_activation_unlocks_pro_permanently(isolated_auth_and_licens
         assert lic_mgr.is_feature_allowed(feat) is True
 
 
-def test_lifetime_license_key_activation(isolated_auth_and_license):
+def test_lifetime_license_key_activation(isolated_auth_and_license, signed_license):
     import secrets
     auth_svc, lic_mgr = isolated_auth_and_license
 
     unique_email = f"lifetime_{secrets.token_hex(4)}@example.com"
     auth_svc.signup(unique_email, "Lifetime123456")
 
-    # Activate lifetime key
-    ok, msg = lic_mgr.activate_license_key("JAK-VIP-LIFETIME-PREMIUM-KEY")
+    # Activate signed lifetime key
+    ok, msg = lic_mgr.activate_license_key(
+        signed_license(auth_svc.current_user.email, plan="vip", lifetime=True)
+    )
     assert ok is True
     assert "আজীবন" in msg
 
